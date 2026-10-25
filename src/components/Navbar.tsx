@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from '@/components/Imagen'
@@ -32,10 +32,11 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
   useEffect(() => { setAbriendo(false) }, [pathname])
   const isAuthed = !!agent
   // Solo si está logueado y tiene foto curada/Tokko mostramos su avatar, y más
-  // grande que el círculo de iniciales (48 vs 40). Sin foto → iniciales; sin
-  // sesión → ícono genérico.
+  // grande que el círculo de iniciales (48 vs 44). Sin foto → iniciales; sin
+  // sesión → ícono genérico. 44 = toque mínimo de la guía de Apple (antes 40);
+  // la fila del navbar ya mide 44 por el botón de tema, así que no crece.
   const foto = isAuthed ? agent!.foto : null
-  const size = foto ? 48 : 40
+  const size = foto ? 48 : 44
   return (
     <Link
       href="/agentes"
@@ -44,19 +45,21 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
         onClick?.()
       }}
       aria-busy={abriendo}
-      aria-label={isAuthed ? `Cuenta de ${agent!.name}` : 'Ingresar'}
+      // "Acceso agentes" y no "Ingresar": el visitante no tiene cuenta (es el
+      // panel interno), y "Ingresar" le hacía creer que tenía que registrarse.
+      aria-label={isAuthed ? `Cuenta de ${agent!.name}` : 'Acceso agentes'}
       className="relative inline-flex items-center justify-center overflow-hidden transition-transform duration-200 hover:scale-105 active:scale-95"
       style={{
         touchAction: 'manipulation',
         width: size,
         height: size,
-        // El avatar con foto es más grande (48 vs 40). Con margen vertical
-        // negativo ocupa solo 40px de alto en el flujo del navbar (se centra y
+        // El avatar con foto es más grande (48 vs 44). Con margen vertical
+        // negativo ocupa solo 44px de alto en el flujo del navbar (se centra y
         // protruye dentro del padding), así NO agranda la barra: si crecía, el
         // hero (-mt-[77px]) dejaba una franja blanca arriba cuando el usuario
         // estaba logueado.
-        marginTop: foto ? -4 : 0,
-        marginBottom: foto ? -4 : 0,
+        marginTop: foto ? -2 : 0,
+        marginBottom: foto ? -2 : 0,
         background: foto ? '#fff' : '#1A5C38',
         border: foto ? '2px solid #fff' : '2px solid rgba(255,255,255,0.25)',
         borderRadius: 9999,
@@ -112,14 +115,20 @@ const RIGHT_ITEMS = [
 const DRAWER_ITEMS = [...LEFT_ITEMS, ...RIGHT_ITEMS]
 
 function NavLink({ href, label, transparent }: { href: string; label: string; transparent: boolean }) {
+  // El color va en clase y no en style: un color inline le gana también al
+  // :hover, y el hover verde nunca se veía. Sobre la foto del hero el hover
+  // es un blanco apenas más suave (verde sobre foto oscura no se lee); con la
+  // barra sólida, el verde de marca (--brand se aclara solo en modo oscuro).
+  const color = transparent
+    ? 'text-white hover:text-white/75'
+    : 'text-[var(--foreground)] hover:text-[var(--brand)]'
   return (
     <Link
       href={href}
-      className="hover:text-[var(--mundial-accent)] transition-colors duration-200 whitespace-nowrap text-[13px] min-[1200px]:text-[14px] min-[1440px]:text-[16px]"
+      className={`${color} transition-colors duration-200 whitespace-nowrap text-[13px] min-[1200px]:text-[14px] min-[1440px]:text-[16px]`}
       style={{
         fontFamily: R,
         fontWeight: 500,
-        color: transparent ? '#fff' : 'var(--foreground)',
         textDecoration: 'none',
         textShadow: transparent ? '0 1px 4px rgba(0,0,0,0.45)' : 'none',
       }}
@@ -135,6 +144,8 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [agent, setAgent] = useState<{ name: string; foto?: string | null } | null>(null)
+  const hamburguesaRef = useRef<HTMLButtonElement | null>(null)
+  const cerrarDrawerRef = useRef<HTMLButtonElement | null>(null)
   const isPropiedades = pathname.startsWith('/propiedades')
   const isHome = pathname === '/'
   const isBarriosHub = pathname === '/barrios-privados'
@@ -158,6 +169,30 @@ export default function Navbar() {
       .catch(() => { if (alive) setAgent(null) })
     return () => { alive = false }
   }, [pathname])
+
+  // Menú lateral del celu abierto: la página de atrás no se mueve (arrastrar el
+  // dedo sobre el menú scrolleaba la home), Escape lo cierra y el foco entra al
+  // menú. El bloqueo va en <html> y no en <body>: html tiene overflow-x: clip
+  // (globals.css), y con eso el overflow del body ya no llega al viewport y no
+  // bloquea nada. Tampoco position:fixed en el body: el navbar sticky saltaba
+  // fuera de la pantalla detrás del velo.
+  useEffect(() => {
+    if (!isOpen) return
+    const html = document.documentElement
+    const prevOverflow = html.style.overflow
+    html.style.overflow = 'hidden'
+    cerrarDrawerRef.current?.focus({ preventScroll: true })
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setIsOpen(false)
+      hamburguesaRef.current?.focus({ preventScroll: true })
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      html.style.overflow = prevOverflow
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [isOpen])
 
   // Panel /fichas: layout propio con header simple, sin Navbar SI.
   if (pathname === '/fichas' || pathname?.startsWith('/fichas/')) return null
@@ -193,21 +228,21 @@ export default function Navbar() {
             style={{ textDecoration: 'none', width: 191 }}
           >
             {transparent ? (
-              <picture>
-                <source srcSet="/logo-blanco.webp" type="image/webp" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/logo-blanco.png"
-                  alt="SI INMOBILIARIA"
-                  width={191}
-                  height={28}
-                  className="object-contain"
-                  style={{ height: 28, width: 191 }}
-                  fetchPriority="high"
-                  loading="eager"
-                  decoding="async"
-                />
-              </picture>
+              // Logo blanco sobre el hero. El archivo es de 2930×512 (40 KB en
+              // webp) y antes iba como <img> eager con prioridad alta: se bajaba
+              // también en el celu, donde este navbar está oculto, peleando con
+              // la portada (LCP). Con next/image se pide al tamaño que se ve
+              // (ancho fijo → srcset 1x/2x de 256/384 px, pocos KB) y, sin
+              // priority, es lazy: dentro de un display:none no se descarga.
+              <Image
+                src="/logo-blanco.png"
+                alt="SI INMOBILIARIA"
+                width={191}
+                height={28}
+                className="object-contain"
+                style={{ height: 28, width: 191 }}
+                quality={90}
+              />
             ) : (
               <Image
                 src="/LOGO_HORIZONTAL.png"
@@ -241,8 +276,9 @@ export default function Navbar() {
         <div className="relative flex items-center justify-between px-4 py-2.5">
           {/* Left — hamburger */}
           <button
+            ref={hamburguesaRef}
             onClick={() => setIsOpen(!isOpen)}
-            className="w-10 h-10 flex items-center justify-center"
+            className="w-11 h-11 flex items-center justify-center"
             aria-label="Menú"
             aria-expanded={isOpen}
           >
@@ -272,10 +308,20 @@ export default function Navbar() {
       {/* ── Mobile drawer ── */}
       {isOpen && (
         <div className="lg:hidden fixed inset-0 z-[9990]">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setIsOpen(false)} />
+          {/* touch-none: un arrastre que arranca en el velo no mueve la página. */}
+          <div className="absolute inset-0 bg-black/50 touch-none" onClick={() => setIsOpen(false)} />
+          {/* overflow-y-auto: con el celu acostado o la letra agrandada, los
+              últimos ítems quedaban cortados y no había forma de llegar. */}
           <div
-            className="si-theme-drawer absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl"
-            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)', animation: 'slideRight 200ms ease-out' }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú"
+            className="si-theme-drawer absolute top-0 left-0 bottom-0 w-[280px] bg-white shadow-2xl overflow-y-auto overscroll-contain"
+            style={{
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+              animation: 'slideRight 200ms ease-out',
+            }}
           >
             <div className="px-5 pb-4 mb-2 border-b border-gray-100 flex items-center justify-between">
               <Link href="/" onClick={() => setIsOpen(false)} style={{ textDecoration: 'none' }}>
@@ -288,7 +334,12 @@ export default function Navbar() {
                   quality={90}
                 />
               </Link>
-              <button onClick={() => setIsOpen(false)} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
+              <button
+                ref={cerrarDrawerRef}
+                onClick={() => setIsOpen(false)}
+                aria-label="Cerrar menú"
+                className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center"
+              >
                 <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
@@ -304,14 +355,20 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
-              <a
-                href="/agentes"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center justify-center text-sm font-bold px-4 py-3 rounded-lg hover:bg-[#0f3d25] transition-colors mt-4"
-                style={{ fontFamily: R, background: '#1A5C38', color: '#fff' }}
-              >
-                Ingresar
-              </a>
+              {/* El acceso de los agentes era el único botón verde lleno del
+                  menú: al visitante le ofrecía como acción principal un login
+                  que no es para él. Queda abajo, secundario y con borde (sin
+                  colores inline, así el hover y el modo oscuro funcionan). */}
+              <div className="pt-4 mt-4 border-t border-gray-100">
+                <a
+                  href="/agentes"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center min-h-[44px] px-4 text-sm font-semibold text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  style={{ fontFamily: R }}
+                >
+                  Acceso agentes
+                </a>
+              </div>
             </div>
           </div>
         </div>
