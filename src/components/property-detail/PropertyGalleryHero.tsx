@@ -1,82 +1,39 @@
 'use client'
 
 // Zillow-style gallery for desktop (1 big + 4 thumbs 2×2 in a 5-col grid at
-// 440px tall) and a COMPACT hero for mobile (single main photo ~280px tall
-// with a "Ver las N fotos" badge overlay that opens the shared lightbox).
+// 440px tall) and a COMPACT hero for mobile (~280px tall).
 //
 // We keep two simple blocks guarded by md:hidden / hidden md:block because
 // the two layouts are structurally different enough (mobile: single item,
 // desktop: 5-col grid with row-span) that unifying forced a tall 2×2 thumb
 // strip on mobile that filled the viewport.
-import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
+//
+// Celu (25-oct-2026): la portada ahora se desliza con el dedo, como en
+// cualquier portal (antes era una foto fija y para ver la segunda había que
+// abrir otra capa). Carril con scroll-snap nativo, contador "3 / 22" y tocar
+// una foto abre el visor EN esa foto. Compu: misma grilla, pero cada foto es un
+// botón que abre en ella (antes todas abrían arriba de todo).
+import { useCallback, useEffect, useState } from 'react'
 import Image from '@/components/Imagen'
 import { Camera, Images } from 'lucide-react'
 import type { TokkoProperty } from '@/lib/tokko'
 import { usePropiedadConFoco } from '@/lib/usePropiedadConFoco'
 import { getAllPhotos, getOperationType, operationBadgeColor, preciosPorOperacion, tituloVisible, translatePropertyType } from '@/lib/tokko'
+import GaleriaDeslizable, { useFotoALaVista } from './GaleriaDeslizable'
 
 
 export default function PropertyGalleryHero({ property: propertyOriginal }: { property: TokkoProperty }) {
   // Mismo orden de carteles que el cuerpo de la ficha (la operación buscada primero).
   const property = usePropiedadConFoco(propertyOriginal)
   const photos = getAllPhotos(property)
-  const [showAll, setShowAll] = useState(false)
+  // Foto en la que está abierto el visor (null = cerrado).
+  const [visor, setVisor] = useState<number | null>(null)
   const operation = getOperationType(property)
   // Venta Y alquiler a la vez → un cartel por operación (igual que el cuerpo de la ficha).
   const precios = preciosPorOperacion(property)
   const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
   const propType = translatePropertyType(property.type?.name)
   const address = property.fake_address || property.address
-
-  // Bloqueo de scroll del body mientras el lightbox está abierto. Sin esto, al
-  // llegar al final de las fotos el scroll se "cae" a la página de atrás
-  // (scroll chaining) y el usuario vuelve a la ficha. Usamos position:fixed
-  // (lock real, necesario en iOS Safari donde overscroll-behavior solo no
-  // alcanza) + compensación del ancho de la scrollbar para evitar layout shift,
-  // y restauramos la posición previa al cerrar/desmontar.
-  useEffect(() => {
-    if (!showAll) return
-    const scrollY = window.scrollY
-    const body = document.body
-    const prev = {
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-      width: body.style.width,
-      overflow: body.style.overflow,
-      paddingRight: body.style.paddingRight,
-    }
-    const scrollbarW = window.innerWidth - document.documentElement.clientWidth
-    body.style.position = 'fixed'
-    body.style.top = `-${scrollY}px`
-    body.style.left = '0'
-    body.style.right = '0'
-    body.style.width = '100%'
-    body.style.overflow = 'hidden'
-    if (scrollbarW > 0) body.style.paddingRight = `${scrollbarW}px`
-    return () => {
-      body.style.position = prev.position
-      body.style.top = prev.top
-      body.style.left = prev.left
-      body.style.right = prev.right
-      body.style.width = prev.width
-      body.style.overflow = prev.overflow
-      body.style.paddingRight = prev.paddingRight
-      window.scrollTo(0, scrollY)
-    }
-  }, [showAll])
-
-  // ESC cierra el lightbox (antes no había handler; la ✕ ya cerraba).
-  useEffect(() => {
-    if (!showAll) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowAll(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [showAll])
 
   // El visor se cuelga del <body>, no de acá.
   //
@@ -86,17 +43,46 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
   // contra la pantalla: por eso la foto quedaba encajonada entre el listado y
   // el mapa, y la ✕ terminaba debajo del menú. Sacándolo al body, el visor
   // vuelve a ocupar la pantalla completa en los dos casos (panel y ficha).
+  //
+  // El bloqueo del scroll de la página, Escape y el Atrás del celu viven en el
+  // visor (GaleriaDeslizable): se montan y desmontan con él.
   const [montado, setMontado] = useState(false)
   useEffect(() => setMontado(true), [])
 
-  if (photos.length === 0) return null
+  const n = photos.length
+  const titulo = tituloVisible(property) || address
+  const altFoto = (k: number) => `Foto ${k + 1} de ${n} de ${titulo}`
+
+  // Portada deslizable del celu.
+  const { ref: carrusel, indice, onScroll } = useFotoALaVista(n)
+  // Hasta qué foto del carril hay <img> montada. El HTML trae solo la primera
+  // (priority: es el LCP de la ficha y no se demora). La segunda se pide recién
+  // cuando la primera terminó de cargar o el dedo toca el carril, y al deslizar
+  // se van montando dos más adelante: el que desliza no ve un hueco gris.
+  const [alcance, setAlcance] = useState(0)
+  const verHasta = useCallback((k: number) => setAlcance(a => (k > a ? Math.min(k, n - 1) : a)), [n])
+  useEffect(() => { if (indice > 0) verHasta(indice + 2) }, [indice, verHasta])
+
+  // Al cerrar el visor, la portada queda en la foto que se estaba mirando
+  // (continuidad: cerrás en la 8 y la ficha te muestra la 8, no la 1).
+  const cerrarVisor = useCallback((ultima: number) => {
+    setVisor(null)
+    const c = carrusel.current
+    if (!c || !c.clientWidth) return
+    verHasta(ultima + 1)
+    c.scrollLeft = ultima * c.clientWidth
+  }, [carrusel, verHasta])
+
+  if (n === 0) return null
 
   const thumbs = photos.slice(1, 5)
   const hasOverlaySlot = photos.length > 5
 
   // Carteles sobre la foto principal (mobile y desktop comparten el bloque).
   const badges = (
-    <div className="absolute top-3 left-3 flex gap-1.5">
+    // pointer-events-none: son carteles, no botones; así el dedo que arranca
+    // encima de "VENTA" igual desliza la portada (y en la compu abre la foto).
+    <div className="pointer-events-none absolute top-3 left-3 flex gap-1.5">
       {operaciones.map(op => (
         <span
           key={op}
@@ -119,26 +105,64 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
 
   return (
     <>
-      {/* ── MOBILE: single compact hero photo (~280px) with "Ver las N fotos" badge ── */}
+      {/* ── MOBILE: portada deslizable (~280px), contador y "Ver las N fotos" ── */}
       <div className="md:hidden">
-        <div
-          className="relative w-full h-[280px] rounded-xl overflow-hidden cursor-pointer"
-          onClick={() => setShowAll(true)}
-        >
-          <Image
-            src={photos[0]}
-            alt={tituloVisible(property) || address}
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
+        <div className="relative h-[280px] w-full overflow-hidden rounded-xl bg-gray-100">
+          <div
+            ref={carrusel}
+            onScroll={onScroll}
+            onPointerDown={() => verHasta(indice + 1)}
+            role="region"
+            aria-roledescription="carrusel"
+            aria-label={`Fotos de ${titulo}`}
+            className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain scrollbar-none"
+          >
+            {photos.map((src, k) => (
+              <button
+                key={`${k}-${src}`}
+                type="button"
+                onClick={() => setVisor(k)}
+                aria-label={altFoto(k)}
+                // Solo la foto a la vista entra en el orden del Tab (no 22 paradas).
+                tabIndex={k === indice ? 0 : -1}
+                className="relative block h-full w-full shrink-0 snap-center snap-always focus-visible:outline-offset-[-3px]"
+              >
+                {k <= alcance && (
+                  <Image
+                    src={src}
+                    alt={altFoto(k)}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                    {...(k === 0
+                      ? { priority: true, onLoad: () => verHasta(1) }
+                      : { loading: 'eager' as const })}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
           {badges}
-          {photos.length > 1 && (
-            <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 bg-white/95 backdrop-blur px-3 py-2 rounded-lg text-[12px] font-semibold text-gray-800 shadow-md">
-              <Camera className="w-4 h-4" />
-              Ver las {photos.length} fotos
-            </span>
+          {n > 1 && (
+            <>
+              <span
+                aria-hidden="true"
+                className="font-numeric pointer-events-none absolute bottom-3 left-3 rounded-full bg-black/55 px-2.5 py-1 text-[12px] font-semibold text-white backdrop-blur-sm"
+              >
+                {indice + 1} / {n}
+              </span>
+              {/* El área de toque llega a 44px con el padding transparente. */}
+              <button
+                type="button"
+                onClick={() => setVisor(indice)}
+                className="absolute bottom-1.5 right-1.5 p-1.5"
+              >
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/95 px-3 py-2 text-[12px] font-semibold text-gray-800 shadow-md backdrop-blur transition-transform duration-150 active:scale-[0.97]">
+                  <Camera className="h-4 w-4" aria-hidden="true" />
+                  Ver las <span className="font-numeric">{n}</span> fotos
+                </span>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -146,45 +170,51 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
       {/* ── DESKTOP: Zillow 5-col grid (1 big + 4 thumbs 2×2) h-[440px] ── */}
       <div className="hidden md:block">
         <div className="grid grid-cols-5 grid-rows-2 gap-2 h-[440px] rounded-2xl overflow-hidden">
-          <div
-            className="relative col-span-3 row-span-2 cursor-pointer group overflow-hidden"
-            onClick={() => setShowAll(true)}
+          <button
+            type="button"
+            onClick={() => setVisor(0)}
+            className="relative col-span-3 row-span-2 block h-full w-full cursor-pointer group overflow-hidden focus-visible:outline-offset-[-3px]"
           >
             <Image
               src={photos[0]}
-              alt={tituloVisible(property) || address}
+              alt={altFoto(0)}
               fill
               className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
               sizes="(min-width: 1024px) 60vw, 100vw"
               priority
             />
             {badges}
-          </div>
+          </button>
 
           {Array.from({ length: 4 }).map((_, i) => {
             const photo = thumbs[i]
             const isLastSlot = i === 3
             if (!photo) return <div key={i} className="col-span-1 bg-gray-100" />
+            // Abre en ESA foto: índice real en photos (el slot i es la foto i+1).
+            const k = i + 1
+            const conCartel = isLastSlot && hasOverlaySlot
             return (
-              <div
+              <button
                 key={i}
-                className="relative col-span-1 cursor-pointer group overflow-hidden"
-                onClick={() => setShowAll(true)}
+                type="button"
+                onClick={() => setVisor(k)}
+                aria-label={conCartel ? `Ver las ${n} fotos de ${titulo}` : undefined}
+                className="relative col-span-1 block h-full w-full cursor-pointer group overflow-hidden focus-visible:outline-offset-[-3px]"
               >
                 <Image
                   src={photo}
-                  alt=""
+                  alt={altFoto(k)}
                   fill
                   className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                   sizes="20vw"
                 />
-                {isLastSlot && hasOverlaySlot && (
+                {conCartel && (
                   <div className="absolute inset-0 bg-black/55 flex items-center justify-center gap-1.5">
-                    <Images className="w-4 h-4 text-white" />
-                    <span className="text-white text-sm font-semibold">Ver las {photos.length} fotos</span>
+                    <Images className="w-4 h-4 text-white" aria-hidden="true" />
+                    <span className="text-white text-sm font-semibold">Ver las <span className="font-numeric">{n}</span> fotos</span>
                   </div>
                 )}
-              </div>
+              </button>
             )
           })}
         </div>
@@ -193,46 +223,22 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
         {photos.length > 1 && !hasOverlaySlot && (
           <div className="flex justify-end mt-3">
             <button
-              onClick={() => setShowAll(true)}
+              type="button"
+              onClick={() => setVisor(0)}
               className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg text-xs font-semibold text-gray-800 shadow-sm"
               style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
             >
-              <Images className="w-3.5 h-3.5" /> Ver las {photos.length} fotos
+              <Images className="w-3.5 h-3.5" aria-hidden="true" /> Ver las <span className="font-numeric">{n}</span> fotos
             </button>
           </div>
         )}
       </div>
 
-      {/* Lightbox fullscreen — compartido entre mobile y desktop.
-          Va por portal al <body> para escapar del transform del panel. */}
-      {showAll &&
-        montado &&
-        createPortal(
-          <div className="fixed inset-0 z-[10500] bg-black">
-            <button
-              onClick={() => setShowAll(false)}
-              aria-label="Cerrar galería"
-              className="fixed top-4 right-4 z-[10510] flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-xl text-white backdrop-blur-sm hover:bg-white/30"
-            >
-              &times;
-            </button>
-            <div className="h-full overflow-y-auto overscroll-y-contain p-4 pt-16">
-              <div className="mx-auto max-w-4xl space-y-2">
-                {photos.map((p, i) => (
-                  <Image
-                    key={i}
-                    src={p}
-                    alt={`Foto ${i + 1}`}
-                    width={1200}
-                    height={800}
-                    className="h-auto w-full rounded-lg"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
+      {/* Visor a pantalla completa — compartido entre mobile y desktop. Se
+          cuelga del <body> por portal (adentro de GaleriaDeslizable). */}
+      {visor !== null && montado && (
+        <GaleriaDeslizable fotos={photos} inicio={visor} titulo={titulo} onCerrar={cerrarVisor} />
+      )}
     </>
   )
 }
