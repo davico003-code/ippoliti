@@ -1,8 +1,9 @@
 import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 
-// Pastilla del agente para las cards de "Nuestra selección": vidrio oscuro
+// Pastilla del agente para las tarjetas del listado /propiedades: vidrio oscuro
 // abajo a la izquierda de la foto (el padre tiene que ser `relative`), con su
-// video de saludo (o su foto) y el nombre.
+// foto fija y el nombre. Sin el video de saludo (David, 25-oct-2026: tardaba
+// en cargar en cada tarjeta); el animado queda para la home.
 export default function PastillaAgenteCard({ agente, size = 34 }: { agente?: { name: string; picture: string }; size?: number }) {
   if (!agente) return null
   return (
@@ -27,6 +28,7 @@ export default function PastillaAgenteCard({ agente, size = 34 }: { agente?: { n
         fontFamily="'Raleway', system-ui, sans-serif"
         size={size}
         className="ring-2 ring-white/85"
+        animado={false}
       />
       <span className="whitespace-nowrap">{agente.name}</span>
     </div>

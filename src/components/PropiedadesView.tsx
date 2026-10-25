@@ -5,7 +5,6 @@ import PropertyPanel from './PropertyPanel'
 import { useState, useMemo, useCallback, useRef, useEffect, useDeferredValue } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   Search,
@@ -36,6 +35,7 @@ import {
   limpiarPerfilDeUrl,
 } from '@/lib/smart-profile-url'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import FotosVistaPrevia from '@/components/FotosVistaPrevia'
 import { AgentesPropiedadProvider } from '@/components/AgentesPropiedadContext'
 import { GripVertical } from 'lucide-react'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
@@ -53,7 +53,6 @@ import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
 import { ZONAS, type Zona } from '@/lib/zonas'
 import {
   type TokkoProperty,
-  getMainPhoto,
   formatPrice,
   getOperationType,
   operacionPrincipal,
@@ -2134,24 +2133,20 @@ export default function PropiedadesView({
             className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
             style={{ border: '1px solid var(--theme-border, #e5e7eb)' }}
           >
-            {/* Photo — 16:9 (más bajo y compacto) */}
-            <div className="relative w-full aspect-[16/9] bg-gray-100">
-              {(() => {
-                const photo = getMainPhoto(selectedProperty)
-                return photo ? (
-                  <Image src={photo} alt={tituloVisible(selectedProperty) || selectedProperty.address}
-                    fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <MapPin className="w-8 h-8 text-gray-300" />
-                  </div>
-                )
-              })()}
+            {/* Fotos 16:9 (más bajo y compacto): se pasan con las flechas o
+                con swipe sin abrir la ficha. */}
+            <FotosVistaPrevia
+              key={selectedProperty.id}
+              property={selectedProperty}
+              alt={tituloVisible(selectedProperty) || selectedProperty.address}
+              className="aspect-[16/9]"
+              style={{ borderRadius: 0 }}
+            >
               {/* Operation badge */}
               {(() => {
                 const op = getOperationType(selectedProperty)
                 return op ? (
-                  <span className="absolute top-2.5 left-2.5"
+                  <span className="absolute top-2.5 left-2.5 z-10"
                     style={{
                       background: operationBadgeColor(op),
                       color: '#fff', fontFamily: "'Raleway', system-ui, sans-serif",
@@ -2166,7 +2161,7 @@ export default function PropiedadesView({
               <button
                 onClick={e => { e.preventDefault(); e.stopPropagation(); closeBottomSheet() }}
                 aria-label="Cerrar"
-                className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 backdrop-blur shadow-md flex items-center justify-center"
+                className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/95 backdrop-blur shadow-md flex items-center justify-center"
               >
                 <X className="w-4 h-4 text-gray-800" />
               </button>
@@ -2180,7 +2175,7 @@ export default function PropiedadesView({
                 right={48}
                 size={32}
               />
-            </div>
+            </FotosVistaPrevia>
 
             {/* Body — tap en cualquier parte abre la ficha completa */}
             <div style={{ padding: 14 }}>

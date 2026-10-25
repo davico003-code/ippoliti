@@ -7,6 +7,11 @@
 // tarjeta usa las fotos que trae (home, similares).
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import { type TokkoProperty, getAllPhotos, getMainPhoto } from '@/lib/tokko'
+
+/** `sizes` de las fotos del listado. La vista previa del mapa usa el mismo: el
+ *  navegador reusa la foto que ya bajó la tarjeta y Vercel no achica otra. */
+export const SIZES_FOTO_LISTADO = '(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw'
 
 const Ctx = createContext<Record<string, string[]> | null>(null)
 
@@ -43,4 +48,14 @@ export function FotosExtraProvider({ children }: { children: React.ReactNode }) 
 
 export function useFotosExtra(id: number | string): string[] | null {
   return useContext(Ctx)?.[String(id)] ?? null
+}
+
+/** Fotos de una propiedad del listado: las que trae y, si llegó con la portada
+ *  sola, las 2-5 del provider. Tarjetas y vista previa del mapa. */
+export function useFotosDeLaPropiedad(property: TokkoProperty): string[] {
+  const photos = getAllPhotos(property)
+  const fallback = getMainPhoto(property)
+  const base = photos.length > 0 ? photos : fallback ? [fallback] : []
+  const extra = useFotosExtra(property.id)
+  return extra && base.length === 1 ? [base[0], ...extra.filter(u => u !== base[0])] : base
 }
