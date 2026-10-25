@@ -37,6 +37,7 @@ import {
   parseStreetOnly,
   type TokkoProperty,
 } from './tokko'
+import { esFotoR2 } from './fotos-fijas'
 
 const TTL_SECONDS = 60 * 24 * 60 * 60 // 60d
 const SET_KEY = 'fichas:all'
@@ -206,13 +207,27 @@ function pickExtras(property: TokkoProperty): Array<{ name: string; value: strin
 }
 
 export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
-  const fotosPlanas = (property.photos || [])
+  const fotosOrdenadas = (property.photos || [])
     .filter(p => !p.is_blueprint)
     .sort((a, b) => a.order - b.order)
-    .map(p => p.original || p.image)
-    .filter(u => typeof u === 'string' && u.startsWith('https://'))
+  const esHttps = (u: unknown): u is string => typeof u === 'string' && u.startsWith('https://')
 
+  // Galería: la copia de R2 (fotos.verficha.casa) cuando la hay, no la firmada
+  // de Supabase. La firmada vence a los 90 días de firmada y Hilo la rota cada
+  // 45 (ver lib/fotos-fijas.ts): una ficha creada al final del ciclo podía
+  // quedarse sin fotos antes de sus 60 días, en un link que el agente ya mandó,
+  // y fichas-salud no la curaba (trata .supabase.co como propia). La de R2 es
+  // permanente, ya viene achicada (Imagen.tsx pide el ancho justo) y su dominio
+  // es el neutro: no asoma la marca.
+  const fotosPlanas = fotosOrdenadas
+    .map(p => (esFotoR2(p.r2) ? p.r2 : p.original || p.image))
+    .filter(esHttps)
+
+  // La vista previa (og:image) sigue saliendo de la JPG: la copia de R2 es
+  // WebP y la tarjeta de WhatsApp no siempre se arma con WebP. Si no hay JPG,
+  // cualquiera de la galería.
   const ogImage =
+    pickOgImage(fotosOrdenadas.map(p => p.original || p.image).filter(esHttps)) ||
     pickOgImage(fotosPlanas) ||
     (() => {
       const main = getMainPhoto(property)
