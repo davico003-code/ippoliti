@@ -170,9 +170,22 @@ export function esFotoR2(url: unknown): url is string {
   return typeof url === 'string' && RE_FOTO_R2.test(url);
 }
 
-/** El ancho guardado más chico que cubre el pedido (o el mayor). */
+/**
+ * Cuánto se deja estirar un ancho guardado antes de pasar al siguiente: hasta
+ * un 20%. Entre 1080 y 1920 no hay escalón, y un iPhone (393-430 pt a 3x) pide
+ * 1100-1290 px para la foto a lo ancho: sin tolerancia bajaba la de 1920
+ * (≈440 KB contra ≈136 KB de la de 1080, medido en prod en oct-2026 en la foto
+ * principal de una ficha), justo en la foto que define el LCP. Estirar 1080 a
+ * 1290 en una foto de 280 px de alto no se nota; esperar ~300 KB de más, sí.
+ * Con 1280 en images.deviceSizes (next.config) el navegador elige ese
+ * candidato en los iPhone y acá se sirve la de 1080; las compus que piden
+ * 1920 siguen recibiendo la de 1920.
+ */
+const ESTIRAMIENTO_MAX = 1.2;
+
+/** El ancho guardado más chico que cubre el pedido, estirándolo hasta un 20% (o el mayor). */
 export function anchoR2(pedido: number): number {
-  return ANCHOS_R2.find((a) => a >= pedido) ?? ANCHOS_R2[ANCHOS_R2.length - 1];
+  return ANCHOS_R2.find((a) => a * ESTIRAMIENTO_MAX >= pedido) ?? ANCHOS_R2[ANCHOS_R2.length - 1];
 }
 
 /** Loader de next/image para las fotos de R2: arma la URL del ancho pedido. */

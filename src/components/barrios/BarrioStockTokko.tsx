@@ -16,6 +16,11 @@ import { formatUbicacion } from '@/lib/ubicacion'
 import { trackEvent } from '@/lib/analytics'
 import SelloVendida from '@/components/SelloVendida'
 
+// Paleta de la marca: blanco, gris neutro y verde. Antes los títulos iban en
+// navy y los textos en piedra cálida (stone-*): las fichas de barrio parecían
+// de otra empresa. Los gray-* además tienen su versión en modo oscuro
+// (globals.css); los stone-* y navy quedaban fijos.
+
 /** Lo que vendimos queda como UNA placa "Vendida": sin precio y sin link a la ficha. */
 function PlacaVendida({ p }: { p: TokkoProperty }) {
   const photo = getMainPhoto(p)
@@ -24,8 +29,8 @@ function PlacaVendida({ p }: { p: TokkoProperty }) {
   const tipo = translatePropertyType(p.type?.name)
   const ubicacion = formatUbicacion(p)
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200">
-      <div className="relative aspect-[4/3] w-full bg-stone-200">
+    <div className="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+      <div className="relative aspect-[4/3] w-full bg-gray-100">
         {photo && (
           <Image
             src={photo}
@@ -41,10 +46,10 @@ function PlacaVendida({ p }: { p: TokkoProperty }) {
         </span>
       </div>
       <div className="space-y-1.5 p-4">
-        <p className="text-xs uppercase tracking-wide text-stone-500">
+        <p className="text-xs uppercase tracking-wide text-gray-500">
           {[tipo, ubicacion].filter(Boolean).join(' · ')}
         </p>
-        <div className="flex gap-3 text-xs text-stone-600 font-numeric tabular-nums">
+        <div className="flex gap-3 text-xs text-gray-600 font-numeric tabular-nums">
           {lot ? <span>{lot} m² lote</span> : null}
           {roofed ? <span>· {roofed} m² cub.</span> : null}
         </div>
@@ -103,7 +108,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
 
   if (loading) {
     return (
-      <div className="rounded-xl bg-stone-50 p-8 text-center text-sm text-stone-500">
+      <div className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500">
         Cargando stock disponible en {nombre}…
       </div>
     )
@@ -111,7 +116,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
 
   if (error) {
     return (
-      <div className="rounded-xl bg-stone-50 p-8 text-center text-sm text-stone-600">
+      <div className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-600">
         No pudimos cargar el stock en este momento. Pedinos disponibilidad por WhatsApp.
       </div>
     )
@@ -120,10 +125,10 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
   if (properties.length === 0) {
     const avisame = tipo === 'Casa' || tipo === 'Departamento' ? null : (
       <div className="rounded-xl bg-brand-50 p-8 text-center">
-        <p className="mb-3 font-raleway text-lg text-navy-700">
+        <p className="mb-3 font-raleway text-lg text-gray-900">
           No hay stock publicado en {nombre} ahora mismo.
         </p>
-        <p className="mb-4 text-sm text-stone-600">
+        <p className="mb-4 text-sm text-gray-600">
           Trabajamos con stock que rota — si querés que te avisemos cuando entre algo, dejanos el dato.
         </p>
         <Link
@@ -155,9 +160,9 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
   return (
     <div>
       {title && (
-        <h3 className="mb-4 font-raleway text-2xl font-semibold text-navy-700">
+        <h3 className="mb-4 font-raleway text-2xl font-semibold text-gray-900">
           {title}
-          <span className="ml-2 font-numeric text-base text-stone-500 tabular-nums">
+          <span className="ml-2 font-numeric text-base text-gray-500 tabular-nums">
             ({properties.length})
           </span>
         </h3>
@@ -172,9 +177,9 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
             <Link
               key={p.id}
               href={url}
-              className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-stone-200 transition hover:-translate-y-0.5 hover:shadow-lg"
+              className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-0.5 hover:shadow-lg"
             >
-              <div className="relative aspect-[4/3] w-full bg-stone-100">
+              <div className="relative aspect-[4/3] w-full bg-gray-100">
                 {photo ? (
                   <Image
                     src={photo}
@@ -184,22 +189,22 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
                     className="object-cover transition group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-stone-400">
+                  <div className="flex h-full items-center justify-center text-xs text-gray-500">
                     Foto no disponible
                   </div>
                 )}
               </div>
               <div className="space-y-1.5 p-4">
-                <p className="text-xs uppercase tracking-wide text-stone-500">
+                <p className="text-xs uppercase tracking-wide text-gray-500">
                   {[translatePropertyType(p.type?.name), formatUbicacion(p)].filter(Boolean).join(' · ')}
                 </p>
-                <h4 className="font-raleway text-base font-semibold text-navy-700 line-clamp-2">
+                <h4 className="font-raleway text-base font-semibold text-gray-900 line-clamp-2">
                   {p.publication_title}
                 </h4>
                 <p className="font-numeric text-lg font-semibold tabular-nums text-brand-700">
                   {formatPrice(p)}
                 </p>
-                <div className="flex gap-3 text-xs text-stone-600 font-numeric tabular-nums">
+                <div className="flex gap-3 text-xs text-gray-600 font-numeric tabular-nums">
                   {lot ? <span>{lot} m² lote</span> : null}
                   {roofed ? <span>· {roofed} m² cub.</span> : null}
                 </div>

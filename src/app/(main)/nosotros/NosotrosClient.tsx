@@ -6,6 +6,11 @@ import { Target, Eye, Gem, Navigation, Phone, MessageCircle, Clock, User, Home, 
 import YoutubeEmbed from '@/components/nosotros/YoutubeEmbed'
 import { LIGHT_TILES } from '@/lib/map-tiles'
 
+// Letras: 'Raleway' y 'Poppins' escritos a mano en un style NO existen en la
+// página (llegan por next/font/local con otro nombre) y caían a la letra del
+// sistema. El texto hereda Raleway del body; Poppins queda solo en los
+// números, con font-numeric (regla de la marca: Raleway textos, Poppins cifras).
+
 // Liderazgo (Susana, David, Laura) ya aparece en la sección "Nuestra
 // dirección"; los excluimos del grid de agentes para no duplicar.
 const EXCLUIDOS_DEL_GRID = ['David Flores', 'Laura Flores']
@@ -82,8 +87,7 @@ function GoogleLogo() {
   return (
     <span
       aria-label="Google"
-      className="select-none text-2xl md:text-3xl font-medium leading-none"
-      style={{ fontFamily: 'Poppins, sans-serif' }}
+      className="select-none font-poppins text-2xl md:text-3xl font-medium leading-none"
     >
       <span style={{ color: '#4285F4' }}>G</span>
       <span style={{ color: '#EA4335' }}>o</span>
@@ -146,17 +150,17 @@ function SucursalRating({
       className="flex items-center justify-between gap-3 rounded-xl bg-neutral-50 hover:bg-neutral-100 transition-colors px-4 py-3"
     >
       <div>
-        <p className="text-xs uppercase tracking-wide text-neutral-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <p className="text-xs font-medium text-neutral-600">
           {sucursal}
         </p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-lg font-bold tabular-nums text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <span className="text-lg font-bold font-numeric tabular-nums text-black">
             {rating.toFixed(1).replace('.', ',')}
           </span>
           <Stars rating={rating} size={14} />
         </div>
       </div>
-      <span className="text-xs text-neutral-500 whitespace-nowrap" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <span className="text-xs text-neutral-500 whitespace-nowrap">
         {reseñas} reseñas
       </span>
     </a>
@@ -177,27 +181,27 @@ function ReviewCard({
       <div className="flex items-center gap-3 mb-4">
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-white text-base font-semibold shrink-0"
-          style={{ backgroundColor: color, fontFamily: 'Poppins, sans-serif' }}
+          style={{ backgroundColor: color }}
           aria-hidden
         >
           {initial}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-black truncate" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p className="text-sm font-semibold text-black truncate">
             {review.nombre}
           </p>
-          <p className="text-xs text-neutral-500 truncate" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p className="text-xs text-neutral-500 truncate">
             {review.etiqueta}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-2 mb-3">
         <Stars rating={5} size={14} />
-        <span className="text-xs text-neutral-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <span className="text-xs text-neutral-500">
           {review.antiguedad}
         </span>
       </div>
-      <p className="text-sm text-neutral-700 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <p className="text-sm text-neutral-700 leading-relaxed">
         {review.texto}
       </p>
     </div>
@@ -274,7 +278,7 @@ function makePinIcon(L: any, n: number, active: boolean) {
   const fontSize = active ? 16 : 13
   const bg = active ? '#000000' : '#0A2818'
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-family:Poppins,sans-serif;font-weight:600;font-size:${fontSize}px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);transition:width 0.2s,height 0.2s,background 0.2s">${n}</div>`,
+    html: `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:${bg};color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-poppins),'Poppins',system-ui,sans-serif;font-weight:600;font-size:${fontSize}px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);transition:width 0.2s,height 0.2s,background 0.2s">${n}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -(size / 2 + 2)],
@@ -330,8 +334,8 @@ function OficinasMapa({
         const marker = L.marker([o.lat, o.lng], { icon: makePinIcon(L, idx + 1, false) })
           .addTo(map)
           .bindPopup(
-            `<div style="font-family:Poppins,sans-serif;min-width:180px;padding:4px 0">
-              <p style="font-family:Raleway,sans-serif;font-weight:700;font-size:13px;letter-spacing:0.06em;margin:0 0 4px">${o.titulo}</p>
+            `<div style="font-family:var(--font-raleway),'Raleway',system-ui,sans-serif;min-width:180px;padding:4px 0">
+              <p style="font-weight:700;font-size:13px;letter-spacing:0.06em;margin:0 0 4px">${o.titulo}</p>
               ${o.subtitulo ? `<p style="font-size:11px;color:#888;margin:0 0 6px">${o.subtitulo}</p>` : ''}
               <p style="font-size:12px;color:#555;margin:0 0 2px">${o.dir}</p>
               <p style="font-size:12px;color:#555;margin:0 0 8px">${o.horario}</p>
@@ -416,7 +420,7 @@ function TeamCard({ agent }: { agent: TokkoAgent }) {
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center text-white text-3xl"
-            style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 600 }}
+            style={{ fontWeight: 600 }}
           >
             {iniciales(agent.name)}
           </div>
@@ -424,12 +428,11 @@ function TeamCard({ agent }: { agent: TokkoAgent }) {
       </div>
       <p
         className="text-sm font-bold leading-tight mb-1 text-black group-hover:underline underline-offset-4 decoration-black"
-        style={{ fontFamily: 'Raleway, sans-serif' }}
       >
         {agent.name}
       </p>
       {agent.position && (
-        <p className="text-xs text-neutral-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <p className="text-xs text-neutral-500">
           {agent.position}
         </p>
       )}
@@ -455,14 +458,11 @@ function OficinasInteractivas() {
     <section className="py-20 md:py-28 bg-neutral-50 text-black">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-14">
-          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            Dónde estamos
-          </p>
-          <h2 className="text-3xl md:text-5xl font-bold mb-5 text-black" style={{ fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="text-3xl md:text-5xl font-bold mb-5 text-black">
             Nuestras oficinas
           </h2>
           <div className="w-12 h-px bg-black mx-auto mb-5" />
-          <p className="text-sm text-neutral-500 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p className="text-sm text-neutral-500 max-w-xl mx-auto">
             Tres ubicaciones para atenderte mejor
           </p>
         </div>
@@ -486,8 +486,7 @@ function OficinasInteractivas() {
                 >
                   <div className="flex items-start gap-4">
                     <span
-                      className="text-3xl font-light text-white/40 tabular-nums leading-none mt-1"
-                      style={{ fontFamily: 'Poppins, sans-serif' }}
+                      className="text-3xl font-light font-numeric text-white/40 tabular-nums leading-none mt-1"
                       aria-hidden
                     >
                       {o.numero}
@@ -496,30 +495,26 @@ function OficinasInteractivas() {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3
                           className="text-base font-bold uppercase tracking-wide text-white"
-                          style={{ fontFamily: 'Raleway, sans-serif' }}
                         >
                           {o.titulo}
                         </h3>
                         <span
                           className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/10 text-white/70"
-                          style={{ fontFamily: 'Poppins, sans-serif' }}
                         >
                           {o.badge}
                         </span>
                       </div>
                       <p
                         className="text-xs text-white/60 mb-2"
-                        style={{ fontFamily: 'Poppins, sans-serif' }}
                       >
                         {o.subtitulo}
                       </p>
                       <p
                         className="text-sm text-white/85 mb-2"
-                        style={{ fontFamily: 'Poppins, sans-serif' }}
                       >
                         {o.dir}
                       </p>
-                      <div className="flex items-center gap-1.5 text-xs text-white/60 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      <div className="flex items-center gap-1.5 text-xs text-white/60 mb-4">
                         <Clock className="w-3.5 h-3.5" aria-hidden />
                         <span>{o.horario}</span>
                       </div>
@@ -530,7 +525,6 @@ function OficinasInteractivas() {
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs transition-colors"
-                          style={{ fontFamily: 'Poppins, sans-serif' }}
                         >
                           <Navigation className="w-3.5 h-3.5" aria-hidden />
                           Cómo llegar
@@ -539,7 +533,6 @@ function OficinasInteractivas() {
                           href={`tel:${o.tel}`}
                           onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs transition-colors"
-                          style={{ fontFamily: 'Poppins, sans-serif' }}
                         >
                           <Phone className="w-3.5 h-3.5" aria-hidden />
                           Llamar
@@ -552,7 +545,6 @@ function OficinasInteractivas() {
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs transition-colors"
-                          style={{ fontFamily: 'Poppins, sans-serif' }}
                         >
                           <MessageCircle className="w-3.5 h-3.5" aria-hidden />
                           WhatsApp
@@ -616,7 +608,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
             }}
           >
             <span aria-hidden className="block" style={{ fontFamily: 'Georgia, serif', fontSize: 38, lineHeight: 0.5, color: 'rgba(255,255,255,.55)', margin: '7px 0 13px' }}>“</span>
-            <p className="m-0 text-white" style={{ fontSize: 14.5, lineHeight: 1.5, fontFamily: 'Raleway, sans-serif' }}>
+            <p className="m-0 text-white" style={{ fontSize: 14.5, lineHeight: 1.5 }}>
               Más que vender propiedades, construimos relaciones{' '}
               <strong style={{ color: '#CFEBDB', fontWeight: 700 }}>que duran generaciones.</strong>
             </p>
@@ -627,15 +619,15 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
           <div>
             <div className="inline-flex items-center gap-3.5 mb-6">
               <span style={{ width: 34, height: 2, background: 'var(--brand)' }} />
-              <p className="m-0 text-xs font-bold uppercase tracking-[0.34em]" style={{ color: 'var(--brand)', fontFamily: 'Raleway, sans-serif' }}>
+              <p className="m-0 text-xs font-bold uppercase tracking-[0.34em]" style={{ color: 'var(--brand)' }}>
                 Desde 1983
               </p>
             </div>
-            <h1 className="mb-6 font-bold" style={{ color: 'var(--foreground)', fontFamily: 'Raleway, sans-serif', fontSize: 'clamp(2.4rem, 4.4vw, 4rem)', lineHeight: 1.06, letterSpacing: '-0.022em' }}>
+            <h1 className="mb-6 font-bold" style={{ color: 'var(--foreground)', fontSize: 'clamp(2.4rem, 4.4vw, 4rem)', lineHeight: 1.06, letterSpacing: '-0.022em' }}>
               Acompañamos cada decisión <span style={{ color: 'var(--brand)' }}>importante.</span>
             </h1>
             <span className="block mb-8" style={{ width: 64, height: 3, background: 'var(--brand)' }} />
-            <p className="mb-11" style={{ color: 'var(--tinta-soft)', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.65, maxWidth: '52ch' }}>
+            <p className="mb-11" style={{ color: 'var(--tinta-soft)', fontSize: 17.5, lineHeight: 1.65, maxWidth: '52ch' }}>
               Dos generaciones, <strong style={{ color: 'var(--foreground)', fontWeight: 700 }}>tres oficinas entre Roldán y Funes</strong> y un mismo compromiso: acompañar cada operación con información clara, experiencia local y atención personal.
             </p>
             {/* Stats en fila con divisores verticales finos */}
@@ -653,8 +645,8 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                     <Icon size={22} style={{ color: 'var(--brand)' }} strokeWidth={1.7} aria-hidden />
                   </div>
                   <div>
-                    <div className="font-bold" style={{ color: 'var(--foreground)', fontFamily: 'Raleway, sans-serif', fontSize: 17.5, lineHeight: 1.2 }}>{n}</div>
-                    <div style={{ color: 'var(--tinta-mute)', fontFamily: 'Raleway, sans-serif', fontSize: 13.5, lineHeight: 1.3 }}>{l}</div>
+                    <div className="font-bold" style={{ color: 'var(--foreground)', fontSize: 17.5, lineHeight: 1.2 }}>{n}</div>
+                    <div style={{ color: 'var(--tinta-mute)', fontSize: 13.5, lineHeight: 1.3 }}>{l}</div>
                   </div>
                 </div>
               ))}
@@ -687,7 +679,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
               marginBottom: 28,
             }}
           >
-            <p className="m-0 text-white" style={{ fontSize: 14, lineHeight: 1.5, fontFamily: 'Raleway, sans-serif' }}>
+            <p className="m-0 text-white" style={{ fontSize: 14, lineHeight: 1.5 }}>
               “Más que vender propiedades, construimos relaciones{' '}
               <strong style={{ color: '#CFEBDB', fontWeight: 700 }}>que duran generaciones.</strong>”
             </p>
@@ -699,7 +691,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       <section style={{ backgroundColor: 'var(--cream)' }} className="px-6 pb-20 pt-6 md:px-[72px] md:pb-[110px]">
         <div className="mx-auto mb-12 flex items-center justify-center gap-4 md:mb-14">
           <span style={{ width: 44, height: 1.5, background: 'var(--brand)' }} />
-          <h2 className="m-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: 'var(--brand)', fontFamily: 'Raleway, sans-serif' }}>
+          <h2 className="m-0 text-xs font-bold uppercase tracking-[0.3em]" style={{ color: 'var(--brand)' }}>
             Nuestros principios
           </h2>
           <span style={{ width: 44, height: 1.5, background: 'var(--brand)' }} />
@@ -718,10 +710,10 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                 <Icon size={30} style={{ color: 'var(--brand)' }} strokeWidth={1.5} aria-hidden />
               </div>
               <div>
-                <h3 className="mb-3 mt-1 font-extrabold uppercase tracking-[0.02em]" style={{ color: 'var(--foreground)', fontFamily: 'Raleway, sans-serif', fontSize: 19 }}>
+                <h3 className="mb-3 mt-1 font-extrabold uppercase tracking-[0.02em]" style={{ color: 'var(--foreground)', fontSize: 19 }}>
                   {titulo}
                 </h3>
-                <p className="m-0" style={{ color: 'var(--tinta-soft)', fontFamily: 'Raleway, sans-serif', fontSize: 15, lineHeight: 1.85 }}>
+                <p className="m-0" style={{ color: 'var(--tinta-soft)', fontSize: 15, lineHeight: 1.85 }}>
                   {texto}
                 </p>
               </div>
@@ -734,8 +726,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       <section className="py-20 md:py-28 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-14">
-            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Liderazgo</p>
-            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Nuestra dirección</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5">Nuestra dirección</h2>
             <div className="w-12 h-px bg-black mx-auto" />
           </div>
           <div className="grid md:grid-cols-3 gap-12">
@@ -748,9 +739,9 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                 <div className="relative w-48 h-48 mb-6 rounded-full overflow-hidden ring-4 ring-gray-100 group-hover:ring-black/30 transition-all duration-300 shadow-md">
                   <Image src={p.foto} alt={p.nombre} fill className="object-cover object-top" sizes="192px" />
                 </div>
-                <h3 className="text-xl font-semibold mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>{p.nombre}</h3>
-                <p className="text-sm mb-4 text-black" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.cargo}</p>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-xs" style={{ fontFamily: 'Poppins, sans-serif' }}>{p.desc}</p>
+                <h3 className="text-xl font-semibold mb-1">{p.nombre}</h3>
+                <p className="text-sm mb-4 text-black">{p.cargo}</p>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-xs">{p.desc}</p>
               </div>
             ))}
           </div>
@@ -761,10 +752,9 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       <section className="py-20 md:py-28 bg-neutral-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
-            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>El equipo</p>
-            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Nuestro equipo</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5">Nuestro equipo</h2>
             <div className="w-12 h-px bg-black mx-auto mb-5" />
-            <p className="text-sm text-neutral-500 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>Profesionales especializados en el mercado de Funes y Roldán</p>
+            <p className="text-sm text-neutral-500 max-w-xl mx-auto">Conocemos cada barrio de Funes y Roldán porque vivimos acá.</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 mb-14">
@@ -783,11 +773,10 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
           </div>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>¿Querés ser parte del equipo?</p>
+            <p className="text-sm text-gray-600 mb-4">¿Querés ser parte del equipo?</p>
             <a href="https://wa.me/5493413340916?text=Hola%2C%20me%20interesa%20sumarme%20al%20equipo%20de%20SI%20INMOBILIARIA"
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 border-black text-black transition-all hover:bg-black hover:text-white"
-              style={{ fontFamily: 'Poppins, sans-serif' }}>
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-medium border-2 border-black text-black transition-all hover:bg-black hover:text-white">
               Escribinos por WhatsApp
             </a>
           </div>
@@ -798,11 +787,11 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       <section className="py-24 md:py-32 bg-[#0A2818] text-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <p className="text-sm uppercase tracking-widest text-white/60 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Nuestra historia</p>
-            <h2 className="text-5xl md:text-7xl font-bold mb-4 text-white leading-tight" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            <p className="text-sm font-semibold text-white/70 mb-3">Nuestra historia</p>
+            <h2 className="text-5xl md:text-7xl font-bold mb-4 text-white leading-tight">
               Más de 40 años
             </h2>
-            <p className="text-xl md:text-2xl text-white/70 font-light max-w-2xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            <p className="text-xl md:text-2xl text-white/70 font-light max-w-2xl mx-auto">
               construyendo confianza en Roldán y Funes
             </p>
           </div>
@@ -816,10 +805,10 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
               { num: '4', label: 'Zonas principales' },
             ].map((s) => (
               <div key={s.label} className="px-3 md:px-6 text-center">
-                <p className="text-4xl md:text-5xl font-bold text-white tabular-nums mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <p className="text-4xl md:text-5xl font-bold font-numeric text-white tabular-nums mb-2">
                   {s.num}
                 </p>
-                <p className="text-xs uppercase tracking-widest text-white/60" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <p className="text-sm text-white/70">
                   {s.label}
                 </p>
               </div>
@@ -836,9 +825,9 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                     <div className="w-3 h-3 rounded-full ring-4 ring-[#0A2818] z-10 bg-white" />
                   </div>
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-6 md:p-7 flex-1 backdrop-blur-sm">
-                    <span className="text-xs font-semibold px-3 py-1 rounded-full inline-block mb-3 bg-white text-[#0A2818]" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.año}</span>
-                    <h3 className="text-lg font-semibold mb-2 text-white" style={{ fontFamily: 'Raleway, sans-serif' }}>{h.titulo}</h3>
-                    <p className="text-sm text-white/70 leading-relaxed" style={{ fontFamily: 'Poppins, sans-serif' }}>{h.desc}</p>
+                    <span className="text-xs font-semibold font-numeric px-3 py-1 rounded-full inline-block mb-3 bg-white text-[#0A2818]">{h.año}</span>
+                    <h3 className="text-lg font-semibold mb-2 text-white">{h.titulo}</h3>
+                    <p className="text-sm text-white/70 leading-relaxed">{h.desc}</p>
                   </div>
                 </div>
               ))}
@@ -851,8 +840,8 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       <section className="py-20 md:py-28 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Reseñas verificadas</p>
-            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Lo que dicen nuestros clientes</h2>
+            <p className="text-sm font-semibold text-[#1A5C38] mb-3">Reseñas verificadas</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-black mb-5">Lo que dicen nuestros clientes</h2>
             <div className="w-12 h-px bg-black mx-auto" />
           </div>
 
@@ -863,18 +852,17 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
                 <GoogleLogo />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <p className="text-3xl font-bold text-black" style={{ fontFamily: 'Raleway, sans-serif' }}>
+                <p className="text-3xl font-bold text-black">
                   Más de 100 reseñas públicas
                 </p>
-                <p className="text-sm text-neutral-600 mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                <p className="text-sm text-neutral-600 mb-3">
                   En los tres perfiles de nuestras oficinas · datos consultados el 22 de agosto de 2026
                 </p>
                 <a
                   href="https://www.google.com/maps?cid=9299536952583055353"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
-                  style={{ color: '#1A73E8', fontFamily: 'Poppins, sans-serif' }}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1A5C38] hover:underline underline-offset-4"
                 >
                   Ver el perfil de Funes →
                 </a>
@@ -901,10 +889,10 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       {/* VIDEO INSTITUCIONAL */}
       <section className="py-20 md:py-28 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Video institucional</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>Conocé nuestra oficina</h2>
+          <p className="text-sm font-semibold text-[#1A5C38] mb-3">Video institucional</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5">Conocé nuestra oficina</h2>
           <div className="w-12 h-px bg-black mx-auto mb-5" />
-          <p className="text-sm text-neutral-500 mb-10" style={{ fontFamily: 'Poppins, sans-serif' }}>Visitanos en Funes o Roldán — te esperamos</p>
+          <p className="text-sm text-neutral-500 mb-10">Visitanos en Funes o Roldán — te esperamos</p>
         </div>
         <div className="max-w-[1100px] mx-auto px-6">
           <YoutubeEmbed
@@ -918,10 +906,10 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       {/* CHARLAS QUE SÍ — entrevista a Susana */}
       <section className="pb-20 md:pb-28 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>Charlas Que Sí</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-black mb-5 md:whitespace-nowrap" style={{ fontFamily: 'Raleway, sans-serif' }}>La historia de SI INMOBILIARIA, contada por Susana</h2>
+          <p className="text-sm font-semibold text-[#1A5C38] mb-3">Charlas Que Sí</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-black mb-5 md:whitespace-nowrap">La historia de SI INMOBILIARIA, contada por Susana</h2>
           <div className="w-12 h-px bg-black mx-auto mb-5" />
-          <p className="text-sm text-neutral-500 mb-10" style={{ fontFamily: 'Raleway, sans-serif' }}>David entrevista a la fundadora sobre los 40+ años de la inmobiliaria.</p>
+          <p className="text-sm text-neutral-500 mb-10">David entrevista a la fundadora sobre los 40+ años de la inmobiliaria.</p>
         </div>
         <div className="max-w-[1100px] mx-auto px-6">
           <YoutubeEmbed
@@ -937,7 +925,7 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
 
       <section className="bg-white py-20 md:py-24" aria-labelledby="faq-nosotros">
         <div className="mx-auto max-w-4xl px-6">
-          <p className="mb-3 text-sm uppercase tracking-widest text-neutral-500">Información verificable</p>
+          <p className="mb-3 text-sm font-semibold text-[#1A5C38]">Información verificable</p>
           <h2 id="faq-nosotros" className="mb-8 text-3xl font-bold text-black md:text-5xl">
             Datos claros sobre SI INMOBILIARIA
           </h2>
@@ -955,17 +943,16 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
       {/* CTA FINAL — doble botón */}
       <section className="relative py-20 md:py-28 bg-neutral-50">
         <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
-          <p className="text-sm uppercase tracking-widest text-neutral-500 mb-4" style={{ fontFamily: 'Poppins, sans-serif' }}>Dejanos acompañarte</p>
-          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5" style={{ fontFamily: 'Raleway, sans-serif' }}>¿Querés trabajar con nosotros?</h2>
+          <p className="text-sm font-semibold text-[#1A5C38] mb-3">Dejanos acompañarte</p>
+          <h2 className="text-3xl md:text-5xl font-bold text-black mb-5">¿Querés trabajar con nosotros?</h2>
           <div className="w-12 h-px bg-black mx-auto mb-6" />
-          <p className="text-base text-neutral-600 mb-10 max-w-xl mx-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <p className="text-base text-neutral-600 mb-10 max-w-xl mx-auto">
             Si querés vender tu propiedad o sumarte al equipo de SI, escribinos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
               href="/tasaciones"
               className="inline-flex items-center justify-center px-8 py-4 rounded-full text-sm font-semibold bg-black text-white transition-all hover:opacity-90"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Vendé con nosotros
             </a>
@@ -974,7 +961,6 @@ export default function NosotrosClient({ faq }: { faq: { q: string; a: string }[
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-8 py-4 rounded-full text-sm font-semibold border-2 border-black text-black transition-all hover:bg-black hover:text-white"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
             >
               Sumate a nuestro equipo
             </a>

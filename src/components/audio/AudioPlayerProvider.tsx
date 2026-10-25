@@ -49,7 +49,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
 
   // Inicialización lazy del Audio element + listeners para sincronizar estado
-  // con eventos del browser (end of track, errores de red).
+  // con eventos del browser (end of track, errores de red, pausas del sistema).
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (audioRef.current) return
@@ -67,12 +67,22 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       setStatus('idle')
       setCurrentId(null)
     }
+    // Si el que pausa es el sistema (una llamada, el Centro de Control, sacar
+    // los auriculares, otra app que suena), el botón quedaba en «Pausar» y el
+    // primer toque solo arreglaba el estado: hacían falta dos para que volviera
+    // a sonar. Se vuelve a 'idle' sin tocar currentId, así el toque siguiente
+    // reanuda la misma propiedad donde quedó. Con el updater solo se pisa
+    // 'playing': el 'pause' que dispara toggle() al cambiar de pista llega
+    // cuando el estado ya es 'loading' y no lo toca.
+    const onPause = () => setStatus((s) => (s === 'playing' ? 'idle' : s))
     audio.addEventListener('playing', onPlaying)
+    audio.addEventListener('pause', onPause)
     audio.addEventListener('ended', onEnded)
     audio.addEventListener('error', onError)
 
     return () => {
       audio.removeEventListener('playing', onPlaying)
+      audio.removeEventListener('pause', onPause)
       audio.removeEventListener('ended', onEnded)
       audio.removeEventListener('error', onError)
       audio.pause()

@@ -29,6 +29,21 @@ function fmtMonth(fecha: string) {
 
 function pct(a: number, b: number) { return b ? ((a - b) / b * 100) : 0 }
 
+// Colores de los gráficos. Los ejes iban en #999 (2,8:1 sobre blanco, no se
+// leían): ahora gris #6B7280 (4,8:1). Con var(--theme-*, claro) el modo oscuro
+// toma su propio gris y las líneas de la grilla no quedan blancas sobre negro.
+const TICK = { fontSize: 11, fill: 'var(--theme-muted, #6B7280)' }
+const GRILLA = 'var(--theme-border, #f0f0f0)'
+// La IPC va en tinta (negro en claro, blanco en oscuro: con #1C1C1E fijo
+// desaparecía en modo oscuro). El dólar oficial iba en marrón, fuera de la
+// paleta: pasa a gris PUNTEADO, que se distingue de la línea negra por la
+// forma y no solo por el color, y contra el blanco pasa el 3:1 de un gráfico.
+const COLOR_IPC = 'var(--tinta, #1C1C1E)'
+const COLOR_DOLAR = 'var(--theme-subtle, #6B7280)'
+// El verde de marca con su versión clara en modo oscuro (el #1A5C38 fijo casi
+// no se veía sobre la tarjeta oscura).
+const VERDE = 'var(--brand, #1A5C38)'
+
 function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse bg-gray-200 rounded-xl ${className}`} />
 }
@@ -36,15 +51,16 @@ function Skeleton({ className = '' }: { className?: string }) {
 function DolarCard({ title, data, color }: { title: string; data?: DolarEntry; color: string }) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{title}</p>
+      {/* Antes: gris claro en mayúscula espaciada (no pasaba AA). */}
+      <p className="text-sm font-semibold text-gray-700 mb-3">{title}</p>
       {data ? (
         <div className="flex items-end justify-between">
           <div>
-            <p className="text-[10px] text-gray-400 mb-0.5">Compra</p>
+            <p className="text-xs text-gray-500 mb-0.5">Compra</p>
             <p className="text-2xl font-bold font-numeric text-gray-900">${data.compra?.toLocaleString('es-AR')}</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-gray-400 mb-0.5">Venta</p>
+            <p className="text-xs text-gray-500 mb-0.5">Venta</p>
             <p className="text-2xl font-bold font-numeric" style={{ color }}>${data.venta?.toLocaleString('es-AR')}</p>
           </div>
         </div>
@@ -145,7 +161,7 @@ export default function InformesDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F5F5F7] flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-10 text-center shadow-sm max-w-md">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#6E6E73" strokeWidth="1.5" className="mx-auto mb-4">
             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -157,14 +173,15 @@ export default function InformesDashboard() {
     )
   }
 
+  // Fondo gris neutro (antes #f8f7f4, un marfil fuera de la paleta).
   return (
-    <div className="min-h-screen bg-[#f8f7f4]">
+    <div className="min-h-screen bg-[#F5F5F7]">
       {/* Cierre del hero: el título (h1) se renderiza en el server, en page.tsx */}
       <div className="bg-[#0f0f0f] w-full">
         <div className="max-w-5xl mx-auto px-6 pb-16 md:pb-20 text-center">
           {/* El renglón ocupa su lugar aunque la fecha llegue después: sin eso,
               al llegar los datos la página entera bajaba un renglón. */}
-          <p className="text-white/25 text-xs mt-3 h-4">
+          <p className="text-white/60 text-xs mt-3 h-4">
             {lastUpdate && `Última actualización: ${new Date(lastUpdate as string).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}`}
           </p>
         </div>
@@ -174,13 +191,13 @@ export default function InformesDashboard() {
 
         {/* ── DÓLAR ── */}
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Dólar</p>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Dólar</h2>
           {/* Mientras carga, las mismas tarjetas con su esqueleto adentro: un
               esqueleto suelto medía 5 px menos y empujaba lo de abajo. */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <DolarCard title="Dólar Oficial" data={data?.dolar?.oficial} color="#1A5C38" />
-            <DolarCard title="Dólar Blue" data={data?.dolar?.blue} color="#1A5C38" />
-            <DolarCard title="Dólar MEP" data={data?.dolar?.mep} color="#1A5C38" />
+            <DolarCard title="Dólar oficial" data={data?.dolar?.oficial} color={VERDE} />
+            <DolarCard title="Dólar blue" data={data?.dolar?.blue} color={VERDE} />
+            <DolarCard title="Dólar MEP" data={data?.dolar?.mep} color={VERDE} />
           </div>
         </div>
 
@@ -190,27 +207,27 @@ export default function InformesDashboard() {
           <div className="lg:col-span-2 bg-white rounded-2xl p-5 md:p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">IPC — Inflación</p>
-                <p className="text-[10px] text-gray-300 mt-0.5">Fuente: BCRA / INDEC</p>
+                <h2 className="text-sm font-semibold text-gray-700">IPC — Inflación</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Fuente: BCRA / INDEC</p>
               </div>
               {ipcMonthly !== null && (
                 <div className="text-right">
                   <p className="text-3xl font-bold text-orange-500 font-numeric">{ipcMonthly.toFixed(1)}%</p>
-                  <p className="text-[10px] text-gray-400">último mes</p>
+                  <p className="text-xs text-gray-500">último mes</p>
                 </div>
               )}
             </div>
             {loading ? <Skeleton className="h-48 w-full" /> : ipcChart.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={ipcChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#999' }} />
-                  <YAxis tick={{ fontSize: 11, fill: '#999' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} />
+                  <XAxis dataKey="label" tick={TICK} />
+                  <YAxis tick={TICK} />
                   <Tooltip formatter={(v) => [`${v}%`, 'Inflación']} labelStyle={{ fontWeight: 600 }} />
-                  <Bar dataKey="value" fill="#1A5C38" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" fill={VERDE} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : <p className="text-sm text-gray-300">Sin datos</p>}
+            ) : <p className="text-sm text-gray-500">Sin datos</p>}
             {ipc12 !== null && (
               <p className="text-sm text-gray-500 mt-3">Interanual: <span className="font-bold text-orange-500 font-numeric">{ipc12.toFixed(1)}%</span></p>
             )}
@@ -218,8 +235,11 @@ export default function InformesDashboard() {
 
           {/* ICL — 1/3 */}
           <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">ICL — Alquileres</p>
-            <p className="text-[10px] text-gray-300 mb-4">Índice Contratos de Locación</p>
+            <h2 className="text-sm font-semibold text-gray-700">ICL — Alquileres</h2>
+            {/* La frase que le importa al inquilino va primero y legible: antes
+                estaba al pie, a 10px en gris casi blanco (1,5:1). */}
+            <p className="text-[13px] text-gray-600 mt-0.5">Este índice determina cuánto sube tu alquiler.</p>
+            <p className="text-xs text-gray-500 mt-0.5 mb-4">Índice para Contratos de Locación · BCRA</p>
             {loading ? <Skeleton className="h-16 w-full mb-4" /> : iclLast ? (
               <div className="mb-4">
                 <p className="text-3xl font-bold text-[#1A5C38] font-numeric">{iclLast.valor.toLocaleString('es-AR', { maximumFractionDigits: 2 })}</p>
@@ -227,24 +247,22 @@ export default function InformesDashboard() {
                   <p className="text-sm text-gray-500 mt-1">vs 12 meses: <span className="font-bold font-numeric text-[#1A5C38]">{iclAnual >= 0 ? '+' : ''}{iclAnual.toFixed(1)}%</span></p>
                 )}
               </div>
-            ) : <p className="text-sm text-gray-300">Sin datos</p>}
+            ) : <p className="text-sm text-gray-500">Sin datos</p>}
 
             {iclChart.length > 0 && (
               <ResponsiveContainer width="100%" height={120}>
                 <LineChart data={iclChart}>
-                  <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#999' }} />
+                  <XAxis dataKey="label" tick={TICK} />
                   <Tooltip formatter={(v) => [Number(v).toLocaleString('es-AR', { maximumFractionDigits: 2 }), 'ICL']} />
-                  <Line type="monotone" dataKey="value" stroke="#1A5C38" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="value" stroke={VERDE} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             )}
 
-            <p className="text-[10px] text-gray-300 mt-3 mb-3">Este índice determina cuánto sube tu alquiler</p>
-
             {/* Mini table */}
             {iclTable.length > 0 && (
-              <div className="text-[11px]">
-                <div className="flex text-gray-400 font-semibold border-b border-gray-100 pb-1 mb-1">
+              <div className="text-xs mt-3">
+                <div className="flex text-gray-500 font-semibold border-b border-gray-100 pb-1 mb-1">
                   <span className="flex-1">Mes</span>
                   <span className="w-16 text-right">Valor</span>
                   <span className="w-14 text-right">Var.</span>
@@ -265,26 +283,27 @@ export default function InformesDashboard() {
         {comparativa.length > 1 && (
           <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm">
             <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Comparativa 12 meses</p>
-              <p className="text-[10px] text-gray-300 mt-0.5">Inflación vs alquileres vs dólar oficial · base 100 = {comparativa[0]?.label}</p>
+              <h2 className="text-sm font-semibold text-gray-700">Comparativa 12 meses</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Inflación vs alquileres vs dólar oficial · base 100 = {comparativa[0]?.label}</p>
             </div>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={comparativa}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#999' }} />
-                <YAxis domain={['dataMin - 2', 'dataMax + 2']} tick={{ fontSize: 11, fill: '#999' }} tickFormatter={(v) => Number(v).toLocaleString('es-AR')} />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} />
+                <XAxis dataKey="label" tick={TICK} />
+                <YAxis domain={['dataMin - 2', 'dataMax + 2']} tick={TICK} tickFormatter={(v) => Number(v).toLocaleString('es-AR')} />
                 <Tooltip formatter={(v, name) => [Number(v).toLocaleString('es-AR', { maximumFractionDigits: 1 }), name]} labelStyle={{ fontWeight: 600 }} />
-                <Line type="monotone" dataKey="IPC" stroke="#1C1C1E" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="ICL" stroke="#1A5C38" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="Dólar oficial" stroke="#8B7355" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="IPC" stroke={COLOR_IPC} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="ICL" stroke={VERDE} strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="Dólar oficial" stroke={COLOR_DOLAR} strokeWidth={2} strokeDasharray="5 4" dot={false} />
               </LineChart>
             </ResponsiveContainer>
             <div className="flex flex-wrap gap-4 mt-3">
-              <span className="flex items-center gap-1.5 text-[11px] text-gray-500"><span className="inline-block w-3 h-[3px] rounded" style={{ background: '#1C1C1E' }} /> IPC (inflación)</span>
-              <span className="flex items-center gap-1.5 text-[11px] text-gray-500"><span className="inline-block w-3 h-[3px] rounded" style={{ background: '#1A5C38' }} /> ICL (alquileres)</span>
-              <span className="flex items-center gap-1.5 text-[11px] text-gray-500"><span className="inline-block w-3 h-[3px] rounded" style={{ background: '#8B7355' }} /> Dólar oficial</span>
+              <span className="flex items-center gap-1.5 text-xs text-gray-600"><span className="inline-block w-3 h-[3px] rounded" style={{ background: COLOR_IPC }} /> IPC (inflación)</span>
+              <span className="flex items-center gap-1.5 text-xs text-gray-600"><span className="inline-block w-3 h-[3px] rounded" style={{ background: VERDE }} /> ICL (alquileres)</span>
+              {/* Muestra punteada, igual que la línea del gráfico. */}
+              <span className="flex items-center gap-1.5 text-xs text-gray-600"><span className="inline-block w-3.5 border-t-2 border-dashed" style={{ borderColor: COLOR_DOLAR }} /> Dólar oficial</span>
             </div>
-            <p className="text-[10px] text-gray-300 mt-3">Si la línea verde corre por encima de la marrón, los alquileres le ganaron al dólar en ese período (y viceversa). Fuente: BCRA.</p>
+            <p className="text-[13px] text-gray-600 mt-3">Si la línea verde corre por encima de la gris punteada, los alquileres le ganaron al dólar en ese período (y viceversa). Fuente: BCRA.</p>
           </div>
         )}
 
@@ -293,8 +312,8 @@ export default function InformesDashboard() {
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">CAC — Costo de Construcción</p>
-              <p className="text-[10px] text-gray-300 mt-0.5">Cámara Argentina de la Construcción</p>
+              <h2 className="text-sm font-semibold text-gray-700">CAC — Costo de construcción</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Cámara Argentina de la Construcción</p>
             </div>
             {cacLast && (
               <p className="text-3xl font-bold text-amber-600 font-numeric">{cacLast.valor.toLocaleString('es-AR', { maximumFractionDigits: 2 })}</p>
@@ -304,26 +323,26 @@ export default function InformesDashboard() {
           {loading ? <Skeleton className="h-48 w-full" /> : cacChart.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={cacChart}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#999' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#999' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRILLA} />
+                <XAxis dataKey="label" tick={TICK} />
+                <YAxis tick={TICK} />
                 <Tooltip formatter={(v) => [Number(v).toLocaleString('es-AR', { maximumFractionDigits: 2 }), 'CAC']} />
                 <Line type="monotone" dataKey="value" stroke="#d97706" strokeWidth={2.5} dot={{ r: 3, fill: '#d97706' }} />
               </LineChart>
             </ResponsiveContainer>
-          ) : <p className="text-sm text-gray-300">Sin datos</p>}
+          ) : <p className="text-sm text-gray-500">Sin datos</p>}
 
           {(cacMensual !== null || cacAnual !== null) && (
             <div className="flex gap-6 mt-4">
               {cacMensual !== null && (
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase">Var. mensual</p>
+                  <p className="text-xs text-gray-500">Var. mensual</p>
                   <p className="text-lg font-bold text-amber-600 font-numeric">{cacMensual >= 0 ? '+' : ''}{cacMensual.toFixed(1)}%</p>
                 </div>
               )}
               {cacAnual !== null && (
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase">Var. anual</p>
+                  <p className="text-xs text-gray-500">Var. anual</p>
                   <p className="text-lg font-bold text-amber-600 font-numeric">{cacAnual >= 0 ? '+' : ''}{cacAnual.toFixed(1)}%</p>
                 </div>
               )}
@@ -333,7 +352,7 @@ export default function InformesDashboard() {
         )}
 
         {/* Footer */}
-        <p className="text-[10px] text-gray-300 text-center pt-6">
+        <p className="text-xs text-gray-500 text-center pt-6">
           Fuentes: BCRA, INDEC, DolarAPI · Datos cacheados en Redis, actualizados cada lunes
         </p>
       </div>
