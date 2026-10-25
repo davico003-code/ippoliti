@@ -276,7 +276,7 @@ function FilterSelect<T extends string>({
           border: active || open ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
           background: 'var(--theme-surface, #fff)',
           color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontWeight: active ? 600 : 500,
           fontSize: 14,
         }}
@@ -303,7 +303,7 @@ function FilterSelect<T extends string>({
                 onClick={() => { onChange(o.value); setOpen(false) }}
                 className="flex w-full items-center justify-between gap-4 px-3.5 py-2 text-left whitespace-nowrap transition-colors hover:bg-gray-50"
                 style={{
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontSize: 14,
                   fontWeight: sel ? 600 : 500,
                   color: sel ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
@@ -462,7 +462,7 @@ function PriceFilterDropdown({
           border: open || active ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
           background: 'var(--theme-surface, #fff)',
           color: open || active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontWeight: open || active ? 600 : 500,
           fontSize: 14,
           whiteSpace: 'nowrap',
@@ -496,7 +496,7 @@ function PriceFilterDropdown({
                 style={{
                   background: localCur === c ? '#1A5C38' : 'var(--theme-surface-soft, #f3f4f6)',
                   color: localCur === c ? '#fff' : 'var(--theme-muted, #374151)',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: localCur === c ? 700 : 500,
                   border: 'none',
@@ -520,7 +520,7 @@ function PriceFilterDropdown({
               className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
                 border: invalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #d1d5db)',
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 14,
                 boxSizing: 'border-box',
                 background: 'var(--theme-surface-soft, #fff)',
@@ -538,7 +538,7 @@ function PriceFilterDropdown({
               className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
                 border: invalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #d1d5db)',
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 14,
                 boxSizing: 'border-box',
                 background: 'var(--theme-surface-soft, #fff)',
@@ -547,7 +547,7 @@ function PriceFilterDropdown({
           </div>
 
           {invalid && (
-            <p className="text-[12px] text-red-600 mb-2" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+            <p className="text-[12px] text-red-600 mb-2" style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
               El mínimo no puede ser mayor al máximo
             </p>
           )}
@@ -555,7 +555,7 @@ function PriceFilterDropdown({
           {/* Atajos rápidos */}
           <div className="mb-3">
             <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-2"
-               style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+               style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
               Rangos sugeridos
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -566,7 +566,7 @@ function PriceFilterDropdown({
                   onClick={() => onPresetClick(p)}
                   className="h-8 px-2 rounded-md border border-gray-200 hover:border-[#1A5C38] hover:text-[#1A5C38] transition-colors"
                   style={{
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontSize: 12,
                     fontWeight: 500,
                     color: 'var(--theme-muted, #374151)',
@@ -588,7 +588,7 @@ function PriceFilterDropdown({
               disabled={!active && !localMin && !localMax}
               className="flex-1 h-9 rounded-lg hover:bg-gray-50 disabled:opacity-40"
               style={{
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
                 color: 'var(--theme-subtle, #6b7280)',
@@ -606,7 +606,7 @@ function PriceFilterDropdown({
               className="flex-1 h-9 rounded-lg text-white transition-colors"
               style={{
                 background: invalid ? '#9ca3af' : '#1A5C38',
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
                 border: 'none',
@@ -1372,7 +1372,7 @@ export default function PropiedadesView({
                 }
               }}
               className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 border-[1.5px] border-gray-200 outline-none focus:outline-none focus:bg-white focus:border-gray-400 transition-colors placeholder:text-gray-400"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16 }}
+              style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 16 }}
             />
             {/* Autocomplete dropdown */}
             {searchSuggestions && (
@@ -1397,7 +1397,7 @@ export default function PropiedadesView({
                     background: 'transparent', border: 'none',
                     borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                     cursor: locatingUser ? 'wait' : 'pointer',
-                    minHeight: 48, fontFamily: "'Raleway', system-ui, sans-serif",
+                    minHeight: 48, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontWeight: 600,
                   }}
                 >
@@ -1418,7 +1418,7 @@ export default function PropiedadesView({
                 {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
                 {filters.search.trim().length < 2 && searchHistory.length > 0 && (
                   <>
-                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
                       Búsquedas recientes
                     </div>
                     {searchHistory.map(term => (
@@ -1436,7 +1436,7 @@ export default function PropiedadesView({
                           padding: '12px 16px', fontSize: 15, color: 'var(--theme-ink, #111)',
                           background: 'transparent', border: 'none',
                           borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
-                          minHeight: 44, fontFamily: "'Raleway', system-ui, sans-serif",
+                          minHeight: 44, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                         }}
                       >
                         <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -1465,7 +1465,7 @@ export default function PropiedadesView({
                       borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                       cursor: 'pointer',
                       minHeight: 48,
-                      fontFamily: "'Raleway', system-ui, sans-serif",
+                      fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     }}
                   >
                     <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -1493,7 +1493,7 @@ export default function PropiedadesView({
                 style={{
                   background: filters.operation === op ? '#1A5C38' : 'transparent',
                   color: filters.operation === op ? '#fff' : 'var(--theme-subtle, #6b7280)',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: filters.operation === op ? 600 : 500,
                   border: 'none',
@@ -1512,7 +1512,7 @@ export default function PropiedadesView({
             style={{
               border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
               background: 'var(--theme-surface, #fff)',
-              fontFamily: "'Raleway', system-ui, sans-serif",
+              fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
               fontSize: 14,
               fontWeight: 500,
               color: mobileActiveCount > 0 ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
@@ -1547,7 +1547,7 @@ export default function PropiedadesView({
               }
             }}
             className="w-full h-10 pl-8 pr-9 rounded-xl bg-white border-[1.5px] border-gray-300 outline-none focus:outline-none focus:border-gray-500 transition-colors placeholder:text-gray-400"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
+            style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 14 }}
           />
           <button
             type="button"
@@ -1585,7 +1585,7 @@ export default function PropiedadesView({
                   background: 'transparent', border: 'none',
                   borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                   cursor: locatingUser ? 'wait' : 'pointer',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontWeight: 600,
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f0f7f4)' }}
@@ -1608,7 +1608,7 @@ export default function PropiedadesView({
               {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
               {filters.search.trim().length < 2 && searchHistory.length > 0 && (
                 <>
-                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
                     Búsquedas recientes
                   </div>
                   {searchHistory.map(term => (
@@ -1626,7 +1626,7 @@ export default function PropiedadesView({
                         padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                         background: 'transparent', border: 'none',
                         borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
-                        fontFamily: "'Raleway', system-ui, sans-serif",
+                        fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                       }}
                       onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -1652,7 +1652,7 @@ export default function PropiedadesView({
                     padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                     background: 'transparent', border: 'none',
                     borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -1687,7 +1687,7 @@ export default function PropiedadesView({
             <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
             <button onClick={reset}
               className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 transition-colors"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, fontWeight: 600, color: '#dc2626' }}
+              style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, fontWeight: 600, color: '#dc2626' }}
             >
               <X className="w-3.5 h-3.5" /> Borrar filtros
             </button>
@@ -1701,7 +1701,7 @@ export default function PropiedadesView({
             onClick={() => trackEvent('descargar_listado_alquileres')}
             className="ml-auto flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 transition-colors hover:opacity-90"
             style={{
-              fontFamily: "'Raleway', system-ui, sans-serif",
+              fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
               fontSize: 13,
               fontWeight: 600,
               color: '#fff',
@@ -1784,7 +1784,7 @@ export default function PropiedadesView({
             {/* Lo que entendió el buscador (etiquetas) + botón para limpiar. Sin
                 aclaraciones de texto (lo que se aflojó no se explica). */}
             {resultadoBusqueda && filters.search.trim() && visibleProperties.length > 0 && (
-              <div className="px-3 md:px-4 pt-2.5 pb-2 border-b border-gray-100" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+              <div className="px-3 md:px-4 pt-2.5 pb-2 border-b border-gray-100" style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {resultadoBusqueda.etiquetas.map(et => (
                     <span key={et} className="text-[12px] font-medium text-gray-800 bg-gray-100 rounded-full px-2.5 py-1 leading-none">
@@ -1997,7 +1997,7 @@ export default function PropiedadesView({
                 transform: 'translateX(-50%)',
                 padding: '8px 12px 8px 14px',
                 borderRadius: 999,
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
                 maxWidth: 'calc(100% - 24px)',
@@ -2031,7 +2031,7 @@ export default function PropiedadesView({
               type="button"
               onClick={() => setMapaCompleto(false)}
               className="hidden md:inline-flex absolute top-3 right-3 z-[1000] items-center gap-2 rounded-full bg-white text-gray-900 shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
-              style={{ padding: '9px 16px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, fontWeight: 600 }}
+              style={{ padding: '9px 16px', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, fontWeight: 600 }}
               title="Salir de pantalla completa (Esc)"
             >
               <Minimize2 className="w-4 h-4" /> Volver a la lista
@@ -2061,7 +2061,7 @@ export default function PropiedadesView({
           <button
             onClick={() => setMobileSortOpen(true)}
             className="inline-flex items-center gap-2 rounded-full"
-            style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
+            style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
           >
             <ArrowUpDown className="w-4 h-4" /> Ordenar
           </button>
@@ -2069,7 +2069,7 @@ export default function PropiedadesView({
         <button
           onClick={() => setViewManually(mobileView === 'list' ? 'map' : 'list')}
           className="inline-flex items-center gap-2 rounded-full"
-          style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
+          style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
         >
           {mobileView === 'list' ? (
             <><Map className="w-4 h-4" /> Mapa</>
@@ -2087,7 +2087,7 @@ export default function PropiedadesView({
             style={{ borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)', animation: 'slideUp 250ms ease-out' }}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div />
-              <span style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--theme-ink, #0a0a0a)' }}>Ordenar por</span>
+              <span style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--theme-ink, #0a0a0a)' }}>Ordenar por</span>
               <button onClick={() => setMobileSortOpen(false)} className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -2099,7 +2099,7 @@ export default function PropiedadesView({
                   onClick={() => { setSortBy(opt.value); setMobileSortOpen(false) }}
                   className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
                   style={{
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontSize: 15,
                     fontWeight: sortBy === opt.value ? 600 : 400,
                     color: sortBy === opt.value ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
@@ -2152,7 +2152,7 @@ export default function PropiedadesView({
                   <span className="absolute top-2.5 left-2.5"
                     style={{
                       background: operationBadgeColor(op),
-                      color: '#fff', fontFamily: "'Raleway', system-ui, sans-serif",
+                      color: '#fff', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                       fontWeight: 600, fontSize: 11, textTransform: 'uppercase',
                       padding: '5px 10px', borderRadius: 6,
                     }}>
@@ -2182,10 +2182,10 @@ export default function PropiedadesView({
 
             {/* Body — tap en cualquier parte abre la ficha completa */}
             <div style={{ padding: 14 }}>
-              <p style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
+              <p style={{ fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
                 {formatPrice(selectedProperty)}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, color: 'var(--theme-subtle, #6b7280)', margin: '0 0 6px' }}>
+              <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, color: 'var(--theme-subtle, #6b7280)', margin: '0 0 6px' }}>
                 {(() => {
                   const specs: string[] = []
                   const r = getRoofedArea(selectedProperty)
@@ -2203,10 +2203,10 @@ export default function PropiedadesView({
                   return specs.join(' · ')
                 })()}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {propertyTypeLabelById(selectedProperty.type?.id)}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: 'var(--theme-subtle, #6b7280)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 12, color: 'var(--theme-subtle, #6b7280)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {formatDireccionCompleta(selectedProperty, selectedProperty.fake_address || selectedProperty.address, ' | ')}
               </p>
             </div>

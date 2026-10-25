@@ -143,7 +143,7 @@ function createDevPill(rawName: string) {
       <div style="
         display:inline-flex;align-items:center;gap:${t.gap}px;
         background:#111;color:#fff;
-        font-family:'Raleway',system-ui,sans-serif;
+        font-family:var(--font-raleway, 'Raleway'),system-ui,sans-serif;
         font-weight:700;font-size:${t.font}px;line-height:1.2;
         padding:${t.pad};border-radius:999px;
         border:2px solid rgba(255,255,255,0.95);
@@ -233,7 +233,7 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
     ">
       <div style="
         background:${bg};color:var(--si-pin-texto,#fff);
-        font-family:'Poppins',system-ui,sans-serif;
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:700;font-size:11px;
         padding:4px 8px;border-radius:var(--si-pin-radio,6px);
         white-space:nowrap;line-height:1.2;
@@ -277,7 +277,7 @@ function createClusterIcon(cluster: L.MarkerCluster) {
     html: `
       <div style="
         background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
-        font-family:'Poppins',system-ui,sans-serif;
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:800;font-size:${font}px;
         width:${size}px;height:${size}px;
         border-radius:50%;
@@ -957,7 +957,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
               }}
             >
               {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
-                <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
+                <div style={{ width: '270px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", position: 'relative' }}>
                   {photo && (
                     <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
                       <img
@@ -989,7 +989,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <span style={{
                       fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
-                      fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
+                      fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
                       lineHeight: 1.1,
                     }}>
                       {fullPrice}
@@ -1000,13 +1000,13 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                   </h3>
                   <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
                     {area != null && area > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
+                      <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
                     )}
                     {(property.suite_amount || property.room_amount) > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
+                      <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
                     )}
                     {property.bathroom_amount > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+                      <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
                     )}
                   </div>
                   <button
@@ -1040,14 +1040,14 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           zIndexOffset={devCerca ? 500 : -1000}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
-            <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
+            <div style={{ width: '230px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", padding: '2px 0' }}>
               <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--theme-accent, #1A5C38)', display: 'block', marginBottom: 4 }}>
                 Emprendimiento
               </span>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--theme-ink, #1a1a1a)', margin: '0 0 6px' }}>
                 {g.devName}
               </h3>
-              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-accent, #1A5C38)', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-accent, #1A5C38)', fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", marginBottom: 8 }}>
                 Desde {g.minPrice}
               </div>
               <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--theme-muted, #666)', marginBottom: 12 }}>

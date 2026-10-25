@@ -31,7 +31,7 @@ import { atrasEsDelMazo } from '@/lib/mazo-atras'
 import { videosPropios } from '@/lib/video-oficina'
 import PropertyViewTracker from './PropertyViewTracker'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 // Height of the sticky header INSIDE the panel (not the site header).
 const PANEL_HEADER_H = 56
 

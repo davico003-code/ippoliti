@@ -3,9 +3,9 @@ import Image from '@/components/Imagen';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { normalizarTitulo } from '@/lib/titulo';
-import { ArrowLeft } from 'lucide-react';
 
 import ThemeToggle from '@/components/ThemeToggle';
+import VolverAlListado from '@/components/VolverAlListado';
 import AudioSummary from '@/components/AudioSummary';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
@@ -349,15 +349,7 @@ export default async function PropertyPage({ params }: Props) {
           className="sticky top-0 z-40 bg-white border-b border-gray-200 grid items-center px-4"
           style={{ height: 56, gridTemplateColumns: 'minmax(76px,1fr) auto minmax(76px,1fr)' }}
         >
-          <Link
-            href="/propiedades"
-            className="flex items-center gap-1.5 text-sm font-semibold text-gray-700"
-            aria-label="Volver al mapa"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Mapa</span>
-          </Link>
+          <div className="flex items-center"><VolverAlListado /></div>
           <Link href="/" className="flex items-center justify-center" aria-label="Ir a la página principal">
             <Image
               src="/LOGO_HORIZONTAL.png"
@@ -438,7 +430,7 @@ export default async function PropertyPage({ params }: Props) {
           <Link
             href="/propiedades"
             className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold text-base"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
+            style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
           >
             ← Volver al catálogo
           </Link>

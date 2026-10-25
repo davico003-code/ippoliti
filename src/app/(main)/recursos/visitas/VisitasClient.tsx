@@ -23,8 +23,8 @@ const BG = '#FAFAF9'
 const TEXT_DARK = '#1A1A1A'
 const TEXT_MUTED = '#6B6B66'
 const TEXT_SOFT = '#5A5A55'
-const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const P = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 
 type FilterStatus = VisitaStatus | 'all'
 

@@ -31,7 +31,7 @@ function getUsdPrice(property: TokkoProperty): number {
   return usd?.price ?? 0
 }
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = 'var(--brand)'
 
 export default function PropertyDetailSidebar({

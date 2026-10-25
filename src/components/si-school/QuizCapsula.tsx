@@ -56,7 +56,7 @@ export default function QuizCapsula({ preguntas, onComplete }: Props) {
     <div style={{ marginTop: 22 }}>
       <p
         style={{
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontWeight: 800,
           fontSize: 11,
           letterSpacing: '0.2em',
@@ -173,7 +173,7 @@ export default function QuizCapsula({ preguntas, onComplete }: Props) {
                 <strong
                   style={{
                     display: 'block',
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontWeight: 800,
                     fontSize: 10.5,
                     letterSpacing: '0.18em',

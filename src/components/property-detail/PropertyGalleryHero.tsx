@@ -195,7 +195,7 @@ export default function PropertyGalleryHero({ property: propertyOriginal }: { pr
             <button
               onClick={() => setShowAll(true)}
               className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 px-4 py-2 rounded-lg text-xs font-semibold text-gray-800 shadow-sm"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
+              style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
             >
               <Images className="w-3.5 h-3.5" /> Ver las {photos.length} fotos
             </button>

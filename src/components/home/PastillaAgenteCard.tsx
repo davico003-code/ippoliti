@@ -12,7 +12,7 @@ export default function PastillaAgenteCard({ agente, size = 34 }: { agente?: { n
         background: 'rgba(17,17,17,0.42)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        fontFamily: "'Raleway', system-ui, sans-serif",
+        fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
         fontWeight: 600,
         fontSize: 12.5,
         lineHeight: 1,
@@ -24,7 +24,7 @@ export default function PastillaAgenteCard({ agente, size = 34 }: { agente?: { n
         picture={agente.picture}
         initials=""
         bg="#1A5C38"
-        fontFamily="'Raleway', system-ui, sans-serif"
+        fontFamily="var(--font-raleway, 'Raleway'), system-ui, sans-serif"
         size={size}
         className="ring-2 ring-white/85"
       />

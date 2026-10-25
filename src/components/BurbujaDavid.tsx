@@ -20,7 +20,7 @@ export default function BurbujaDavid({
         picture="/team/david-flores-v2.jpg"
         initials="DF"
         bg="#1A5C38"
-        fontFamily="'Raleway', system-ui, sans-serif"
+        fontFamily="var(--font-raleway, 'Raleway'), system-ui, sans-serif"
         size={size}
         className={oscuro ? 'ring-2 ring-white/80' : 'ring-2 ring-[#1A5C38]/15'}
       />

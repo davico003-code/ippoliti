@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 
 const STORAGE_KEY = 'openhouse-cadaques-seen'
-const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const P = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 
 export default function OpenHousePopup() {
   const [visible, setVisible] = useState(false)

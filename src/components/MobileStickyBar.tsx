@@ -114,7 +114,7 @@ export default function MobileStickyBar({
             height: 48,
             background: '#1A5C38',
             color: '#fff',
-            fontFamily: "'Raleway', system-ui, sans-serif",
+            fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
             fontSize: 14,
             fontWeight: 800,
             borderRadius: 14,
@@ -213,7 +213,7 @@ export default function MobileStickyBar({
                   fontSize: 14,
                   fontWeight: 500,
                   color: 'var(--theme-ink, #1a1a1a)',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 }}
               >
                 <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#22c55e' }}>
@@ -235,7 +235,7 @@ export default function MobileStickyBar({
                   fontSize: 14,
                   fontWeight: 500,
                   color: 'var(--theme-ink, #1a1a1a)',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 }}
               >
                 <div className="flex items-center justify-center" style={{ width: 32, height: 32, borderRadius: '50%', background: '#eef1f2' }}>
@@ -257,7 +257,7 @@ export default function MobileStickyBar({
                   fontSize: 14,
                   fontWeight: 500,
                   color: 'var(--theme-ink, #1a1a1a)',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   textDecoration: 'none',
                 }}
               >
@@ -294,7 +294,7 @@ export default function MobileStickyBar({
                   fontSize: 14,
                   fontWeight: 600,
                   color: 'var(--theme-accent, #1A5C38)',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   opacity: generandoFicha ? 0.7 : 1,
                 }}
               >

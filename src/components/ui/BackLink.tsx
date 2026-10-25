@@ -19,7 +19,7 @@ export default function BackLink({ href, label }: Props) {
         alignItems: 'center',
         gap: 6,
         fontSize: 13,
-        fontFamily: "'Raleway', system-ui, sans-serif",
+        fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
         color: '#1A5C38',
         textDecoration: 'none',
         transition: 'color 150ms ease',

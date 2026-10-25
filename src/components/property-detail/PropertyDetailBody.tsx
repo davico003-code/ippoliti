@@ -73,8 +73,8 @@ const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false, loadin
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false, loading: BlueprintSkeleton })
 const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false, loading: NearbyPlacesSkeleton })
 
-const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const P = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
 
 function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | null {
@@ -382,12 +382,12 @@ export default function PropertyDetailBody({
                   picture={producer?.picture}
                   initials={initials}
                   bg={'#1A5C38'}
-                  fontFamily={"'Raleway', system-ui, sans-serif"}
+                  fontFamily={"var(--font-raleway, 'Raleway'), system-ui, sans-serif"}
                 />
                 <div className="flex-1 min-w-0">
                   <span
                     className="block"
-                    style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--foreground)' }}
+                    style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--foreground)' }}
                   >
                     {name}
                   </span>

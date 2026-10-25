@@ -110,7 +110,7 @@ export default function PropertyStickyNav({
                   className={`h-9 rounded-full px-4 text-[14px] whitespace-nowrap transition-colors ${
                     isActive ? 'bg-[#e7f2eb] text-[#1A5C38] font-bold' : 'text-gray-500 font-semibold hover:bg-gray-100 hover:text-gray-800'
                   }`}
-                  style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
+                  style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
                 >
                   {s.label}
                 </button>

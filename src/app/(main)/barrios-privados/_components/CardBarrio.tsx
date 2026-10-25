@@ -70,7 +70,7 @@ export default function CardBarrio({ barrio }: { barrio: HubBarrio }) {
               alignItems: "center",
               justifyContent: "center",
               color: "rgba(255,255,255,0.07)",
-              fontFamily: "'Orbitron', 'Raleway', system-ui, sans-serif",
+              fontFamily: "'Orbitron', var(--font-raleway, 'Raleway'), system-ui, sans-serif",
               fontWeight: 900,
               fontSize: 56,
               letterSpacing: "0.04em",

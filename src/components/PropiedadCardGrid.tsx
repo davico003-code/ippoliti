@@ -28,8 +28,8 @@ import {
 import { formatDistanceAR } from '@/lib/geo'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 
-const RALEWAY = "'Raleway', system-ui, sans-serif"
-const POPPINS = "'Poppins', system-ui, sans-serif"
+const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const POPPINS = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 
 type NetworkInformationLite = {
   saveData?: boolean

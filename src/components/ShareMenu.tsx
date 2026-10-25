@@ -36,7 +36,7 @@ interface Props {
   variant?: 'sidebar' | 'header'
 }
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const MENU_W_HEADER = 270
 
 export default function ShareMenu({ propertyId, slug, title, placaHref, variant = 'sidebar' }: Props) {

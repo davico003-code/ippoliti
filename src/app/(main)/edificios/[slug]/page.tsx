@@ -29,7 +29,7 @@ import {
 export const revalidate = 3600
 
 const BASE = 'https://siinmobiliaria.com'
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = '#1A5C38'
 
 async function cargarEdificios(): Promise<Edificio[]> {

@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
 
 interface FichaItem {

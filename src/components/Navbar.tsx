@@ -8,7 +8,7 @@ import { Menu, User, X } from 'lucide-react'
 import FranjaMundial from './FranjaMundial'
 import ThemeToggle from './ThemeToggle'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)

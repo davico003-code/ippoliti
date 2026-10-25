@@ -14,8 +14,8 @@ import { Briefcase, Building2, Home, MapPin, Plane, type LucideIcon } from 'luci
 import { trackEvent } from '@/lib/analytics'
 import type { TiempoDestino, TiemposViaje as Tiempos } from '@/lib/tiempos-viaje'
 
-const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const P = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 const VERDE = '#1A5C38'
 
 const ICONOS: Record<TiempoDestino['icono'], LucideIcon> = {

@@ -7,7 +7,7 @@
 import Link from 'next/link'
 import { Building2, ArrowRight } from 'lucide-react'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 
 interface Props {
   nombre: string

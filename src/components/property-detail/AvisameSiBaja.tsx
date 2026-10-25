@@ -90,7 +90,7 @@ export default function AvisameSiBaja({ propertyId }: { propertyId: number }) {
           window.setTimeout(() => inputRef.current?.focus(), 50)
         }}
         className="mt-3 inline-flex items-center gap-2 h-10 px-4 rounded-full border text-[15px] font-semibold transition-colors hover:bg-[#EAF3EE]"
-        style={{ borderColor: VERDE, color: VERDE, fontFamily: "'Raleway', system-ui, sans-serif" }}
+        style={{ borderColor: VERDE, color: VERDE, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
       >
         <Bell className="w-4 h-4" aria-hidden="true" /> Avisame si baja
       </button>

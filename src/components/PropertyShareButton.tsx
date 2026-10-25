@@ -34,7 +34,7 @@ interface Props {
   buttonVariant?: 'overlay' | 'card'
 }
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 
 export default function PropertyShareButton({
   propertyId,

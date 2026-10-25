@@ -590,7 +590,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
     }
 
     return (
-      <div className="mx-auto max-w-[1120px]" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+      <div className="mx-auto max-w-[1120px]" style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
         {/* Header + ilustración */}
         <div className="relative overflow-hidden">
           <h2 className="text-[28px] font-extrabold tracking-[-0.4px]" style={{ color: THEME.text }}>Nueva selección</h2>

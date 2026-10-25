@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 
-const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const P = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 
 type Currency = 'USD' | 'ARS'
 

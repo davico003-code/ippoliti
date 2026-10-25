@@ -182,7 +182,7 @@ function AccessGate({
           placeholder="Código de equipo"
           disabled={submitting}
           className="w-full box-border px-3.5 py-3 rounded-[10px] border text-[15px] outline-none mb-3 bg-white"
-          style={{ borderColor: '#E5E5E0', fontFamily: "'Raleway', system-ui, sans-serif" }}
+          style={{ borderColor: '#E5E5E0', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
         />
         {error && (
           <p className="text-[13px] mb-3" style={{ color: '#B32230' }}>
@@ -194,7 +194,7 @@ function AccessGate({
           onClick={() => void submit()}
           disabled={submitting || !code.trim()}
           className="w-full py-3 rounded-[10px] text-[14px] font-semibold transition disabled:opacity-50"
-          style={{ background: '#1A5C38', color: '#fff', fontFamily: "'Poppins', system-ui, sans-serif" }}
+          style={{ background: '#1A5C38', color: '#fff', fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif" }}
         >
           {submitting ? 'Validando…' : 'Entrar'}
         </button>

@@ -56,7 +56,7 @@ export function showToast(message: string, options: ToastOptions = {}): void {
     borderRadius: '10px',
     fontSize: '14px',
     fontWeight: '500',
-    fontFamily: "'Raleway', system-ui, sans-serif",
+    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
     boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
     opacity: '0',
     transform: 'translateY(8px)',

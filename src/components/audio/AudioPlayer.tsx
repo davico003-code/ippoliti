@@ -347,7 +347,7 @@ export default function AudioPlayer({
   const times = (
     <div
       style={{
-        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
         fontSize: 13,
         color: TIME_COLOR,
         fontVariantNumeric: 'tabular-nums',
@@ -374,7 +374,7 @@ export default function AudioPlayer({
         borderRadius: 8,
         border: 'none',
         cursor: 'pointer',
-        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
         fontSize: 12,
         fontWeight: 500,
         fontVariantNumeric: 'tabular-nums',
@@ -388,7 +388,7 @@ export default function AudioPlayer({
   const helperText = (
     <div
       style={{
-        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
         fontSize: 13,
         color: TEXT_MUTED,
         marginTop: 8,
@@ -423,7 +423,7 @@ export default function AudioPlayer({
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontFamily: "'Poppins', system-ui, sans-serif",
+                fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
                 color: 'var(--foreground)',
@@ -452,7 +452,7 @@ export default function AudioPlayer({
         <div
           role="alert"
           style={{
-            fontFamily: "'Poppins', system-ui, sans-serif",
+            fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
             fontSize: 12,
             color: '#B91C1C',
             marginTop: 10,

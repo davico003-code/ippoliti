@@ -144,7 +144,7 @@ export default function HeroMobile() {
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    fontFamily: "'Poppins', sans-serif",
+                    fontFamily: "var(--font-poppins, 'Poppins'), sans-serif",
                     borderBottom: '1px solid #f5f5f5',
                   }}
                 >
