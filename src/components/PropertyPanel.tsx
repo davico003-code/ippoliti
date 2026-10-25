@@ -28,6 +28,7 @@ import PropertyDetailSimilars from './property-detail/PropertyDetailSimilars'
 import Footer from './Footer'
 import ShareMenu from './ShareMenu'
 import { atrasEsDelMazo } from '@/lib/mazo-atras'
+import { formatUbicacion } from '@/lib/ubicacion'
 import { videosPropios } from '@/lib/video-oficina'
 import PropertyViewTracker from './PropertyViewTracker'
 
@@ -67,6 +68,8 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
   const [property, setProperty] = useState<TokkoProperty | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  // "Reintentar" del estado de error: vuelve a pedir la misma propiedad.
+  const [intento, setIntento] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null)
 
@@ -82,7 +85,7 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
       .then((data: TokkoProperty) => { if (active) { setProperty(data); setLoading(false) } })
       .catch(() => { if (active) { setError(true); setLoading(false) } })
     return () => { active = false }
-  }, [propertyId])
+  }, [propertyId, intento])
 
   // Expose scroll container to the sticky nav once mounted
   useEffect(() => {
@@ -167,50 +170,33 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
     window.addEventListener('popstate', h); return () => window.removeEventListener('popstate', h)
   }, [])
 
-  // Loading / Error
-  if (loading || error || !property) {
-    return portal(
-      <div className="fixed inset-0 z-[9995]">
-        <div className="absolute inset-0 bg-black/65" onClick={onClose} />
-        <div className="absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto shadow-2xl" style={{ animation: 'ppSlideIn 200ms ease-out' }}>
-          {loading ? (
-            <div className="animate-pulse p-6 space-y-4">
-              <div className="h-8 w-40 bg-gray-200 rounded" />
-              <div className="h-[280px] bg-gray-200 rounded-2xl" />
-              <div className="h-6 w-3/4 bg-gray-200 rounded" />
-              <div className="h-10 w-1/3 bg-gray-200 rounded" />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center px-6">
-                <p className="text-xl font-bold text-gray-900 mb-2">No se pudo cargar</p>
-                <button onClick={onClose} className="text-[#1A5C38] font-semibold">Volver</button>
-              </div>
-            </div>
-          )}
-        </div>
-        <style dangerouslySetInnerHTML={{ __html: `@keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }` }} />
-      </div>
-    )
-  }
-
-  const slug = generatePropertySlug(property)
+  // UN SOLO armazón para cargando, error y ficha (25-oct-2026). Antes cada
+  // estado devolvía su propio árbol: React reutilizaba el div del velo y, al
+  // llegar la propiedad, recibía `animation: ppFadeIn` recién ahí, así que el
+  // velo al 65 % caía a 0 y volvía a aparecer (un parpadeo justo cuando se
+  // pinta la ficha). Ahora el velo y el panel se montan una vez con su
+  // animación de entrada y adentro solo cambia el contenido. El header (volver,
+  // logo, compartir) ya está desde el primer frame, así el esqueleto tiene la
+  // misma forma que la ficha y nada salta al cargar.
+  const lista = !loading && !error && property ? property : null
+  const slug = lista ? generatePropertySlug(lista) : null
   // wa.me al productor asignado en Tokko; fallback al número general si no hay producer.
-  const whatsappUrl = buildPropertyWhatsappUrl(property, slug)
+  const whatsappUrl = lista && slug ? buildPropertyWhatsappUrl(lista, slug) : ''
 
   return portal(
     <div className="fixed inset-0 z-[9995]">
       {/* Backdrop — cubre TODO el viewport incluyendo el header del sitio */}
       <div
-        className="absolute inset-0 bg-black/65"
+        className="si-pp-anim absolute inset-0 bg-black/65"
         onClick={onClose}
         style={{ animation: 'ppFadeIn 200ms ease-out' }}
       />
 
       <div
         ref={scrollRef}
-        className="si-property-panel absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
+        className="si-property-panel si-pp-anim absolute inset-0 md:left-1/2 md:-translate-x-1/2 w-full md:max-w-[1250px] bg-[#fafafa] overflow-y-auto overflow-x-hidden shadow-2xl"
         style={{ animation: 'ppSlideIn 250ms ease-out' }}
+        aria-busy={loading}
       >
         {/* Panel header sticky — volver a la izquierda, logo SI centrado, compartir a la derecha */}
         <div
@@ -240,30 +226,60 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
             />
           </Link>
           <div className="flex justify-end">
-            <ShareMenu
-              variant="header"
-              propertyId={property.id}
-              slug={slug}
-              title={tituloVisible(property) || property.fake_address || property.address}
-              placaHref={`/propiedades/${slug}/placa`}
-            />
+            {lista && slug ? (
+              <ShareMenu
+                variant="header"
+                propertyId={lista.id}
+                slug={slug}
+                title={tituloVisible(lista) || lista.fake_address || lista.address}
+                placaHref={`/propiedades/${slug}/placa`}
+                // Precio y zona van en el texto que se comparte (WhatsApp, hoja nativa).
+                precio={formatPrice(lista)}
+                ubicacion={formatUbicacion(lista, tituloVisible(lista)) || undefined}
+              />
+            ) : (
+              // Lugar reservado del botón Compartir mientras carga: el header no se corre.
+              <div className="h-9 w-[104px] rounded-full bg-gray-100 animate-pulse" aria-hidden="true" />
+            )}
           </div>
         </div>
 
+        {loading ? (
+          <PanelEsqueleto />
+        ) : !lista || !slug ? (
+          <div className="flex items-center justify-center px-6 py-24">
+            <div className="text-center max-w-sm" style={{ fontFamily: R }}>
+              <p className="text-xl font-bold text-gray-900 mb-2">No pudimos abrir esta propiedad</p>
+              <p className="text-sm text-gray-600 mb-6">Puede ser la conexión. Probá de nuevo en un momento.</p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setIntento(i => i + 1)}
+                  className="min-h-[44px] px-5 rounded-xl bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold transition-colors"
+                >
+                  Reintentar
+                </button>
+                <button onClick={onClose} className="min-h-[44px] px-4 text-sm font-semibold text-[#1A5C38]">
+                  Volver a la búsqueda
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* La ficha abierta en el panel también es una visita (como la página de
             la ficha): sin esto el embudo de la compu contaba los toques al
             WhatsApp pero no las visitas, y el dueño veía menos visitas web. */}
-        <PropertyViewTracker propertyId={property.id} title={tituloVisible(property) || property.address} price={formatPrice(property)} />
+        <PropertyViewTracker propertyId={lista.id} title={tituloVisible(lista) || lista.address} price={formatPrice(lista)} />
 
         {/* Galería Zillow — constrained a padding del panel para no desbordar */}
         <div className="px-4 md:px-6 pt-4 pb-2">
-          <PropertyGalleryHero property={property} />
+          <PropertyGalleryHero property={lista} />
         </div>
 
         {/* Sticky nav (desktop only) — ancla al top del modal (debajo del panel header).
             "Video" se inserta tras "Características" solo si la propiedad tiene recorrido. */}
         <PropertyStickyNav
-          sections={seccionesDe(property)}
+          sections={seccionesDe(lista)}
           scrollRoot={scrollRoot}
           stickyTop={PANEL_HEADER_H}
         />
@@ -272,19 +288,19 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
         <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
           <div className="flex-1 min-w-0">
             <PropertyDetailBody
-              property={property}
+              property={lista}
               allProperties={allProperties}
               whatsappUrl={whatsappUrl}
               showMobileContact
             />
           </div>
           {/* Se pega DEBAJO de la barra de secciones (no por debajo de ella). */}
-          <PropertyDetailSidebar property={property} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + ALTURA_NAV_FICHA + 16} />
+          <PropertyDetailSidebar property={lista} whatsappUrl={whatsappUrl} topOffset={PANEL_HEADER_H + ALTURA_NAV_FICHA + 16} />
         </div>
 
         {/* Full-width: "Otras opciones para vos" ocupa todo el ancho del panel */}
         <div className="px-4 md:px-6 pb-6">
-          <PropertyDetailSimilars property={property} allProperties={allProperties} />
+          <PropertyDetailSimilars property={lista} allProperties={allProperties} />
         </div>
 
         {/* Link "Volver al catálogo" — cierra la ficha igual que el header */}
@@ -300,12 +316,45 @@ export default function PropertyPanel({ propertyId, onClose, allProperties = [] 
 
         {/* Footer global dentro del panel (al final del scroll interno) */}
         <Footer />
+        </>
+        )}
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes ppFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes ppSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @media (prefers-reduced-motion: reduce) { .si-pp-anim { animation: none !important; } }
       ` }} />
+    </div>
+  )
+}
+
+// Esqueleto con la forma de la ficha: galería de 5 columnas (1 grande + 4) de
+// 440 px, barra de secciones y cuerpo + columna de contacto de 360 px. Así,
+// cuando llega la propiedad, cada cosa aparece donde ya estaba su lugar.
+function PanelEsqueleto() {
+  return (
+    <div className="animate-pulse" aria-hidden="true">
+      <div className="px-4 md:px-6 pt-4 pb-2">
+        <div className="md:hidden aspect-[4/3] rounded-2xl bg-gray-200" />
+        <div className="hidden md:grid grid-cols-5 grid-rows-2 gap-2 h-[440px] rounded-2xl overflow-hidden">
+          <div className="col-span-3 row-span-2 bg-gray-200" />
+          {[0, 1, 2, 3].map(i => <div key={i} className="col-span-1 bg-gray-200" />)}
+        </div>
+      </div>
+      <div className="hidden md:flex items-center gap-6 px-6 border-b border-gray-200" style={{ height: ALTURA_NAV_FICHA }}>
+        {[72, 104, 88, 80, 72].map((w, i) => <div key={i} className="h-3.5 rounded bg-gray-200" style={{ width: w }} />)}
+      </div>
+      <div className="flex flex-col md:flex-row gap-6 p-4 md:p-6">
+        <div className="flex-1 min-w-0 space-y-3">
+          <div className="h-9 w-48 rounded bg-gray-200" />
+          <div className="h-5 w-3/4 rounded bg-gray-200" />
+          <div className="h-4 w-1/2 rounded bg-gray-100" />
+          <div className="h-28 w-full rounded-2xl bg-gray-100 !mt-6" />
+          <div className="h-28 w-full rounded-2xl bg-gray-100" />
+        </div>
+        <div className="w-full md:w-[360px] md:shrink-0 h-[320px] rounded-2xl bg-gray-200" />
+      </div>
     </div>
   )
 }
