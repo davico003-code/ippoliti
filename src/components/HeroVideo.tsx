@@ -4,7 +4,7 @@ import HeroSearch from './HeroSearch'
 import HeroVideoDesktop from './home/HeroVideoDesktop'
 import CiudadRotativa from './home/CiudadRotativa'
 
-export default function HeroVideo() {
+export default function HeroVideo({ vivas }: { vivas?: string[] }) {
   return (
     <section
       className="hero-video-section relative w-full md:-mt-[77px] md:pt-[77px]"
@@ -43,7 +43,7 @@ export default function HeroVideo() {
             Propiedades en <CiudadRotativa />
           </p>
           <div className="portada-in portada-buscador" style={{ ['--d' as string]: '680ms' }}>
-            <HeroSearch />
+            <HeroSearch vivas={vivas} />
           </div>
         </div>
       </div>
