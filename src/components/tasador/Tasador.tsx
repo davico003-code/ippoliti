@@ -10,11 +10,15 @@
 // (PedidoTasacion): el que ve su número y quiere vender no cambia de página.
 //
 // En las landings arranca con el barrio ya elegido (`inicial`); en /tasar y
-// /vender, con ?barrio=&tipo= del link (`leerLink`).
+// /vender, con ?barrio=&tipo= del link (`leerLink`). En las dos, ?m2=&ant=&lote=
+// traen los metros y la antigüedad: el valor que vio alguien se puede compartir y
+// abre igual del otro lado (la URL se va actualizando sin recargar).
 
 import Link from 'next/link'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Check, Share } from 'lucide-react'
 import { trackEvent } from '@/lib/analytics'
+import { compartirPagina } from '@/lib/compartir'
 import { EDADES, estimar, porcentaje, resultado, tramoEdad } from '@/lib/tasador/estimar'
 import { HILO_DE, TEXTO_TIPO, TIPOS_TASAR, filtrarOpciones, opcionDeLink, sugeridas, tieneDatos, type OpcionTasar, type TipoTasar } from '@/lib/tasador/opciones'
 import type { ModeloTasador } from '@/lib/tasador/tipos'
@@ -44,6 +48,13 @@ const usd = (x: number) => `USD ${n(x)}`
 
 const TIPO_LINK: Record<string, TipoTasar> = { casa: 'casa', lote: 'lote', terreno: 'lote', depto: 'departamento', departamento: 'departamento' }
 
+/** ?barrio= que entiende opcionDeLink: el slug de la landing sin el tipo ("kentucky"), o el nombre. */
+function barrioDeLink(o: OpcionTasar, tipo: TipoTasar): string {
+  const slug = o.slugs[tipo]
+  if (slug?.startsWith(`${tipo}-`)) return slug.slice(tipo.length + 1)
+  return o.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).join('-')
+}
+
 export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', inicial = null, conLinkAlBarrio = false, leerLink = false, sinDatosDelBarrio = false, actualizado = null }: Props) {
   const zonaIni = inicial ? opciones.find((o) => o.clave === inicial) ?? null : null
   const pIni = zonaIni?.params[tipoInicial]
@@ -61,21 +72,40 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
   const entrada = useRef<HTMLInputElement>(null)
   const ids = { buscar: useId(), lista: useId(), m2: useId(), lote: useId() }
 
-  // ?barrio=kentucky&tipo=lote (una vez, al llegar).
+  // ?barrio=kentucky&tipo=lote&m2=180&ant=2 (una vez, al llegar). En las
+  // landings el barrio ya viene en la ruta: barrio/tipo solo se leen si están
+  // (los escribe este mismo componente cuando la persona cambió de barrio).
   useEffect(() => {
-    if (!leerLink) return
     const sp = new URLSearchParams(window.location.search)
-    const t = TIPO_LINK[(sp.get('tipo') ?? '').toLowerCase()] ?? tipo
-    const o = opcionDeLink(opciones, sp.get('barrio') ?? sp.get('zona'), t)
+    const conBarrio = leerLink || sp.has('barrio') || sp.has('zona') || sp.has('tipo')
+    const t = conBarrio ? TIPO_LINK[(sp.get('tipo') ?? '').toLowerCase()] ?? tipo : tipo
+    const o = conBarrio ? opcionDeLink(opciones, sp.get('barrio') ?? sp.get('zona'), t) : null
     if (t !== tipo) setTipo(t)
-    if (o) {
-      setZona(o)
-      const po = o.params[t]
+    if (o) setZona(o)
+    const base = o ?? zona
+    if (o || t !== tipo) {
+      const po = base && tieneDatos(base, t) ? base.params[t] : null
+      if (base && !po) setZona(null)
       if (po) {
         setM2(String(po.m2Tipico))
         if (po.antTipica != null) setEdad(tramoEdad(po.antTipica))
       }
     }
+    // Lo que cargó quien compartió el valor cuenta como cargado por la persona
+    // (así le llega al corredor en el pedido, igual que si lo hubiera escrito).
+    const m2Link = soloNumero(sp.get('m2') ?? '')
+    if (Number(m2Link) > 0) {
+      setM2(m2Link)
+      setM2Propio(true)
+    }
+    const ant = sp.get('ant')
+    if (t !== 'lote' && ant && EDADES.some((x) => String(x.id) === ant)) {
+      setEdad(Number(ant))
+      setEdadPropia(true)
+    }
+    // El terreno de una casa también mueve el número en los barrios mixtos.
+    const loteLink = soloNumero(sp.get('lote') ?? '')
+    if (t === 'casa' && Number(loteLink) > 0) setLote(loteLink)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -89,6 +119,69 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
   const t = TEXTO_TIPO[tipo]
   const lugar = zona ? (zona.esCiudad ? zona.etiqueta : zona.nombre) : ''
   const slugBarrio = zona?.slugs[tipo]
+
+  // Los parámetros que reproducen ESTE valor: barrio y tipo (si no son los de
+  // la landing) y los metros y la antigüedad que cargó la persona (los típicos
+  // del barrio no hace falta mandarlos: salen solos).
+  const paramsDelValor = useMemo(() => {
+    const q = new URLSearchParams()
+    if (!zona) return q
+    if (leerLink || zona.clave !== inicial) q.set('barrio', barrioDeLink(zona, tipo))
+    if (leerLink || tipo !== tipoInicial) q.set('tipo', tipo)
+    if (m2Propio && metros > 0) q.set('m2', String(metros))
+    if (tipo !== 'lote' && edadPropia && edad != null) q.set('ant', String(edad))
+    if (tipo === 'casa' && loteNum) q.set('lote', String(loteNum))
+    return q
+  }, [zona, tipo, m2Propio, metros, edadPropia, edad, loteNum, leerLink, inicial, tipoInicial])
+
+  // La URL acompaña lo que se ve, sin recargar ni sumar historial: si copia el
+  // link de la barra o recarga, vuelve al mismo valor. Se conservan los demás
+  // parámetros (los utm de la pauta los lee el pedido de tasación). Con pausa,
+  // para no reescribir la URL en cada tecla (Safari limita replaceState).
+  useEffect(() => {
+    if (!zona) return
+    const timer = window.setTimeout(() => {
+      try {
+        const sp = new URLSearchParams(window.location.search)
+        for (const k of ['barrio', 'zona', 'tipo', 'm2', 'ant', 'lote']) sp.delete(k)
+        paramsDelValor.forEach((v, k) => sp.set(k, v))
+        const q = sp.toString()
+        const url = `${window.location.pathname}${q ? `?${q}` : ''}${window.location.hash}`
+        if (url !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+          // El state de Next se conserva: con null, el botón Atrás pierde la página.
+          window.history.replaceState(window.history.state, '', url)
+        }
+      } catch {
+        /* sin history: la cuenta sigue igual */
+      }
+    }, 400)
+    return () => window.clearTimeout(timer)
+  }, [zona, paramsDelValor])
+
+  // Compartir el valor: hoja nativa en el celu, link copiado en la compu.
+  const [compartido, setCompartido] = useState<'copiado' | 'error' | null>(null)
+  const avisoCompartir = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(avisoCompartir.current), [])
+  const compartirValor = () => {
+    if (!zona || !r) return
+    const q = paramsDelValor.toString()
+    const donde = zona.esCiudad ? zona.ciudad : zona.nombre
+    const metrosTxt = metros > 0 ? ` de ${n(metros)} m²` : ''
+    // Sincrónico hasta navigator.share / el portapapeles (regla iOS): nada de await antes.
+    void compartirPagina(
+      {
+        titulo: `${t.corto}${metrosTxt} en ${donde}: ${usd(r.valor)}`,
+        texto: `${t.una[0].toUpperCase()}${t.una.slice(1)}${metrosTxt} en ${donde} vale alrededor de ${usd(r.valor)}. Mirá la cuenta en el tasador de SI INMOBILIARIA:`,
+        ruta: `${window.location.pathname}${q ? `?${q}` : ''}`,
+      },
+      'tasador',
+    ).then((res) => {
+      if (res !== 'copiado' && res !== 'error') return
+      setCompartido(res)
+      window.clearTimeout(avisoCompartir.current)
+      avisoCompartir.current = window.setTimeout(() => setCompartido(null), 2200)
+    })
+  }
 
   // Medición: la persona vio un valor que pidió ella (una vez por página).
   const medido = useRef(false)
@@ -345,11 +438,22 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
                 {!zona.esCiudad && <Dato valor={n(p.n)} texto={`${t.plural} ${t.publicadas} en la cuenta`} />}
               </ul>
             )}
-            {conLinkAlBarrio && slugBarrio && (
-              <Link href={`/${modo}/${slugBarrio}`} className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-bold text-[#17613C] hover:underline">
-                {modo === 'vender' ? `Vender ${t.tu} en ${zona.esCiudad ? zona.ciudad : zona.nombre}` : `Más sobre ${zona.esCiudad ? zona.ciudad : zona.nombre}`} →
-              </Link>
-            )}
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1">
+              {/* Secundario a propósito: la acción principal de la pantalla es el pedido de tasación. */}
+              <button
+                type="button"
+                onClick={compartirValor}
+                className="inline-flex min-h-11 items-center gap-2 text-[15px] font-bold text-[#17613C] hover:underline"
+              >
+                {compartido === 'copiado' ? <Check aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={2.5} /> : <Share aria-hidden="true" className="h-[18px] w-[18px]" strokeWidth={2.25} />}
+                {compartido === 'copiado' ? 'Link copiado' : compartido === 'error' ? 'No se pudo copiar el link' : 'Compartir este valor'}
+              </button>
+              {conLinkAlBarrio && slugBarrio && (
+                <Link href={`/${modo}/${slugBarrio}`} className="inline-flex min-h-11 items-center gap-1.5 text-[15px] font-bold text-[#17613C] hover:underline">
+                  {modo === 'vender' ? `Vender ${t.tu} en ${zona.esCiudad ? zona.ciudad : zona.nombre}` : `Más sobre ${zona.esCiudad ? zona.ciudad : zona.nombre}`} →
+                </Link>
+              )}
+            </div>
           </>
         )}
       </div>

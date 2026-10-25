@@ -42,7 +42,10 @@ async function getBlogRedirects(): Promise<Record<string, string>> {
 // NUNCA se redirige por sospecha: solo cuando la propiedad no está en el
 // listado publicado Y Hilo responde 404 por ESA propiedad. Si falta cualquiera
 // de las dos señales (Hilo caído, lista vacía), la ficha sigue de largo.
-const FICHA_RE = /^\/propiedades\/([^/]+)$/
+// /consulta/{id}-{slug} (la landing de los anuncios) pasa por lo mismo: cuando
+// la casa se vende y el anuncio sigue activo un par de días, cada clic pago
+// caía en un 404 genérico en vez de en las casas parecidas.
+const FICHA_RE = /^\/(?:propiedades|consulta)\/([^/]+)$/
 const HILO_BASE = (process.env.HILO_FEED_URL || 'https://meethilo.com').replace(/\/$/, '')
 const IDS_TTL_MS = 300_000
 const IDS_MAX_MS = 3_600_000

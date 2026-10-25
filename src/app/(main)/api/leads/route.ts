@@ -5,8 +5,15 @@ import { attributionDeUrl } from '@/lib/pauta-visita'
 import { rateLimit } from '@/lib/feedback'
 import { normalizeArWhatsapp } from '@/lib/phone'
 import { metaDeLaConsulta } from '@/lib/meta-capi'
+import { celularArValido, normalizarCelularAr } from '@/lib/tasacion/formato'
 
 const MAX = 400 // tope de largo por campo antes de persistir/reenviar
+// leads:all es el panel de respaldo (api/admin/leads lee los últimos 500 y el de
+// newsletter los últimos 1000): con tope, la lista no crece para siempre.
+const TOPE_LEADS_ALL = 4999
+// Tokko está desconectado (julio 2026): el POST legacy no puede colgar la
+// consulta. Con tope corto y en paralelo con Hilo, no suma espera.
+const TOKKO_TIMEOUT_MS = 3000
 
 function getRedis(): Redis {
   return new Redis({
@@ -31,6 +38,12 @@ export async function POST(request: NextRequest) {
   const apiKey = process.env.TOKKO_API_KEY
 
   const str = (v: unknown) => String(v ?? '').trim().slice(0, MAX)
+
+  // Honeypot (mismo campo que el pedido de tasación): un humano nunca ve ni
+  // completa `website`. Si viene con algo, ok y no registramos nada (ni Redis,
+  // ni Hilo, que se lo mandaría a Meta como Lead).
+  if (str(body.website)) return NextResponse.json({ ok: true })
+
   const nombre = str(body.nombre || body.name)
   const email = str(body.email)
   const whatsapp = str(body.whatsapp || body.phone)
@@ -59,6 +72,26 @@ export async function POST(request: NextRequest) {
   // WhatsApp del agente que Hilo le asignó.
   const esWhatsappFicha = origen === 'whatsapp_ficha'
   const esDePropiedad = esConsultaCalificada || esPedirContacto || esWhatsappFicha
+
+  // Teléfono normalizado en el servidor, igual que el pedido de tasación
+  // (+549 + 10 dígitos): a Hilo le llega UN formato, venga del form que venga.
+  // Solo se rechaza en los formularios cuya pantalla ya pide un celular
+  // argentino y muestra el error (consulta calificada y "Pedí que te
+  // contactemos"). El resto (landings con compradores de afuera, popups, el
+  // WhatsApp de la ficha, que abre el chat igual aunque esto falle) pasa con el
+  // número como vino: perder un lead es peor que un teléfono feo.
+  const cel = whatsapp ? normalizarCelularAr(whatsapp) : ''
+  const celValido = celularArValido(cel)
+  if (whatsapp && !celValido && (esConsultaCalificada || esPedirContacto)) {
+    return NextResponse.json(
+      { error: 'Revisá el WhatsApp: son 10 dígitos con el código de área (341, 3476…), sin el 15.' },
+      { status: 400 },
+    )
+  }
+  const telefono = celValido ? `+549${cel}` : whatsapp
+  // En los alquileres la consulta calificada pregunta garantía y mudanza en vez
+  // de forma de pago y plazo (mismos campos pago/plazo, otra etiqueta).
+  const esAlquiler = str(body.operacion).toLowerCase().startsWith('alquiler')
   // El id del feed tal cual: Hilo resuelve el tokko_id y también el 9000000xx
   // de las cargadas directo en Hilo (public_numeric_id, desde el 4-oct-2026).
   const propertyIdNum = Number(body.propertyId)
@@ -73,10 +106,11 @@ export async function POST(request: NextRequest) {
     const redis = getRedis()
     const ts = Date.now()
     const leadKey = `lead:${origen}:${ts}:${email || whatsapp}`
-    const leadData = { nombre, email, whatsapp, origen, fecha: new Date().toISOString(), ...(esDePropiedad ? { propertyId: str(body.propertyId) } : {}), ...(esConsultaCalificada ? { pago: str(body.pago), plazo: str(body.plazo) } : {}) }
+    const leadData = { nombre, email, whatsapp: telefono, origen, fecha: new Date().toISOString(), ...(esDePropiedad ? { propertyId: str(body.propertyId) } : {}), ...(esConsultaCalificada ? { pago: str(body.pago), plazo: str(body.plazo), ...(esAlquiler ? { operacion: 'alquiler' } : {}) } : {}) }
 
     await redis.set(leadKey, JSON.stringify(leadData))
     await redis.lpush('leads:all', JSON.stringify(leadData))
+    await redis.ltrim('leads:all', 0, TOPE_LEADS_ALL)
     savedRedis = true
   } catch (err) {
     console.error('[leads] Redis error:', err)
@@ -105,15 +139,45 @@ export async function POST(request: NextRequest) {
       str(body.mensaje) ? `Mensaje: ${str(body.mensaje)}` : '',
     ].filter(Boolean).join(' | ')
   })()
+  // Crear contacto en Tokko CRM (LEGACY best-effort; Tokko en desconexión).
+  // El WhatsApp de la ficha no lo manda: la persona está esperando que se le
+  // abra el chat. Arranca en paralelo con Hilo y con tope de 3 s: antes se
+  // esperaba DESPUÉS de Hilo y sin timeout, y si Tokko colgaba la conexión el
+  // formulario quedaba en "Enviando…" y la persona reintentaba (lead duplicado).
+  const tokko = apiKey && !esWhatsappFicha
+    ? (() => {
+        const isGuia = origen === 'guia-comprador'
+        const tokkoPayload = {
+          name: nombre,
+          email: email,
+          phone: whatsapp ? `+${normalizeArWhatsapp(whatsapp)}` : '',
+          message: isGuia
+            ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
+            : `Operación: ${body.operation || 'Venta'} | Tipo: ${body.propertyType || 'Casa'} | Presupuesto: ${body.budget || 'Sin límite'} | Fuente: Web siinmobiliaria.com`,
+          source: isGuia ? 'Guia Comprador 2026' : 'Web',
+          tags: isGuia ? ['guia-2026'] : [body.operation || 'Venta', body.propertyType || 'Casa'],
+        }
+        return fetch(`https://www.tokkobroker.com/api/v1/contact/?key=${apiKey}&format=json`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tokkoPayload),
+          signal: AbortSignal.timeout(TOKKO_TIMEOUT_MS),
+        }).then(
+          () => undefined,
+          (err) => console.warn('[leads] Tokko CRM error:', err),
+        )
+      })()
+    : null
+
   const hilo = await enviarLeadAHilo({
     name: nombre,
     email: email || null,
-    phone: whatsapp,
+    phone: telefono,
     origen,
     message: isGuiaLead
       ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
       : esConsultaCalificada
-        ? `Consultó por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la web · Paga: ${str(body.pago) || 'no dijo'} · Plazo: ${str(body.plazo) || 'no dijo'}`
+        ? `Consultó por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la web · ${esAlquiler ? 'Garantía' : 'Paga'}: ${str(body.pago) || 'no dijo'} · ${esAlquiler ? 'Mudanza' : 'Plazo'}: ${str(body.plazo) || 'no dijo'}`
         : esPedirContacto
           ? `Pidió que lo contacten por WhatsApp por ${str(body.propertyTitle) || 'una propiedad'} (${str(body.propertyPrice) || 'precio a consultar'}) desde la ficha de la web`
           : esWhatsappFicha
@@ -126,6 +190,10 @@ export async function POST(request: NextRequest) {
     meta: metaDeLaConsulta(request, body, pageUrl || null),
   })
 
+  // Tokko ya va en paralelo y tiene tope: se espera acá para que la función no
+  // se corte antes de mandarlo (como mucho 3 s desde que arrancó).
+  if (tokko) await tokko
+
   // Si el lead NO quedó en NINGÚN destino durable, es una pérdida real: avisar al
   // usuario para que reintente en vez de devolver un ok:true mentiroso.
   const savedHilo = hilo.ok
@@ -135,36 +203,6 @@ export async function POST(request: NextRequest) {
       { error: 'No pudimos registrar tu consulta en este momento. Reintentá en unos segundos o escribinos por WhatsApp.' },
       { status: 502 },
     )
-  }
-
-  // Crear contacto en Tokko CRM (LEGACY best-effort; Tokko en desconexión).
-  // El WhatsApp de la ficha no lo espera: la persona está esperando que se le
-  // abra el chat.
-  if (apiKey && !esWhatsappFicha) {
-    try {
-      const isGuia = origen === 'guia-comprador'
-      const tokkoPayload = {
-        name: nombre,
-        email: email,
-        phone: whatsapp ? `+${normalizeArWhatsapp(whatsapp)}` : '',
-        message: isGuia
-          ? 'Lead desde Guía del Comprador 2026 — siinmobiliaria.com'
-          : `Operación: ${body.operation || 'Venta'} | Tipo: ${body.propertyType || 'Casa'} | Presupuesto: ${body.budget || 'Sin límite'} | Fuente: Web siinmobiliaria.com`,
-        source: isGuia ? 'Guia Comprador 2026' : 'Web',
-        tags: isGuia ? ['guia-2026'] : [body.operation || 'Venta', body.propertyType || 'Casa'],
-      }
-
-      await fetch(
-        `https://www.tokkobroker.com/api/v1/contact/?key=${apiKey}&format=json`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(tokkoPayload),
-        }
-      )
-    } catch (err) {
-      console.warn('[leads] Tokko CRM error:', err)
-    }
   }
 
   // El WhatsApp del agente, la consulta (para pedir un turno de visita después,
