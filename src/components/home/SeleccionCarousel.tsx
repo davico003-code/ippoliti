@@ -20,6 +20,8 @@ import {
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
 import EncabezadoSeccion from './EncabezadoSeccion'
+import OportunidadConsultanos from './OportunidadConsultanos'
+import TextoConNumeros from './TextoConNumeros'
 import CaraAgenteCard, { CARA_AGENTE_CELU, espacioCaraAgente } from './CaraAgenteCard'
 import { ArrowRight } from 'lucide-react'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
@@ -43,7 +45,6 @@ export default async function SeleccionCarousel() {
   return (
     <section className="px-5 pt-8 pb-8">
       <EncabezadoSeccion
-        eyebrow="Propiedades"
         titulo="Nuestra selección"
         bajada="Elegidas con criterio, no por algoritmo."
       />
@@ -97,7 +98,12 @@ export default async function SeleccionCarousel() {
               <FotosDeslizables
                 images={fotos}
                 alt={tituloVisible(p) || address}
-                sizes="88vw"
+                // priority se queda (en el celu la primera tarjeta está arriba
+                // del pliegue), pero este árbol está oculto en la compu: con
+                // "88vw" a secas el preload bajaba ahí la foto de 1920 px en
+                // prioridad alta sin pintarla nunca. Con 1px la compu resuelve
+                // a la variante mínima (mismo truco que la portada del hero).
+                sizes="(max-width: 767px) 88vw, 1px"
                 priority={i === 0}
                 swipe={false}
                 flechasSiempre
@@ -130,27 +136,22 @@ export default async function SeleccionCarousel() {
                 <div className="flex-1 min-w-0">
                 <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
                 {esOportunidadConsultanos(p.id) ? (
-                  <div className="flex items-center gap-2">
-                    <span className="font-poppins font-extrabold text-[10.5px] uppercase tracking-wider text-gray-900 rounded-md px-2 py-1 whitespace-nowrap" style={{ background: '#fbce07' }}>
-                      Oportunidad
-                    </span>
-                    <span className="font-poppins font-bold text-[14px] text-white rounded-full px-3.5 py-1.5 whitespace-nowrap" style={{ background: '#1A5C38' }}>
-                      Consultanos →
-                    </span>
-                  </div>
+                  <OportunidadConsultanos />
                 ) : (
                 <p className="font-poppins font-black text-[22px] text-gray-900 tracking-tight leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {price}
                 </p>
                 )}
+                {/* Raleway con los números en Poppins (regla de la casa: Poppins
+                    solo para números, nunca la frase entera). */}
                 {specs.length > 0 && (
-                  <p className="font-poppins text-[13px] text-gray-700 mt-0.5 font-medium">
-                    {specs.join(' · ')}
+                  <p className="font-raleway text-[13px] text-gray-700 mt-0.5 font-medium">
+                    <TextoConNumeros texto={specs.join(' · ')} />
                   </p>
                 )}
                 </div>
-                <p className="font-poppins text-[12px] text-gray-500 mt-1">
-                  {direccion || address}
+                <p className="font-raleway text-[12px] text-gray-500 mt-1 font-medium">
+                  <TextoConNumeros texto={direccion || address || ''} />
                 </p>
                 </div>
                 {!agente && (
@@ -176,9 +177,13 @@ export default async function SeleccionCarousel() {
             </svg>
           </div>
           <p className="font-raleway font-bold text-base text-gray-900">Ver todas</p>
-          <p className="font-poppins text-[12px] text-gray-500 mt-1">
-            +{totalCount || 219} propiedades
-          </p>
+          {/* Solo el número real: antes, si el conteo fallaba, inventaba
+              "+219". Sin dato, alcanza con "Ver todas". */}
+          {totalCount > 0 && (
+            <p className="font-raleway text-[12px] text-gray-500 mt-1">
+              <span className="font-numeric">{totalCount.toLocaleString('es-AR')}</span> propiedades
+            </p>
+          )}
         </Link>
       </div>
     </section>

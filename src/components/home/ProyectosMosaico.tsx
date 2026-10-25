@@ -8,11 +8,15 @@
 
 import Link from 'next/link'
 import Image from '@/components/Imagen'
+import { MapPin } from 'lucide-react'
 import { PROYECTOS_DESTACADOS } from './proyectosDestacados'
 import MaquinasObra from './MaquinasObra'
+import TextoConNumeros from './TextoConNumeros'
 
+// Todo el texto del mosaico va en Raleway; los números de las condiciones
+// ("30% + 24 cuotas", "USD 380K") en Poppins vía TextoConNumeros. Antes
+// ubicación, pago, "Ver proyecto" y el link final iban enteros en Poppins.
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
-const P = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
 
 const SIZES = ['big', 'wide', 'sm', 'sm'] as const
 
@@ -36,12 +40,20 @@ export default function ProyectosMosaico() {
               <span className="pbadge">{item.badge}</span>
               <div className="pc">
                 <h3>{item.title}</h3>
+                {/* MapPin de lucide en vez del emoji de alfiler: el emoji se dibuja
+                    distinto en cada sistema y rompía la línea de íconos. */}
                 {isSm ? (
-                  <p className="loc">📍 {item.location} · {item.pago.split(' · ')[0]}</p>
+                  <p className="loc">
+                    <MapPin size={13} strokeWidth={2} aria-hidden="true" className="loc-pin" />
+                    {item.location} · <TextoConNumeros texto={item.pago.split(' · ')[0]} />
+                  </p>
                 ) : (
                   <>
-                    <p className="loc">📍 {item.location}</p>
-                    <p className="pr">{item.pago}</p>
+                    <p className="loc">
+                      <MapPin size={13} strokeWidth={2} aria-hidden="true" className="loc-pin" />
+                      {item.location}
+                    </p>
+                    <p className="pr"><TextoConNumeros texto={item.pago} /></p>
                   </>
                 )}
                 <p className="go">Ver proyecto →</p>
@@ -65,17 +77,18 @@ export default function ProyectosMosaico() {
         .proj-bento .tile-img{ object-fit:cover; }
         .proj-bento .maquinas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
         .proj-bento .ov{ position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.16) 52%,rgba(0,0,0,.05) 100%); }
-        .proj-bento .pbadge{ position:absolute; top:14px; left:14px; z-index:2; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font:600 10.5px ${P}; text-transform:uppercase; letter-spacing:.5px; padding:6px 12px; border-radius:9999px; }
+        .proj-bento .pbadge{ position:absolute; top:14px; left:14px; z-index:2; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font:700 12px ${R}; text-transform:uppercase; letter-spacing:.5px; padding:6px 12px; border-radius:9999px; }
         .proj-bento .pc{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:18px 20px; color:#fff; }
         .proj-bento .pc h3{ font:700 24px ${R}; letter-spacing:-.01em; line-height:1.1; margin:0; }
         .proj-bento .big h3{ font-size:30px; }
         .proj-bento .wide h3{ font-size:21px; }
         .proj-bento .sm h3{ font-size:19px; }
-        .proj-bento .pc .loc{ font:500 13px ${P}; color:rgba(255,255,255,.92); margin:5px 0 0; }
-        .proj-bento .pc .pr{ font:400 12.5px ${P}; color:rgba(255,255,255,.82); margin:5px 0 0; }
-        .proj-bento .pc .go{ max-height:0; opacity:0; overflow:hidden; transition:max-height .4s, opacity .4s, margin .4s; font:700 13px ${P}; color:#fff; margin:0; }
+        .proj-bento .pc .loc{ font:600 13px ${R}; color:rgba(255,255,255,.92); margin:5px 0 0; }
+        .proj-bento .pc .loc-pin{ display:inline-block; vertical-align:-2px; margin-right:4px; }
+        .proj-bento .pc .pr{ font:500 13px ${R}; color:rgba(255,255,255,.85); margin:5px 0 0; }
+        .proj-bento .pc .go{ max-height:0; opacity:0; overflow:hidden; transition:max-height .4s, opacity .4s, margin .4s; font:700 13px ${R}; color:#fff; margin:0; }
         .proj-bento .tile:hover .pc .go{ max-height:34px; opacity:1; margin-top:10px; }
-        .proj-bento .seehint{ display:block; text-align:right; margin-top:18px; font:700 14px ${P}; color:var(--green); text-decoration:none; }
+        .proj-bento .seehint{ display:block; text-align:right; margin-top:18px; font:700 14px ${R}; color:var(--green); text-decoration:none; }
 
         @media(max-width:767px){
           .proj-bento .bento{ grid-template-columns:1fr 1fr; grid-auto-rows:auto; gap:12px; }

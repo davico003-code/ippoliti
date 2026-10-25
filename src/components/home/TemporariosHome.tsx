@@ -27,11 +27,12 @@ const PALETA = {
 }
 type Paleta = typeof PALETA
 
+// Raleway (es texto) y 12 px como piso de legibilidad en mayúscula espaciada.
 function Sello({ paleta, children }: { paleta: Paleta; children: React.ReactNode }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider"
-      style={{ background: paleta.sello, color: paleta.selloTexto, fontFamily: POPPINS, boxShadow: '0 1px 4px rgba(47,36,24,0.18)' }}
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-extrabold uppercase tracking-wider"
+      style={{ background: paleta.sello, color: paleta.selloTexto, fontFamily: RALEWAY, boxShadow: '0 1px 4px rgba(47,36,24,0.18)' }}
     >
       <Sun className="w-3.5 h-3.5" style={{ color: paleta.selloIcono }} aria-hidden /> {children}
     </span>
@@ -75,7 +76,7 @@ function Tarjeta({ property, condiciones: c, paleta }: Temporario & { paleta: Pa
             </p>
           )}
           {datos.length > 0 && (
-            <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: TINTA, margin: '6px 0 0' }}>
+            <p className="mt-1.5 flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: `var(--theme-ink, ${TINTA})`, margin: '6px 0 0' }}>
               <Users className="w-4 h-4 flex-shrink-0" aria-hidden /> {datos.join(' · ')}
             </p>
           )}
@@ -88,7 +89,7 @@ function Tarjeta({ property, condiciones: c, paleta }: Temporario & { paleta: Pa
           >
             {c.precios.map((p, i) => (
               <div key={p.periodo} className="px-3 py-2.5" style={i > 0 ? { borderLeft: `1px solid ${paleta.precioBorde}` } : undefined}>
-                <span className="block text-[10px] font-bold uppercase tracking-wider" style={{ color: paleta.precioLabel }}>
+                <span className="block text-[12px] font-bold uppercase tracking-wider" style={{ color: paleta.precioLabel }}>
                   {p.periodo === 'quincena' ? 'Quincena' : 'Mes'}
                 </span>
                 <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 16, color: 'var(--theme-ink, #111827)', fontVariantNumeric: 'tabular-nums' }}>{p.texto}</span>
@@ -101,13 +102,16 @@ function Tarjeta({ property, condiciones: c, paleta }: Temporario & { paleta: Pa
 
         <DisponibilidadTemporada alquiladas={c.alquiladas} />
 
+        {/* Chips en gris neutro (no el crema #F5F1EA de la paleta vieja, que
+            la oficial ya sacó) y con tokens: en oscuro antes quedaban como
+            manchas claras dentro de la tarjeta oscura. */}
         {comodidades.length > 0 && (
           <ul className="flex flex-wrap gap-1.5" style={{ margin: 0, padding: 0, listStyle: 'none' }} aria-label="Comodidades">
             {comodidades.slice(0, 4).map((x) => (
-              <li key={x} className="rounded-full px-2.5 py-1 text-[12px] font-semibold" style={{ background: '#F5F1EA', color: '#44403C' }}>{x}</li>
+              <li key={x} className="rounded-full px-2.5 py-1 text-[12px] font-semibold" style={{ background: 'var(--theme-surface-soft, #F4F6F5)', color: 'var(--tinta-soft)' }}>{x}</li>
             ))}
             {comodidades.length > 4 && (
-              <li className="rounded-full px-2.5 py-1 text-[12px] font-semibold" style={{ background: '#F5F1EA', color: '#78716C' }}>+{comodidades.length - 4}</li>
+              <li className="rounded-full px-2.5 py-1 text-[12px] font-semibold" style={{ background: 'var(--theme-surface-soft, #F4F6F5)', color: 'var(--tinta-mute)' }}>+<span className="font-numeric">{comodidades.length - 4}</span></li>
             )}
           </ul>
         )}

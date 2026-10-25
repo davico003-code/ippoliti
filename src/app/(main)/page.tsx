@@ -17,6 +17,8 @@ import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
 import MundoSiHome from '@/components/home/MundoSiHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
+import OportunidadConsultanos from '@/components/home/OportunidadConsultanos'
+import TextoConNumeros from '@/components/home/TextoConNumeros'
 import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 import {
@@ -141,7 +143,7 @@ async function FeaturedPropertiesSection() {
             <span style={{
               position: 'absolute', top: 10, right: 10, zIndex: 10,
               background: '#75AADB', color: '#0d3a5c',
-              fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
+              fontFamily: RALEWAY, fontWeight: 700, fontSize: 12,
               padding: '3px 10px', borderRadius: 6,
               boxShadow: '0 2px 8px rgba(0,0,0,0.18)', whiteSpace: 'nowrap',
             }}>
@@ -159,34 +161,30 @@ async function FeaturedPropertiesSection() {
         <div style={{ padding: '10px 2px 4px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
           <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
+          {/* El mismo par del celu (un solo componente para los dos árboles). */}
           {esOportunidadConsultanos(property.id) ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
-              <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>
-                Oportunidad
-              </span>
-              <span style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 14, background: '#1A5C38', color: '#fff', borderRadius: 999, padding: '6px 15px', whiteSpace: 'nowrap' }}>
-                Consultanos →
-              </span>
-            </div>
+            <OportunidadConsultanos style={{ margin: '0 0 6px' }} />
           ) : (
           <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>
           )}
+          {/* La línea en Raleway y solo los números en Poppins (regla de la
+              casa: nunca Poppins en texto corrido). Igual en la dirección. */}
           {specs.length > 0 && (
-            <p style={{ fontFamily: POPPINS, fontSize: 14, color: 'var(--foreground)', margin: '0 0 4px', fontWeight: 400 }}>
+            <p style={{ fontFamily: RALEWAY, fontSize: 14, color: 'var(--foreground)', margin: '0 0 4px', fontWeight: 500 }}>
               {specs.map((s, i) => (
                 <span key={i}>
                   {i > 0 && ' · '}
-                  <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
+                  <span style={{ fontFamily: POPPINS, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
                   {s.unit}
                 </span>
               ))}
             </p>
           )}
           </div>
-          <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'var(--tinta-mute)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
-            {direccion || address}
+          <p style={{ fontFamily: RALEWAY, fontSize: 13, color: 'var(--tinta-mute)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+            <TextoConNumeros texto={direccion || address || ''} />
           </p>
           </div>
           {!agente && <span className="prop-card-arrow" aria-hidden="true"><ArrowRight size={18} strokeWidth={2} /></span>}
@@ -199,7 +197,6 @@ async function FeaturedPropertiesSection() {
     <section className="home-section bg-white [--pad:24px] lg:[--pad:40px]" style={{ padding: 0 }}>
       <div className="max-w-[1440px] mx-auto px-[var(--pad)] pt-14">
         <EncabezadoSeccion
-          eyebrow="Propiedades"
           titulo="Nuestra selección"
           bajada="Elegidas con criterio, no por algoritmo."
           className="mb-7"

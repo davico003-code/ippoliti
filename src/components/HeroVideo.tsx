@@ -18,7 +18,7 @@ export default function HeroVideo() {
       >
         <div className="w-full max-w-[720px] text-center">
           <h2
-            className="text-white mb-4"
+            className="text-white mb-4 whitespace-nowrap"
             style={{
               fontFamily: 'var(--font-raleway), Raleway, sans-serif',
               fontWeight: 800,
@@ -28,9 +28,16 @@ export default function HeroVideo() {
               textShadow: '0 2px 24px rgba(0,0,0,0.35)',
             }}
           >
+            {/* Espacio REAL entre palabras (y --sep en 0): antes la separación
+                era solo un margen de CSS y el titular se leía "Encontrátuhogar"
+                (lectores de pantalla, copiar y pegar, Google). El espacio mide
+                casi lo mismo que el margen de antes: el titular se ve igual. */}
             {['Encontrá', 'tu', 'hogar'].map((w, i) => (
-              <span key={w} className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, ['--sep' as string]: '0.24em' }}>
-                {w}
+              <span key={w}>
+                {i > 0 && ' '}
+                <span className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, ['--sep' as string]: '0em' }}>
+                  {w}
+                </span>
               </span>
             ))}
           </h2>
