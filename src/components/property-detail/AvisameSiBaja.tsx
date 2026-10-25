@@ -11,8 +11,13 @@ import { useEffect, useRef, useState } from 'react'
 import { Bell, Check } from 'lucide-react'
 import { esEmail, escribirContacto, leerContacto } from '@/lib/feed-en-red'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
+import { haptico } from '@/lib/haptico'
 
+// VERDE para el botón lleno (texto blanco: se lee igual en claro y en oscuro);
+// ACENTO para texto y borde sobre la tarjeta: en oscuro pasa al verde claro del
+// tema (el #1A5C38 sobre la tarjeta oscura no se leía).
 const VERDE = '#1A5C38'
+const ACENTO = 'var(--theme-accent, #1A5C38)'
 const CLAVE = 'si-avisame-baja'
 
 function yaPidio(id: number): boolean {
@@ -53,28 +58,39 @@ export default function AvisameSiBaja({ propertyId }: { propertyId: number }) {
     if (!esEmail(mail)) return setError('Revisá el mail, por ejemplo martina@gmail.com.')
     setError(null)
     setEstado('enviando')
+    // Sin red, fetch tira el error del navegador en inglés ("Load failed" en el
+    // iPhone, "Failed to fetch" en Chrome): ese nunca se muestra. Solo se pinta
+    // el mensaje que arma nuestra API, que ya viene en castellano.
+    let res: Response
     try {
-      const res = await fetch('/api/avisame-si-baja', {
+      res = await fetch('/api/avisame-si-baja', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email: mail, nombre: leerContacto().nombre, propiedadId: propertyId, pageUrl: window.location.href }),
       })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : 'No pudimos anotarte. Probá de nuevo.')
-      escribirContacto({ email: mail })
-      marcarPedido(propertyId)
-      trackEvent('avisame_si_baja', { propiedad: propertyId })
-      trackFbEvent('CompleteRegistration', { content_name: 'avisame_si_baja', content_ids: [String(propertyId)] })
-      setEstado('listo')
-    } catch (err) {
+    } catch {
       setEstado('idle')
-      setError(err instanceof Error ? err.message : 'No pudimos anotarte. Probá de nuevo.')
+      setError('Parece que no hay conexión. Revisá internet y probá de nuevo; tu mail queda cargado.')
+      return
     }
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      setEstado('idle')
+      setError(typeof data.error === 'string' ? data.error : 'No pudimos anotarte. Probá de nuevo en unos segundos.')
+      return
+    }
+    escribirContacto({ email: mail })
+    marcarPedido(propertyId)
+    trackEvent('avisame_si_baja', { propiedad: propertyId })
+    trackFbEvent('CompleteRegistration', { content_name: 'avisame_si_baja', content_ids: [String(propertyId)] })
+    // Golpecito de confirmación: quedó anotado.
+    haptico()
+    setEstado('listo')
   }
 
   if (estado === 'ya' || estado === 'listo') {
     return (
-      <p className="mt-3 inline-flex items-center gap-2 text-[15px] font-semibold" style={{ color: VERDE }} role="status">
+      <p className="mt-3 inline-flex items-center gap-2 text-[15px] font-semibold" style={{ color: ACENTO }} role="status">
         <Check className="w-4 h-4" aria-hidden="true" />
         {estado === 'listo' ? `Listo: si baja, te escribimos a ${email.trim()}.` : 'Te avisamos por mail si baja.'}
       </p>
@@ -89,8 +105,8 @@ export default function AvisameSiBaja({ propertyId }: { propertyId: number }) {
           setAbierto(true)
           window.setTimeout(() => inputRef.current?.focus(), 50)
         }}
-        className="mt-3 inline-flex items-center gap-2 h-10 px-4 rounded-full border text-[15px] font-semibold transition-colors hover:bg-[#EAF3EE]"
-        style={{ borderColor: VERDE, color: VERDE, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
+        className="mt-3 inline-flex items-center gap-2 min-h-11 px-4 rounded-full border text-[15px] font-semibold transition-colors hover:bg-[var(--theme-tint,#EAF3EE)]"
+        style={{ borderColor: ACENTO, color: ACENTO, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
       >
         <Bell className="w-4 h-4" aria-hidden="true" /> Avisame si baja
       </button>

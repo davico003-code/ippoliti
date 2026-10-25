@@ -2,6 +2,9 @@
 
 // Wrapper del feedback de la ficha de detalle: UNA tarjeta compacta con tres
 // filas (caritas · valuación · avisame si baja) separadas por líneas finas.
+// El "avisame si baja" de acá es el viejo (queda en Redis, lo ve el panel): si
+// la ficha ya muestra el de abajo del precio (Hilo + emBlue), no se repite, y
+// sin precio publicado tampoco va (no hay precio que pueda bajar).
 // Una sola inyección en PropertyDetailBody (compartido mobile + desktop). Hace
 // UN fetch de estado inicial para restaurar lo respondido. Todo detrás del flag.
 
@@ -21,11 +24,14 @@ export default function FeedbackDetalle({
   propertyId,
   publishedPrice,
   currency,
+  ocultarAvisame = false,
 }: {
   propertyId: number
-  /** Precio publicado numérico. <= 0 → sin slider de valuación. */
+  /** Precio publicado numérico. <= 0 → sin slider de valuación ni aviso de baja. */
   publishedPrice: number
   currency: string
+  /** true cuando la ficha ya muestra su "Avisame si baja" bajo el precio: uno solo por ficha. */
+  ocultarAvisame?: boolean
 }) {
   const [estado, setEstado] = useState<EstadoInicial | null>(null)
   const [valuacionActual, setValuacionActual] = useState<number | null>(null)
@@ -84,7 +90,7 @@ export default function FeedbackDetalle({
           />
         )}
 
-        <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />
+        {hasPrice && !ocultarAvisame && <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />}
       </div>
     </section>
   )

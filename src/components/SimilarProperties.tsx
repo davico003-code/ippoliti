@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './property-detail/titulo-seccion'
 import Image from '@/components/Imagen'
 import Link from 'next/link'
-import { MapPin, Search, X } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import {
   type TokkoProperty,
   generatePropertySlug,
@@ -12,20 +11,12 @@ import {
   formatPrice,
   getTotalSurface,
   getRoofedArea,
+  getOperationType,
   translatePropertyType,
   operationBadgeColor,
   tituloVisible,
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
-
-type SortMode = 'recomendado' | 'precio' | 'dormitorios' | 'barrio'
-
-const SORT_BUTTONS: { value: SortMode; label: string }[] = [
-  { value: 'recomendado', label: 'Recomendado' },
-  { value: 'precio', label: 'Precio' },
-  { value: 'dormitorios', label: 'Dormitorios' },
-  { value: 'barrio', label: 'Barrio' },
-]
 
 interface Props {
   properties: TokkoProperty[]
@@ -33,54 +24,10 @@ interface Props {
   currentPropertyId?: number
 }
 
+// Sin buscador ni botones de orden: el endpoint devuelve las 4 más parecidas y
+// ordenar o filtrar 4 tarjetas era puro ruido (y casi siempre terminaba en "No
+// se encontraron propiedades"). Van en el orden en que las eligió el servidor.
 export default function SimilarProperties({ properties }: Props) {
-  const [sort, setSort] = useState<SortMode>('recomendado')
-  const [search, setSearch] = useState('')
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return properties
-    const q = search.toLowerCase().trim()
-    // Check if searching by price (number)
-    const numQuery = parseInt(q.replace(/\D/g, ''), 10)
-    return properties.filter(p => {
-      const loc = (p.location?.name ?? p.location?.short_location ?? '').toLowerCase()
-      const addr = (p.fake_address ?? p.address ?? '').toLowerCase()
-      const title = (p.publication_title ?? '').toLowerCase()
-      const textMatch = loc.includes(q) || addr.includes(q) || title.includes(q)
-      if (textMatch) return true
-      // Price match: if user typed a number, check if price is within 20%
-      if (numQuery > 0) {
-        const price = p.operations?.[0]?.prices?.[0]?.price ?? 0
-        if (price > 0) {
-          const ratio = price / numQuery
-          return ratio >= 0.8 && ratio <= 1.2
-        }
-      }
-      return false
-    })
-  }, [properties, search])
-
-  const sorted = useMemo(() => {
-    const list = [...filtered]
-    switch (sort) {
-      case 'precio':
-        return list.sort((a, b) => {
-          const pa = a.operations?.[0]?.prices?.[0]?.price ?? Infinity
-          const pb = b.operations?.[0]?.prices?.[0]?.price ?? Infinity
-          return pa - pb
-        })
-      case 'dormitorios':
-        return list.sort((a, b) => (b.suite_amount || b.room_amount || 0) - (a.suite_amount || a.room_amount || 0))
-      case 'barrio':
-        return list.sort((a, b) =>
-          (a.location?.name ?? a.address ?? '').localeCompare(b.location?.name ?? b.address ?? '')
-        )
-      case 'recomendado':
-      default:
-        return list
-    }
-  }, [filtered, sort])
-
   if (properties.length === 0) {
     return (
       <div className="mt-12">
@@ -96,59 +43,25 @@ export default function SimilarProperties({ properties }: Props) {
         <h2 className={TITULO_SECCION} style={ESTILO_TITULO_SECCION}>Otras opciones para vos</h2>
       </div>
 
-      {/* Search bar */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Buscar por barrio, zona o precio..."
-          className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
-        />
-        {search && (
-          <button
-            onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-
-      {/* Sort buttons */}
-      <div className="flex flex-wrap items-center gap-2 mb-6">
-        {SORT_BUTTONS.map(btn => (
-          <button
-            key={btn.value}
-            onClick={() => setSort(btn.value)}
-            className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-              sort === btn.value
-                ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {btn.label}
-          </button>
-        ))}
-      </div>
-
       {/* Cards grid — desktop 4 cols, mobile 1 col full-width */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {sorted.map(property => {
+        {properties.map(property => {
           const photo = getMainPhoto(property)
           const slug = generatePropertySlug(property)
           const price = formatPrice(property)
           const area = getTotalSurface(property)
           const roofed = getRoofedArea(property)
           const typeName = translatePropertyType(property.type?.name)
-          const op = property.operations?.[0]?.operation_type === 'Sale'
-            ? 'Venta'
-            : property.operations?.[0]?.operation_type === 'Rent'
-              ? 'Alquiler'
-              : property.operations?.[0]?.operation_type === 'Temporary rent'
-                ? 'Temporario'
-                : null
+          // La operación que muestra el precio (operacionPrincipal vía getOperationType),
+          // no operations[0] a ciegas: si la primera viene sin precio, el cartel decía
+          // "Venta" con el precio del alquiler. El color va con el nombre completo
+          // ("Alquiler temporario" → rojo de alquiler; con "Temporario" salía violeta).
+          const operacion = getOperationType(property)
+          const op = operacion === 'Venta' || operacion === 'Alquiler'
+            ? operacion
+            : operacion === 'Alquiler temporario'
+              ? 'Temporario'
+              : null
           const beds = property.suite_amount || property.room_amount || 0
           const baths = property.bathroom_amount || 0
           const m2 = (n: number) => `${n.toLocaleString('es-AR')} m²`
@@ -182,7 +95,7 @@ export default function SimilarProperties({ properties }: Props) {
                   {op && (
                     <span
                       className="px-3.5 py-2 text-[12px] font-semibold leading-none rounded-full text-white font-raleway"
-                      style={{ background: operationBadgeColor(op) }}
+                      style={{ background: operationBadgeColor(operacion) }}
                     >
                       {op}
                     </span>
@@ -219,10 +132,6 @@ export default function SimilarProperties({ properties }: Props) {
           )
         })}
       </div>
-
-      {sorted.length === 0 && search && (
-        <p className="text-center text-gray-400 text-sm mt-6">No se encontraron propiedades para &ldquo;{search}&rdquo;</p>
-      )}
     </div>
   )
 }

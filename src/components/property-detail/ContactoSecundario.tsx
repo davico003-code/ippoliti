@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Phone } from 'lucide-react'
 import ConsultaCalificadaForm from '@/components/consulta/ConsultaCalificadaForm'
 import { events } from '@/lib/analytics'
@@ -16,6 +16,12 @@ import { consultaYaEnviada, urlWhatsappConDatos } from '@/lib/whatsapp-con-datos
  * Si en esta pestaña ya consultó por WhatsApp esta misma propiedad (WhatsApp con
  * datos, 16-oct-2026) no se le vuelve a pedir nada: ya está hablando con el
  * agente, y un "que me contacten" encima sería una segunda consulta.
+ *
+ * El formulario, una vez abierto, queda montado y solo se esconde al cerrar: el
+ * que lo cierra para mirar algo de la ficha y vuelve encuentra lo que ya había
+ * escrito con el pulgar (y, si ya lo mandó, el "Listo", no un formulario vacío
+ * que invite a mandar otro). El borrador NO va al storage de contacto: con
+ * nombre y WhatsApp ahí, la hoja de WhatsApp manda la consulta sola.
  */
 export default function ContactoSecundario({
   propertyId,
@@ -36,6 +42,8 @@ export default function ContactoSecundario({
   telefono?: string | null
 }) {
   const [abierto, setAbierto] = useState(false)
+  const [montado, setMontado] = useState(false)
+  const idForm = useId()
   const [previa, setPrevia] = useState<ReturnType<typeof consultaYaEnviada>>(null)
   const boton = 'flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-2 text-[13px] font-semibold transition-colors'
 
@@ -46,7 +54,7 @@ export default function ContactoSecundario({
           href={callHref}
           onClick={() => events.contactoPropiedad(propertyId, propertyTitle, 'llamada')}
           className={`${boton} hover:bg-gray-50`}
-          style={{ border: '1.5px solid #e5e7eb', color: 'var(--theme-ink, #111)' }}
+          style={{ border: '1.5px solid var(--theme-border, #e5e7eb)', color: 'var(--theme-ink, #111)' }}
         >
           <Phone className="h-4 w-4 shrink-0" aria-hidden />
           {telefono ? <span className="font-numeric">{telefono}</span> : 'Llamar'}
@@ -55,10 +63,12 @@ export default function ContactoSecundario({
           type="button"
           onClick={() => {
             setPrevia(consultaYaEnviada(propertyId))
+            setMontado(true)
             setAbierto((a) => !a)
           }}
           aria-expanded={abierto}
-          className={`${boton} ${abierto ? 'bg-[#1A5C38] text-white' : 'hover:bg-[#f2f8f4]'}`}
+          aria-controls={idForm}
+          className={`${boton} ${abierto ? 'bg-[#1A5C38] text-white' : 'hover:bg-[var(--theme-tint,#f2f8f4)]'}`}
           style={abierto ? { border: '1.5px solid #1A5C38' } : { border: '1.5px solid #1A5C38', color: 'var(--theme-accent, #1A5C38)' }}
         >
           Que me contacten
@@ -80,8 +90,8 @@ export default function ContactoSecundario({
           </a>
         </div>
       )}
-      {abierto && !previa && (
-        <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-4">
+      {montado && !previa && (
+        <div id={idForm} hidden={!abierto} className="mt-3 rounded-2xl border border-gray-200 bg-white p-4">
           <p className="mb-3 text-[15px] font-semibold text-neutral-900">Dejanos tus datos y te contactamos</p>
           <ConsultaCalificadaForm
             propertyId={propertyId}
