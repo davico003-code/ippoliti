@@ -21,6 +21,8 @@ import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/componen
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 import {
   getFeaturedProperties,
+  getProperties,
+  sanitizeProperty,
   generatePropertySlug,
   getMainPhoto,
   getAllPhotos,
@@ -36,6 +38,8 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
+import { construirIndice } from '@/lib/busqueda-propiedades'
+import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
@@ -281,13 +285,26 @@ export const metadata = {
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
+/** Zonas que hoy tienen propiedades: las únicas que sugiere el buscador. Si el
+ *  listado no responde, el buscador sugiere todas (como antes). */
+async function zonasVivas(): Promise<string[] | undefined> {
+  try {
+    const data = await getProperties()
+    return idsDeZonasVivas(construirIndice((data.objects ?? []).map(sanitizeProperty)))
+  } catch (err) {
+    console.error('[home] zonas vivas:', err instanceof Error ? err.message : err)
+    return undefined
+  }
+}
+
 export default async function Home() {
+  const vivas = await zonasVivas()
   return (
     <>
       <h1 className="sr-only">Propiedades y servicios inmobiliarios en Funes, Roldán y Rosario</h1>
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
-        <HeroMobile />
+        <HeroMobile vivas={vivas} />
         <SeleccionCarousel />
         <ProyectosCarousel />
         <MundoSiHome />
@@ -315,7 +332,7 @@ export default async function Home() {
           }
         ` }} />
 
-        <HeroVideo />
+        <HeroVideo vivas={vivas} />
         <FeaturedPropertiesSection />
         <EmprendimientosHome />
         <MundoSiHome />

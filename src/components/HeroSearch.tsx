@@ -1,18 +1,20 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
 import { buscarZonas, type Zona } from '@/lib/zonas'
 
-export default function HeroSearch() {
+/** `vivas`: ids de las zonas con propiedades (las arma la home en el servidor). */
+export default function HeroSearch({ vivas }: { vivas?: string[] }) {
   const [query, setQuery] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
-  const filtered = buscarZonas(query, 8)
+  const vivasSet = useMemo(() => (vivas ? new Set(vivas) : undefined), [vivas])
+  const filtered = buscarZonas(query, 8, vivasSet)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

@@ -47,6 +47,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { trackEvent } from '@/lib/analytics'
 import { mesAnioAR } from '@/lib/listado-alquileres'
 import { buscarZonas } from '@/lib/zonas'
+import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 import { highlightMatch } from '@/lib/highlight'
 import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
 import { ZONAS, type Zona } from '@/lib/zonas'
@@ -1325,7 +1326,8 @@ export default function PropiedadesView({
     : filters.operation === 'alquiler' ? 'en alquiler'
     : filters.operation === 'temporario' ? 'en alquiler temporario' : 'disponibles'
 
-  const searchZonas = useMemo(() => buscarZonas(filters.search, 6), [filters.search])
+  const zonasVivas = useMemo(() => new Set(idsDeZonasVivas(indiceBusqueda)), [indiceBusqueda])
+  const searchZonas = useMemo(() => buscarZonas(filters.search, 6, zonasVivas), [filters.search, zonasVivas])
 
   // Count non-operation active filters for mobile badge
   const mobileActiveCount = [
