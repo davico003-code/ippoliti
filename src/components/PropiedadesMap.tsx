@@ -2,7 +2,7 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import { memo, useEffect, useMemo, useState, useCallback, useRef, type MutableRefObject } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -17,6 +17,7 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
+import { formatUbicacion } from '@/lib/ubicacion'
 import { DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES, DEFAULT_ZOOM, esEncuadreInicial, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
@@ -212,7 +213,12 @@ function shortPrice(property: TokkoProperty): string {
 
 // ─── Price bubble DivIcon ─────────────────────────────────────────────────────
 
-function createPriceBubble(label: string, selected: boolean, hovered: boolean = false) {
+// En pantallas táctiles la burbuja suma 6 px transparentes alrededor: se ve
+// igual (agrandar el precio pisaría más a las vecinas) pero el dedo tiene ~44 px
+// de alto para acertarle en vez de 34.
+const PAD_TACTIL = 6
+
+function createPriceBubble(label: string, selected: boolean, hovered: boolean = false, tactil: boolean = false) {
   // selected > hovered (sin "selected"). Hover más claro y con outline amarillo.
   const bg = selected ? 'var(--si-pin-activo,#145030)' : hovered ? 'var(--si-pin-hover,#2D7A4F)' : 'var(--si-pin,#1A5C38)'
   const scale = selected || hovered ? 'transform:scale(1.1);' : ''
@@ -226,9 +232,11 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
     ? '2px solid #FBBF24'
     : '2px solid var(--si-pin-borde,rgba(255,255,255,0.9))'
 
+  const pad = tactil ? PAD_TACTIL : 0
   const html = `
     <div style="
       position:relative;display:inline-block;${zExtra}${scale}
+      ${pad ? `padding:${pad}px;` : ''}
       transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
     ">
       <div style="
@@ -256,11 +264,153 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
   return L.divIcon({
     className: '',
     html,
-    iconSize: [w, 34],
-    iconAnchor: [w / 2, 34],
+    iconSize: [w + pad * 2, 34 + pad * 2],
+    // La punta de la cola sigue clavada en la coordenada: el relleno de abajo
+    // queda por debajo del punto.
+    iconAnchor: [w / 2 + pad, 34 + pad],
     popupAnchor: [0, -36],
   })
 }
+
+// Un ícono por (precio, estado): pasar el mouse por una tarjeta ya no arma
+// ~300 L.divIcon nuevos. react-leaflet hace setIcon cuando cambia la
+// identidad del ícono, así que con la misma instancia el marcador ni se toca.
+const ICONOS_PRECIO = new Map<string, L.DivIcon>()
+// Se pregunta una vez por carga (son ~300 pines y el tipo de puntero no cambia).
+let esTactilCache: boolean | null = null
+function esTactil(): boolean {
+  if (esTactilCache === null) {
+    esTactilCache = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
+  }
+  return esTactilCache
+}
+function burbujaPrecio(label: string, selected: boolean, hovered: boolean): L.DivIcon {
+  const tactil = esTactil()
+  const clave = `${label}|${selected ? 1 : 0}|${hovered ? 1 : 0}|${tactil ? 1 : 0}`
+  let icono = ICONOS_PRECIO.get(clave)
+  if (!icono) {
+    icono = createPriceBubble(label, selected, hovered, tactil)
+    ICONOS_PRECIO.set(clave, icono)
+  }
+  return icono
+}
+
+interface AccionesPin {
+  onSelect: (id: number) => void
+  onDeselect?: () => void
+  onOpenDetail?: (id: number) => void
+}
+
+// Un marcador de propiedad suelta. Memo con props primitivas (más la propiedad,
+// que llega con la misma referencia mientras no cambie el listado): al pasar el
+// mouse por la grilla solo se re-renderizan los dos pines que cambian de estado
+// (el que se prende y el que se apaga), no los ~300.
+const PinPropiedad = memo(function PinPropiedad({ property, isSelected, isHovered, isMobile, accionesRef }: {
+  property: TokkoProperty
+  isSelected: boolean
+  isHovered: boolean
+  isMobile: boolean
+  accionesRef: MutableRefObject<AccionesPin>
+}) {
+  // Posición estable: un array nuevo en cada render hacía setLatLng, y
+  // markercluster sacaba y volvía a meter el marcador en su árbol.
+  const position = useMemo<[number, number]>(
+    () => [parseFloat(property.geo_lat!), parseFloat(property.geo_long!)],
+    [property.geo_lat, property.geo_long],
+  )
+  const eventHandlers = useMemo(() => ({
+    click: () => accionesRef.current.onSelect(property.id),
+    popupclose: () => accionesRef.current.onDeselect?.(),
+  }), [property.id, accionesRef])
+  const priceLabel = shortPrice(property)
+  const icon = burbujaPrecio(priceLabel, isSelected, isHovered)
+  const photo = getMainPhoto(property)
+  const fullPrice = formatPrice(property)
+  const typeName = propertyTypeLabelById(property.type?.id)
+  const area = getTotalSurface(property)
+  const titulo = tituloVisible(property) || property.address || ''
+
+  return (
+    <Marker
+      position={position}
+      icon={icon}
+      zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
+      eventHandlers={eventHandlers}
+    >
+      {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
+        <div style={{ width: '270px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", position: 'relative' }}>
+          {photo && (
+            <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
+              <img
+                src={photo}
+                alt={titulo}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+              {typeName && (
+                <span style={{
+                  position: 'absolute', top: '8px', left: '8px',
+                  background: 'rgba(26,92,56,0.85)', color: '#fff',
+                  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
+                }}>
+                  {typeName}
+                </span>
+              )}
+              <PropertyShareButton
+                propertyId={property.id}
+                slug={generatePropertySlug(property)}
+                title={titulo}
+                priceLabel={fullPrice}
+                ubicacion={formatUbicacion(property, titulo) || undefined}
+                contexto="mapa"
+                top={8}
+                right={8}
+                size={32}
+              />
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{
+              fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
+              fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
+              lineHeight: 1.1,
+            }}>
+              {fullPrice}
+            </span>
+          </div>
+          <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-ink, #1a1a1a)', lineHeight: 1.3, margin: '0 0 8px' }}>
+            {titulo}
+          </h3>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
+            {area != null && area > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
+            )}
+            {(property.suite_amount || property.room_amount) > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
+            )}
+            {property.bathroom_amount > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+            )}
+          </div>
+          <button
+            onClick={() => accionesRef.current.onOpenDetail?.(property.id)}
+            style={{
+              display: 'block', width: '100%', textAlign: 'center',
+              background: '#1A5C38', color: 'white',
+              fontSize: '13px', fontWeight: 600,
+              padding: '9px 16px', borderRadius: '8px',
+              border: 'none', cursor: 'pointer',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+          >
+            Ver propiedad →
+          </button>
+        </div>
+      </Popup>}
+    </Marker>
+  )
+})
 
 // ─── Cluster icon ─────────────────────────────────────────────────────────────
 
@@ -846,6 +996,13 @@ interface Props {
 
 export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onZonaChange, zonaDelMapa, pantallaCompleta, activeZona, onMapMove, onNearbyOrigin, nearbyActive, busqueda }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  // Con el dedo se hace zoom pellizcando (como en Mapas del iPhone): los +/-
+  // de Leaflet medían 30 px y solo sumaban ruido en la esquina.
+  const tactil = esTactil()
+  // Los pines leen las acciones de acá: así sus handlers no cambian de
+  // identidad en cada render del padre (y el memo de PinPropiedad aguanta).
+  const accionesRef = useRef<AccionesPin>({ onSelect, onDeselect, onOpenDetail })
+  accionesRef.current = { onSelect, onDeselect, onOpenDetail }
   const vistaPropiaRef = useRef(false)
   vistaPropiaRef.current = zonaDelMapa != null
   const [satellite, setSatellite] = useState(false)
@@ -897,7 +1054,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       ) : (
         <CapaCalles maxZoom={20} />
       )}
-      <ZoomControl position="bottomright" />
+      {!tactil && <ZoomControl position="bottomright" />}
       <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <SatelliteToggle satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <InitialView vista={zonaDelMapa} />
@@ -934,100 +1091,16 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
         iconCreateFunction={createClusterIcon}
       >
         {/* Standalone properties */}
-        {standalone.map(property => {
-          const lat = parseFloat(property.geo_lat!)
-          const lng = parseFloat(property.geo_long!)
-          const isSelected = property.id === selectedId
-          const isHovered = property.id === hoveredId
-          const priceLabel = shortPrice(property)
-          const photo = getMainPhoto(property)
-          const fullPrice = formatPrice(property)
-          const typeName = propertyTypeLabelById(property.type?.id)
-          const area = getTotalSurface(property)
-
-          return (
-            <Marker
-              key={property.id}
-              position={[lat, lng]}
-              icon={createPriceBubble(priceLabel, isSelected, isHovered)}
-              zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
-              eventHandlers={{
-                click: () => onSelect(property.id),
-                popupclose: () => onDeselect?.(),
-              }}
-            >
-              {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
-                <div style={{ width: '270px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", position: 'relative' }}>
-                  {photo && (
-                    <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={photo}
-                        alt={tituloVisible(property) || property.address}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                      />
-                      {typeName && (
-                        <span style={{
-                          position: 'absolute', top: '8px', left: '8px',
-                          background: 'rgba(26,92,56,0.85)', color: '#fff',
-                          fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                          letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
-                        }}>
-                          {typeName}
-                        </span>
-                      )}
-                      <PropertyShareButton
-                        propertyId={property.id}
-                        slug={generatePropertySlug(property)}
-                        title={tituloVisible(property) || property.address || ''}
-                        priceLabel={fullPrice}
-                        top={8}
-                        right={8}
-                        size={32}
-                      />
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span style={{
-                      fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
-                      fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
-                      lineHeight: 1.1,
-                    }}>
-                      {fullPrice}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-ink, #1a1a1a)', lineHeight: 1.3, margin: '0 0 8px' }}>
-                    {tituloVisible(property) || property.address}
-                  </h3>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
-                    {area != null && area > 0 && (
-                      <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
-                    )}
-                    {(property.suite_amount || property.room_amount) > 0 && (
-                      <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
-                    )}
-                    {property.bathroom_amount > 0 && (
-                      <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => onOpenDetail?.(property.id)}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'center',
-                      background: '#1A5C38', color: 'white',
-                      fontSize: '13px', fontWeight: 600,
-                      padding: '9px 16px', borderRadius: '8px',
-                      border: 'none', cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-                  >
-                    Ver propiedad →
-                  </button>
-                </div>
-              </Popup>}
-            </Marker>
-          )
-        })}
+        {standalone.map(property => (
+          <PinPropiedad
+            key={property.id}
+            property={property}
+            isSelected={property.id === selectedId}
+            isHovered={property.id === hoveredId}
+            isMobile={isMobile}
+            accionesRef={accionesRef}
+          />
+        ))}
       </MarkerClusterGroup>
 
       {/* Development markers — outside cluster group. Lejos van por debajo de

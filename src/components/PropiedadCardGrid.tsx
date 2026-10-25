@@ -26,7 +26,8 @@ import {
   esOportunidadConsultanos,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
-import { formatDireccionCompleta } from '@/lib/ubicacion'
+import { formatDireccionCompleta, formatUbicacion } from '@/lib/ubicacion'
+import { marcarSalidaDelListado } from '@/lib/volver-listado'
 
 const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const POPPINS = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
@@ -87,6 +88,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
   const direccion = formatDireccionCompleta(property, address, ' | ')
+  // Zona para el texto de compartir ("precio · Barrio, Ciudad"): sin repetir
+  // lo que ya dice la dirección, que va como título.
+  const ubicacion = formatUbicacion(property, address)
   // Mixta (venta + alquiler) listada como alquiler: el foco viaja en el link
   // para que la ficha mobile muestre los costos de ingreso y la planilla. Igual
   // con el filtro Temporario: si no, la ficha abría con la venta adelante.
@@ -153,12 +157,24 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   // Render como <Link> para que Next prefetchee la ficha en hover (desktop)
   // y al entrar al viewport (mobile). El onClick del padre puede llamar
   // e.preventDefault() para evitar la navegación (caso desktop = abrir panel).
+  //
+  // Play y Compartir van AFUERA del <Link>, como hermanos encima (absolute en
+  // el mismo lugar de siempre): un <button> adentro de un <a> es HTML inválido
+  // y VoiceOver anunciaba la tarjeta como un link con botones adentro.
   return (
+    <div className="relative">
     <Link
       ref={cardRef}
       href={cardHref}
       prefetch={false}
-      onClick={onClick}
+      onClick={e => {
+        onClick?.(e)
+        // Abre la ficha (no el panel de la compu ni otra pestaña): la ficha
+        // sabe que "atrás" es este listado, con sus filtros y su scroll.
+        if (!e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+          marcarSalidaDelListado(cardHref)
+        }
+      }}
       className="group cursor-pointer block"
       style={{
         background: 'var(--card-surface)',
@@ -216,20 +232,14 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         {/* Agente que atiende la propiedad (pastilla de vidrio, como en la
             home). Con agente, los puntitos de las fotos se corren a la derecha. */}
         <PastillaAgenteCard agente={agente} size={isMobile ? 32 : 34} />
-
-        {/* Play arriba-derecha (solo si hay audio). audioUrl ya viene enriquecido
-            en el listado (string = hay audio, null = no hay). */}
-        <CardMediaButtons
-          propertyId={property.id}
-          audioUrl={property.audioUrl ?? null}
-          size={32}
-          className="absolute top-2.5 right-2.5 z-10"
-        />
       </FotosDeslizables>
 
       {/* Body */}
       <div style={{ padding: '8px 2px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+        {/* La fila reserva el lugar de Compartir (que va afuera del link, ver
+            abajo): alto de 36 y 44 px a la derecha, así el precio nunca queda
+            debajo del botón. */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, minHeight: 36, paddingRight: 44 }}>
           {esOportunidadConsultanos(property.id) ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
               <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>
@@ -252,18 +262,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             {price}
           </p>
           )}
-          <div onClick={e => e.stopPropagation()}>
-            <PropertyShareButton
-              propertyId={property.id}
-              slug={slug}
-              title={address || ''}
-              priceLabel={price}
-              inline
-              size={36}
-              popoverDirection="up"
-              buttonVariant="card"
-            />
-          </div>
         </div>
 
         {!esOportunidadConsultanos(property.id) && otrosPrecios.map(({ operacion, precio }) => (
@@ -325,5 +323,38 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       </div>
 
     </Link>
+
+      {/* Play arriba-derecha de la foto (solo si hay audio). audioUrl ya viene
+          enriquecido en el listado (string = hay audio, null = no hay). Se ve
+          de 32 px pero se toca en 44: el ::after estira el área del botón. */}
+      <CardMediaButtons
+        propertyId={property.id}
+        audioUrl={property.audioUrl ?? null}
+        size={32}
+        className="absolute top-2.5 right-2.5 z-10 [transform:translateZ(0)] [&_button]:relative [&_button]:after:absolute [&_button]:after:-inset-1.5 [&_button]:after:content-['']"
+      />
+
+      {/* Compartir, a la derecha de la fila del precio. La foto es 16:9 del
+          ancho de la tarjeta y el margin-top en % se mide sobre el ancho, así
+          que cae justo en esa fila sin medir nada en JS (el área de toque de
+          44+ px ya la pone el propio botón). */}
+      <div
+        className="absolute z-10"
+        style={{ top: 0, right: 2, marginTop: 'calc(56.25% + 8px)' }}
+      >
+        <PropertyShareButton
+          propertyId={property.id}
+          slug={slug}
+          title={address || ''}
+          priceLabel={price}
+          ubicacion={ubicacion || undefined}
+          contexto="tarjeta"
+          inline
+          size={36}
+          popoverDirection="up"
+          buttonVariant="card"
+        />
+      </div>
+    </div>
   )
 }
