@@ -18,11 +18,16 @@ const raleway = localFont({
 
 const poppins = localFont({
   // Poppins, en el repo (src/fonts): compilar no depende de Google Fonts.
+  // 700: unos 50 números piden negrita (font-bold, fontWeight 700) y sin esta
+  // cara el navegador los dibujaba con la 800, más gordos de lo diseñado.
+  // 300 queda: Hausing y el masterplan de Distrito Roldán dibujan sus números
+  // grandes finitos (font-extralight / 300); sin ella saldrían en 400.
   src: [
     { path: "../../fonts/poppins-300-latin.woff2", weight: "300" },
     { path: "../../fonts/poppins-400-latin.woff2", weight: "400" },
     { path: "../../fonts/poppins-500-latin.woff2", weight: "500" },
     { path: "../../fonts/poppins-600-latin.woff2", weight: "600" },
+    { path: "../../fonts/poppins-700-latin.woff2", weight: "700" },
     { path: "../../fonts/poppins-800-latin.woff2", weight: "800" },
   ],
   variable: "--font-poppins",
@@ -36,13 +41,17 @@ import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import OportunidadesPopup from "@/components/OportunidadesPopup";
 // NewsletterPopup ("Oportunidades con IA", modal a los 90s) retirado a pedido de
 // David (22-sep-2026). El componente queda en src/components por si se revive.
+// PopupManager (Open House, venció el 17-abr-2026: siempre null) y TawkTo (ID
+// de ejemplo, nunca se configuró; el canal es WhatsApp) se sacaron el 25-oct:
+// se hidrataban en cada página para no mostrar nada. Quedan en el historial de
+// git si se revive un Open House.
 import MetaPixel from "@/components/MetaPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import TawkTo from "@/components/TawkTo";
-import PopupManager from "@/components/PopupManager";
 import Clarity from "@/components/Clarity";
 import CapturaCompartido from "@/components/CapturaCompartido";
 import { AudioPlayerProvider } from "@/components/audio/AudioPlayerProvider";
+import { OG_BASE } from "@/lib/seo/og-base";
+import { COLOR_BARRA_CLARO, COLOR_BARRA_OSCURO, SCRIPT_TEMA_INICIAL } from "@/lib/color-barra-navegador";
 
 export const metadata: Metadata = {
   title: "SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario",
@@ -65,21 +74,21 @@ export const metadata: Metadata = {
     // Bing Webmaster Tools (cuenta de David, 16-oct). No sacarla: Bing la re-chequea.
     other: { 'msvalidate.01': 'D6A3E4255C7F24CD2154E6225C5AAEC2' },
   },
+  // OG_BASE (siteName, locale, type): las páginas con openGraph propio lo
+  // pisan entero (Next no mezcla en profundidad), así que la esparcen también.
   openGraph: {
+    ...OG_BASE,
     title: 'SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario',
     description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario. Casas, terrenos, emprendimientos. Tasaciones profesionales.',
     url: 'https://siinmobiliaria.com',
-    siteName: 'SI INMOBILIARIA',
     // og-image.jpg: asset OG real 1200×630 (logo sobre fondo blanco).
     images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
-    locale: 'es_AR',
-    type: 'website',
   },
+  // Solo el tipo de tarjeta. Con título e imagen acá, el blog, las landings y
+  // el listado heredaban en X y Slack el twitter:title de la home; sin
+  // twitter:* propio, esos clientes usan el og:* de cada página.
   twitter: {
     card: 'summary_large_image',
-    title: 'SI INMOBILIARIA — Propiedades en Funes, Roldán y Rosario',
-    description: 'Inmobiliaria familiar con más de 40 años en Roldán, Funes y Rosario.',
-    images: ['/og-image.jpg'],
   },
 };
 
@@ -87,7 +96,13 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#ffffff',
+  // La barra del navegador acompaña el tema: un color por media query del
+  // sistema, y si el tema se eligió a mano, el script del <head> y ThemeToggle
+  // prenden el que corresponde (ver src/lib/color-barra-navegador.ts).
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: COLOR_BARRA_CLARO },
+    { media: '(prefers-color-scheme: dark)', color: COLOR_BARRA_OSCURO },
+  ],
 }
 
 const OFFICE_HOURS = [
@@ -249,9 +264,10 @@ export default function RootLayout({
   // → todo verde como siempre.
   const mundial = esEdicionMundial()
   return (
-    <html lang="es" suppressHydrationWarning className={`${raleway.variable} ${poppins.variable}${mundial ? ' mundial' : ''}`}>
+    <html lang="es-AR" suppressHydrationWarning className={`${raleway.variable} ${poppins.variable}${mundial ? ' mundial' : ''}`}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('si-color-theme');var d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}` }} />
+        {/* Tema (data-theme) y color de la barra del navegador antes de pintar. */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_INICIAL }} />
         {/* Favicon Edición Mundial (placeholder /favicon-mundial.png — reemplazar). */}
         {mundial && <link rel="icon" type="image/png" href="/favicon-mundial.png" />}
         {/* Sin preconnect a CDNs de fotos: las imágenes salen todas por
@@ -269,12 +285,10 @@ export default function RootLayout({
           <FooterWrapper />
           <FloatingWhatsApp />
           <OportunidadesPopup />
-          <PopupManager />
           <MetaPixel />
           <GoogleAnalytics />
           <Clarity />
           <CapturaCompartido />
-          <TawkTo />
         </AudioPlayerProvider>
       </body>
     </html>

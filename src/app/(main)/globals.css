@@ -21,10 +21,28 @@
   --cream-deep: #E6E6E2;
   --tinta: #1C1C1E;
   --tinta-soft: #4A4845;
-  --tinta-mute: #8B847A;
+  /* Antes #8B847A (gris tostado, 3,7:1 sobre blanco: la dirección de cada
+     tarjeta y de la ficha no llegaba a AA). Gris neutro: 6:1 sobre blanco y
+     5,3:1 sobre el verde tint. */
+  --tinta-mute: #5F6368;
   --line: #E6E6E4;
   --usd: #0E4A7B;
   --usd-dark: #073357;
+
+  /* Tokens de tema también en claro, de la misma fuente que el oscuro. Solo
+     los que hoy tienen UN valor claro en todos sus fallbacks inline (los 45
+     usos de var(--theme-surface, …) dicen blanco): definirlos no cambia nada
+     en claro. El resto (surface-soft, ink, muted, border…) tiene 10-20 grises
+     distintos de fallback; fijarlos acá repintaría cientos de lugares de
+     golpe, así que se suman a medida que se unifique cada superficie. */
+  --theme-surface: #ffffff;
+
+  /* Toast (src/components/Toast.tsx). */
+  --toast-bg: #111827;
+  --toast-error-bg: #7F1D1D;
+  --toast-ink: #ffffff;
+  --toast-border: transparent;
+  --toast-shadow: 0 8px 24px rgba(0,0,0,0.18);
 
   /* ── Edición Mundial 2026 — token de acento ──────────────────────────────
      Por defecto = verde de marca. La clase html.mundial (la pone el layout
@@ -135,6 +153,26 @@ html[data-theme='dark'] {
   --theme-border: #383c40;
   --theme-warning-surface: #393122;
   --theme-warning-ink: #edd7a8;
+  /* El toast #111827 contra #18191b daba 1:1: se veía el texto sin caja. */
+  --toast-bg: #2c2f33;
+  --toast-error-bg: #5c1d1d;
+  --toast-border: rgba(255,255,255,.1);
+  --toast-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+
+/* Cambio de tema parejo (ThemeToggle): mientras dura, ninguna transición
+   propia de cada elemento; todo cambia a la vez y, donde hay View Transitions,
+   la página entera hace un solo fundido de 200 ms. */
+html.si-tema-cambiando,
+html.si-tema-cambiando *,
+html.si-tema-cambiando *::before,
+html.si-tema-cambiando *::after {
+  transition: none !important;
+}
+html.si-tema-cambiando::view-transition-old(root),
+html.si-tema-cambiando::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: ease-out;
 }
 
 .si-theme-toggle {
@@ -153,6 +191,20 @@ html[data-theme='dark'] {
 }
 .si-theme-toggle:hover { background: var(--cream-deep); }
 .si-theme-toggle:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* Ícono del toggle desde el tema del <html> (no desde React): sale bien desde
+   el primer pintado, sin luna que salta a sol al hidratar. Al cambiar, el que
+   entra gira y aparece en 200 ms. */
+.si-tema-icono { display: block; flex: none; }
+.si-tema-icono--sol { display: none; }
+html[data-theme='dark'] .si-tema-icono--sol { display: block; }
+html[data-theme='dark'] .si-tema-icono--luna { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html.si-tema-cambiando .si-tema-icono { animation: si-tema-icono 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+}
+@keyframes si-tema-icono {
+  from { opacity: 0; transform: rotate(-45deg) scale(0.8); }
+  to { opacity: 1; transform: none; }
+}
 .si-theme-toggle--hero { color: white; border-color: rgba(255,255,255,.65); }
 .si-theme-toggle--hero:hover { background: rgba(255,255,255,.18); }
 html[data-theme='dark'] .si-theme-logo { content: url('/logo-blanco.png'); }
@@ -390,15 +442,18 @@ div[id="nosotros"] {
 /* Transición al navegar: cada página entra con un fade sutil (lo dispara
    template.tsx, que se re-monta en cada navegación). Solo opacidad: no usa
    transform para no reposicionar elementos position:fixed de la página. */
+/* 180 ms desde .4 (no desde 0): se siente un fundido cruzado y no un pantallazo
+   blanco en cada click, aunque la página ya esté precargada. Antes 300 ms
+   desde 0. */
 @keyframes si-page-in {
-  from { opacity: 0; }
+  from { opacity: 0.4; }
   to { opacity: 1; }
 }
 .si-page-enter {
   /* backwards y no both: con fill forwards la animación queda "en efecto"
      para siempre y Chrome mantiene el wrapper como stacking context, así los
      modales fixed de la página no pueden quedar por encima del Navbar. */
-  animation: si-page-in 0.3s ease-out backwards;
+  animation: si-page-in 180ms ease-out backwards;
 }
 /* Primera carga: sin fade (ver template.tsx). */
 .si-page-enter[data-sin-fade] {
@@ -420,19 +475,33 @@ div[id="nosotros"] {
   background-size: 200% 100%;
   animation: si-shimmer 1.4s ease-in-out 6 both;
 }
+/* En oscuro, el gris claro destellaba un bloque casi blanco por cada foto que
+   cargaba en el listado. Mismo brillo, en los grises del tema. */
+html[data-theme='dark'] .si-img-shimmer {
+  background-color: #25282b;
+  background-image: linear-gradient(90deg, #25282b 25%, #2f3236 37%, #25282b 63%);
+}
 
 /* Micro-interacciones. .si-tap = feedback táctil al presionar (botones/links
    simples). .si-press-lift = elevación al hover + press, compone ambos estados
-   en CSS (evita que un transform inline pise el :active). */
+   en CSS (evita que un transform inline pise el :active).
+   Longhands con la lista de propiedades, no el shorthand `transition`: el
+   shorthand (que va después de las utilidades de Tailwind) les pisaba el
+   transition-colors / transition-shadow a los botones que los combinan y los
+   hovers y las chips seleccionadas cambiaban de golpe. */
 .si-tap {
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: transform, color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity;
+  transition-duration: 0.18s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-tap-highlight-color: transparent;
 }
 .si-tap:active {
   transform: scale(0.97);
 }
 .si-press-lift {
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: transform, color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity;
+  transition-duration: 0.22s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) {
@@ -478,7 +547,9 @@ div[id="nosotros"] {
    que ningún control quede sin indicador de foco; los componentes con su propio
    ring lo pisan por especificidad. */
 :focus-visible {
-  outline: 2px solid #1A5C38;
+  /* var(--brand): verde de marca en claro y verde claro en oscuro (el #1A5C38
+     fijo sobre #18191b daba 2,2:1 y en oscuro no se veía dónde estaba el foco). */
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
   border-radius: 3px;
 }
@@ -575,11 +646,14 @@ html[data-theme='dark'] .dr-tema {
     .revela {
       animation: siRevela linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 55%;
+      animation-range: entry 0% entry 35%;
     }
   }
 }
 @keyframes siRevela {
-  from { opacity: 0; transform: translate3d(0, 36px, 0) scale(0.985); }
+  /* 14 px sin escala (antes 36 px + scale): acompaña la lectura en vez de
+     decorar, y con el rango más corto lo que ya está a la vista llega antes
+     a opacidad completa. */
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
   to { opacity: 1; transform: none; }
 }
