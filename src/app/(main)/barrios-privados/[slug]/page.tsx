@@ -11,6 +11,8 @@
 // Los assets viven en /public/barrios/{slug}/ (NN.webp + plano.pdf + preview),
 // descubiertos al build con fs (getBarrioFotos / getPlanoUrl).
 
+import fs from "node:fs";
+import path from "node:path";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BARRIOS, getBarrioBySlug, getBarriosHub } from "@/lib/barrios";
@@ -29,7 +31,8 @@ import DetalleGaleria from "./_components/DetalleGaleria";
 import DetalleAmenities from "./_components/DetalleAmenities";
 import DetallePlano from "./_components/DetallePlano";
 import DetalleMapaCercanias from "./_components/DetalleMapaCercanias";
-import { tituloConMarca } from '@/lib/seo/metas'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
+import CompartirPagina from '@/components/CompartirPagina'
 
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif";
 
@@ -41,6 +44,22 @@ export function generateStaticParams() {
   return BARRIOS.map((b) => ({ slug: b.slug }));
 }
 
+// og:image liviana (25-oct): la portada 01.webp pesa 200-620 KB y WhatsApp no
+// arma la tarjeta con WebP pesado (pide JPEG/PNG de menos de ~300 KB). Cada
+// barrio tiene su og.jpg 1200×630 (≤200 KB) generado una vez desde 01.webp con
+// sharp. Si un barrio nuevo todavía no lo tiene, va la og del sitio: mejor el
+// logo que una tarjeta sin foto.
+function ogDeBarrio(slug: string): { url: string; width: number; height: number } {
+  try {
+    if (fs.existsSync(path.join(process.cwd(), "public", "barrios", slug, "og.jpg"))) {
+      return { url: `/barrios/${slug}/og.jpg`, width: 1200, height: 630 };
+    }
+  } catch {
+    /* entornos sin fs */
+  }
+  return { url: "/og-image.jpg", width: 1200, height: 630 };
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const barrio = getBarrioBySlug(params.slug);
   if (!barrio) return {};
@@ -49,20 +68,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = barrio.subtitulo
     ? tituloConMarca(`${barrio.nombre} · ${barrio.subtitulo}`)
     : barrio.seo.metaTitle;
+  // Cortada en el final de una frase (o en palabra entera con "…"): el
+  // slice(0, 155) dejaba la tarjeta de WhatsApp y el snippet de Google en
+  // "…y legitimó la idea".
   const description = barrio.contenidoSEO?.intro
-    ? barrio.contenidoSEO.intro.slice(0, 155).trim()
+    ? recortarDescripcion(barrio.contenidoSEO.intro)
     : barrio.seo.metaDescription;
   const keywords = barrio.keywords ?? barrio.seo.keywordsLongTail.join(", ");
 
-  // og:image: portada procesada 01.webp; fallback al hero legacy / default.
-  // El hero legacy ".svg" es un placeholder inexistente en /public → se excluye
-  // para no apuntar el OG a un 404 (además SVG no es válido como og:image).
-  const [portada] = getBarrioFotos(barrio.slug);
-  const legacyHero =
-    barrio.imagenes.hero && !barrio.imagenes.hero.endsWith(".svg")
-      ? barrio.imagenes.hero
-      : null;
-  const ogImage = portada ?? legacyHero ?? "/og-image.jpg";
+  // og:image: og.jpg del barrio (ver ogDeBarrio), nunca el WebP de la portada.
+  const ogImage = ogDeBarrio(barrio.slug);
 
   return {
     title,
@@ -73,7 +88,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       url: canonical,
-      images: [ogImage],
+      images: [{ ...ogImage, alt: barrio.nombreCompleto }],
       type: "website",
       siteName: "SI INMOBILIARIA",
     },
@@ -81,7 +96,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImage],
+      images: [ogImage.url],
     },
   };
 }
@@ -233,6 +248,18 @@ export default function BarrioPage({ params }: Props) {
           <BarrioStockTokko slug={barrio.slug} nombre={barrio.nombre} tipo="Casa" />
         </section>
 
+        {/* Compartir la ficha del barrio: la eligen familias, y se la pasan por
+            WhatsApp. Botón client; la página sigue siendo estática. */}
+        <div className="flex flex-col items-start gap-3 border-t border-gray-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[15px] font-semibold text-[#0a0a0a]" style={{ fontFamily: R }}>
+            ¿Alguien de tu familia está mirando {barrio.nombre}? Pasale esta ficha.
+          </p>
+          <CompartirPagina
+            titulo={barrio.subtitulo ? `${barrio.nombre} · ${barrio.subtitulo}` : barrio.nombreCompleto}
+            ruta={`/barrios-privados/${barrio.slug}`}
+            contexto="barrio"
+          />
+        </div>
       </div>
 
       <BarrioCTAFinal

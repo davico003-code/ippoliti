@@ -17,6 +17,9 @@ import {
   X,
 } from 'lucide-react'
 import { displayImageUrl } from '@/lib/external-images'
+import { copiarTexto } from '@/lib/share-ficha'
+import { haptico } from '@/lib/haptico'
+import { showToast } from '@/components/Toast'
 
 interface ExternaSnapshot {
   title: string; image: string | null; location: string
@@ -382,6 +385,30 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       return
     }
 
+    // iOS/Safari solo dejan escribir el portapapeles DENTRO del toque, y acá
+    // el link existe recién después de varios await (importar externas + crear).
+    // Se reserva el portapapeles ahora con un ClipboardItem cuya promesa se
+    // resuelve con el link (mismo patrón que lib/share-ficha.ts). Si la
+    // creación falla, la promesa se rechaza y no se copia nada. Antes se hacía
+    // writeText después del await: en el iPhone fallaba en silencio y el panel
+    // igual decía que estaba copiado.
+    let resolverLink: (url: string) => void = () => {}
+    let rechazarLink: () => void = () => {}
+    const linkListo = new Promise<string>((res, rej) => { resolverLink = res; rechazarLink = () => rej(new Error('sin_link')) })
+    linkListo.catch(() => {})
+    let copiaReservada: Promise<boolean> = Promise.resolve(false)
+    try {
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        copiaReservada = navigator.clipboard
+          .write([new ClipboardItem({ 'text/plain': linkListo.then((u) => new Blob([u], { type: 'text/plain' })) })])
+          .then(() => true, () => false)
+      }
+    } catch {
+      copiaReservada = Promise.resolve(false)
+    }
+    // Cualquier salida sin link (validación, error, excepción) suelta la reserva.
+    let linkCreado = false
+
     setSubmitting(true)
     try {
       const { clientName, clientPhone, clientEmail, contactId, contactSource, agent, days, note } = formData
@@ -394,6 +421,7 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
           return result
         }))
         if (imported.some(x => !x?.verfichaUrl)) {
+          rechazarLink()
           setFormError('Hay links externos que todavía no se pudieron convertir a ficha neutral. Reintentá o revisá que sean links completos de una propiedad.')
           setSubmitting(false)
           return
@@ -427,27 +455,47 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
       })
       const data = await res.json()
       if (!res.ok || !data?.token) {
+        rechazarLink()
         setFormError(data?.error || 'No se pudo crear la selección. Reintentá.')
         setSubmitting(false)
         return
       }
       const url = `${window.location.origin}/seleccion/${data.token}`
+      linkCreado = true
+      resolverLink(url)
       setCreatedUrl(url)
       setActiveSelection(s => s ? { ...s, token: data.token, url: `/seleccion/${data.token}` } : s)
       setCopiedCreatedUrl(false)
-      // Copiar el link y abrirlo en otra pestaña para que el agente revise.
-      navigator.clipboard.writeText(url).catch(() => {})
-      window.open(url, '_blank', 'noopener')
+      // Ya no se abre otra pestaña sola: después de un await Safari la bloquea
+      // (y en el iPhone dejaba la de atrás en pausa). "Abrir para revisar" es un
+      // link común: abre siempre. "Link copiado" solo si de verdad se copió.
+      let copiado = await copiaReservada
+      // Sin ClipboardItem (o lo rechazó): en Chrome/Android writeText sigue valiendo con la pestaña enfocada.
+      if (!copiado) copiado = await copiarTexto(url)
+      if (copiado) {
+        haptico()
+        setCopiedCreatedUrl(true)
+      }
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Algo salió mal. Reintentá.')
       setSubmitting(false)
       return
+    } finally {
+      if (!linkCreado) rechazarLink()
     }
     setSubmitting(false)
   }
 
-  function copyUrl() {
-    navigator.clipboard.writeText(createdUrl)
+  // Dentro del toque (copiarTexto llama al portapapeles en el acto). Si el
+  // navegador no deja, el link queda a la vista para copiarlo a mano: nunca
+  // decir "copiado" sin haberlo copiado (el asesor pegaría otra cosa al cliente).
+  async function copyUrl() {
+    const ok = await copiarTexto(createdUrl)
+    if (!ok) {
+      showToast(`No se pudo copiar. Link: ${createdUrl}`, { variant: 'error', duration: 8000 })
+      return
+    }
+    haptico()
     setCopiedCreatedUrl(true)
     window.setTimeout(() => setCopiedCreatedUrl(false), 1800)
   }
@@ -472,30 +520,34 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
               <CheckCircle2 className="h-6 w-6" style={{ color: THEME.accent }} />
             </div>
             <h3 className="mb-1.5 text-xl font-bold" style={{ color: THEME.text }}>¡Selección lista!</h3>
-            <p className="mb-4 text-sm" style={{ color: THEME.muted }}>La abrimos en otra pestaña para que <b>revises que esté todo ok</b>. Si vino desde una ficha o consulta, queda como selección activa permanente de ese contacto.</p>
+            <p className="mb-4 text-sm" style={{ color: THEME.muted }}><b>Revisala antes de mandarla</b> con «Abrir para revisar». Si vino desde una ficha o consulta, queda como selección activa permanente de ese contacto.</p>
             <div className="mb-4 rounded-xl p-3" style={{ backgroundColor: THEME.surface }}>
               <input readOnly value={createdUrl} className="w-full min-w-0 truncate bg-transparent text-sm outline-none" style={{ color: THEME.text }} />
             </div>
             <div className="flex flex-col items-center gap-2">
-              <button
-                onClick={copyUrl}
-                className="inline-flex w-auto items-center justify-center rounded-xl px-4 py-2 text-[13px] font-extrabold text-white"
-                style={{ backgroundColor: '#244A86' }}
-              >
-                {copiedCreatedUrl ? 'Link copiado' : 'Copiar link para enviar al interesado'}
-              </button>
+              {/* Con teléfono, la acción principal es mandarla: WhatsApp primero y
+                  más grande; copiar queda como alternativa. */}
               {whatsappUrl && (
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-auto items-center justify-center gap-2 rounded-xl px-4 py-2 text-[13px] font-extrabold text-white"
+                  className="inline-flex min-h-[48px] w-full max-w-[360px] items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-extrabold text-white transition active:scale-[0.98]"
                   style={{ backgroundColor: '#1A5C38' }}
                 >
-                  <Send className="h-3.5 w-3.5" />
+                  <Send className="h-4 w-4" />
                   Enviar por WhatsApp al interesado
                 </a>
               )}
+              <button
+                type="button"
+                onClick={copyUrl}
+                className={`inline-flex min-h-[44px] w-auto items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-extrabold transition active:scale-[0.98] ${whatsappUrl ? 'border' : 'text-white'}`}
+                style={whatsappUrl ? { borderColor: THEME.border, color: THEME.text, backgroundColor: '#fff' } : { backgroundColor: '#244A86' }}
+              >
+                {copiedCreatedUrl && <CheckCircle2 className="h-4 w-4" />}
+                {copiedCreatedUrl ? 'Link copiado' : 'Copiar link para enviar al interesado'}
+              </button>
               <a
                 href={createdUrl}
                 target="_blank"
@@ -939,10 +991,10 @@ export default function AgentSeleccionPanel({ initialContact }: { initialContact
             className="mt-6 flex w-full items-center justify-center gap-2.5 rounded-2xl py-4 text-[15.5px] font-extrabold text-white disabled:opacity-50"
             style={{ backgroundColor: THEME.accent, boxShadow: '0 8px 20px rgba(17,24,39,.25)' }}
           >
-            {!submitting && <ExternalLink className="h-4 w-4" />}
-            {submitting ? (activeSelection ? 'Actualizando...' : 'Creando...') : activeSelection ? 'Actualizar, copiar link y abrir para revisar' : 'Crear, copiar link y abrir para revisar'}
+            {!submitting && <Link2 className="h-4 w-4" />}
+            {submitting ? (activeSelection ? 'Actualizando...' : 'Creando...') : activeSelection ? 'Actualizar y copiar link' : 'Crear y copiar link'}
           </button>
-          <p className="mt-2.5 text-center text-[12.5px]" style={{ color: THEME.muted }}>Se abre en otra pestaña — revisá que esté todo ok antes de mandárselo al cliente.</p>
+          <p className="mt-2.5 text-center text-[12.5px]" style={{ color: THEME.muted }}>Después la abrís para revisar que esté todo ok antes de mandársela al cliente.</p>
         </form>
       </div>
     )

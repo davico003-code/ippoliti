@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays, Heart, Info, RotateCcw, X } from 'lucide-react'
 import type { SeleccionItem } from '@/lib/seleccion'
+import { haptico } from '@/lib/haptico'
 import { Avatar, ChipsRed, FotoAsesor, Foto, Specs, isValidNote, primerNombre, tieneFicha, type Decision } from './seleccion-ui'
 
 const UMBRAL = 110 // px de arrastre para decidir
@@ -49,11 +50,15 @@ export default function MazoSeleccion({
   const [foto, setFoto] = useState(0)
   const inicio = useRef<{ x: number; y: number; t: number } | null>(null)
   const cartaRef = useRef<HTMLDivElement>(null)
+  // Golpecito al cruzar el punto en que la carta se va (como el mazo de la web, MazoCasas).
+  const cruzoUmbral = useRef(false)
 
   function salir(d: Decision) {
     if (!top || salida) return
     setSalida(d)
-    try { navigator.vibrate?.(12) } catch { /* sin vibración */ }
+    // haptico() y no navigator.vibrate: Safari no tiene vibrate y la mayoría
+    // abre este link en iPhone (haptico usa el interruptor nativo de iOS 18).
+    haptico(d !== 'nope')
     const item = top
     window.setTimeout(() => {
       // Mismo render (batch): la carta siguiente aparece ya centrada, sin heredar
@@ -82,6 +87,7 @@ export default function MazoSeleccion({
   function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (salida || intro) return
     inicio.current = { x: e.clientX, y: e.clientY, t: performance.now() }
+    cruzoUmbral.current = false
     e.currentTarget.setPointerCapture(e.pointerId)
   }
   function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -91,10 +97,16 @@ export default function MazoSeleccion({
     if (!arrastrando && Math.hypot(dx, dy) < 6) return
     setArrastrando(true)
     setDrag({ x: dx, y: dy })
+    const fuera = Math.abs(dx) > UMBRAL
+    if (fuera !== cruzoUmbral.current) {
+      cruzoUmbral.current = fuera
+      if (fuera) haptico()
+    }
   }
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     const ini = inicio.current
     inicio.current = null
+    cruzoUmbral.current = false
     setArrastrando(false)
     if (!ini || !top) return
     const dx = e.clientX - ini.x
@@ -117,6 +129,7 @@ export default function MazoSeleccion({
   }
   function onPointerCancel() {
     inicio.current = null
+    cruzoUmbral.current = false
     setArrastrando(false)
     setDrag({ x: 0, y: 0 })
   }

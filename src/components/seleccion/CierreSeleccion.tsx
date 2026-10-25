@@ -1,8 +1,37 @@
 'use client'
 
-import { CalendarDays, Check, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { CalendarDays, Check, Share2, Sparkles } from 'lucide-react'
 import type { SeleccionItem } from '@/lib/seleccion'
+import { abrirWhatsApp, lineaDatos, puedeCompartirNativo, registrarCompartir, urlCompartible } from '@/lib/compartir'
+import { haptico } from '@/lib/haptico'
 import { Foto, FotoAsesor, primerNombre, type Reaction } from './seleccion-ui'
+
+/**
+ * Link PÚBLICO de una elegida, para mandársela a otra persona. Nunca el token de
+ * la selección (las reacciones de dos personas se mezclarían en lo que ve el
+ * asesor) ni `it.url` de una externa (el aviso del portal o del colega: filtra
+ * la fuente). Nuestras → su ficha en la web; de colegas con ficha neutra → la
+ * de verficha.casa; el resto va sin link (título y precio igual informan).
+ */
+function linkPublico(it: SeleccionItem, canal: 'nativo' | 'whatsapp'): string | null {
+  const f = it.fichaUrl
+  if (!f) return null
+  const propia = /^\/seleccion\/ficha\/([^/?#]+)/.exec(f)
+  if (propia && !it.externa && !it.enRed) return urlCompartible(`/propiedades/${propia[1]}`, canal, 'seleccion')
+  const neutra = /^\/v\/([^/?#]+)/.exec(f)
+  if (neutra) return urlCompartible(`https://verficha.casa/${neutra[1]}`, canal, 'seleccion')
+  return null
+}
+
+function textoElegidas(gustaron: SeleccionItem[], canal: 'nativo' | 'whatsapp'): string {
+  const lineas = gustaron.map((it) => {
+    const datos = lineaDatos({ precio: it.price })
+    const link = linkPublico(it, canal)
+    return [`• ${it.title}${datos ? ` · ${datos}` : ''}`, link].filter(Boolean).join('\n')
+  })
+  return [`Estas son las que me gustaron:`, ...lineas].join('\n\n')
+}
 
 /**
  * El cierre, como el "it's a match" de Tinder: el cliente sabe que terminó y
@@ -32,6 +61,29 @@ export default function CierreSeleccion({
 }) {
   const nombre = primerNombre(clientName)
   const asesor = primerNombre(agentName)
+  const [enviadas, setEnviadas] = useState(false)
+
+  // Una casa casi nunca la decide una sola persona: este es el momento de más
+  // intención para pasarle las elegidas a la pareja o la familia. Celu: hoja
+  // nativa en un toque. Compu (o sin hoja): WhatsApp con la lista. Todo
+  // sincrónico dentro del toque (iOS pierde el gesto después de un await).
+  function mandarElegidas() {
+    if (gustaron.length === 0) return
+    haptico()
+    if (puedeCompartirNativo()) {
+      const text = textoElegidas(gustaron, 'nativo')
+      // Sin `url`: son varios links y van en el texto (con url, algunas apps
+      // agregan una sola y la repiten al final).
+      void navigator.share({ title: 'Mis elegidas', text }).then(
+        () => { registrarCompartir('nativo', 'seleccion'); setEnviadas(true) },
+        () => { /* cerró la hoja: no es un error */ },
+      )
+      return
+    }
+    abrirWhatsApp(textoElegidas(gustaron, 'whatsapp'))
+    registrarCompartir('whatsapp', 'seleccion')
+    setEnviadas(true)
+  }
 
   return (
     <div className="si-cierre-entra text-center">
@@ -79,6 +131,14 @@ export default function CierreSeleccion({
                 )
               })}
             </ul>
+            {/* Secundario (texto verde, sin relleno): la acción principal sigue siendo visitar. */}
+            <button type="button" onClick={mandarElegidas}
+              className="mx-auto mt-3 flex min-h-[44px] items-center justify-center gap-2 rounded-full px-4 text-[14px] font-semibold text-[#1A5C38] transition active:scale-[0.97] motion-reduce:transition-none">
+              {enviadas ? <Check className="h-4 w-4" strokeWidth={2.8} /> : <Share2 className="h-4 w-4" />}
+              {enviadas
+                ? 'Enviadas'
+                : gustaron.length === 1 ? 'Mandásela a quien decide con vos' : 'Mandáselas a quien decide con vos'}
+            </button>
           </div>
         </>
       ) : (

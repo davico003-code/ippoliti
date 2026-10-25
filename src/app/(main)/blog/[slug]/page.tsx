@@ -10,6 +10,7 @@ import { zonasMencionadas } from '@/lib/zonas-links'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
 import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
 import BurbujaDavid from '@/components/BurbujaDavid'
+import CompartirPagina from '@/components/CompartirPagina'
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
@@ -355,6 +356,16 @@ export default async function BlogPostPage({ params }: Props) {
                 {minutos} min de lectura
               </span>
             </div>
+            {/* Compartir arriba, junto al título: quien llega desde un grupo de
+                WhatsApp la reenvía sin tener que copiar la URL (botón client,
+                la nota sigue siendo ISR). */}
+            <CompartirPagina
+              titulo={post.title}
+              ruta={`/blog/${post.slug}`}
+              contexto="blog"
+              variante="sobreFoto"
+              className="mt-5"
+            />
           </div>
         </div>
       </header>
@@ -502,6 +513,13 @@ export default async function BlogPostPage({ params }: Props) {
               </a>
             </p>
           )}
+
+          {/* ── Compartir al terminar de leer: es el momento en que la nota le
+              sirve a alguien más (checklists, informes, columnas). ── */}
+          <div className="mt-12 flex flex-col items-start gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[15px] font-semibold text-gray-800">¿Le sirve a alguien que conocés? Pasale la nota.</p>
+            <CompartirPagina titulo={post.title} ruta={`/blog/${post.slug}`} contexto="blog" />
+          </div>
 
           {/* ── Cierre según el tema de la nota (lib/blog-cta.ts) ── */}
           <div className="mt-14 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-8 md:px-10 md:py-10">
