@@ -41,6 +41,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import TawkTo from "@/components/TawkTo";
 import PopupManager from "@/components/PopupManager";
 import Clarity from "@/components/Clarity";
+import CapturaCompartido from "@/components/CapturaCompartido";
 import { AudioPlayerProvider } from "@/components/audio/AudioPlayerProvider";
 
 export const metadata: Metadata = {
@@ -272,6 +273,7 @@ export default function RootLayout({
           <MetaPixel />
           <GoogleAnalytics />
           <Clarity />
+          <CapturaCompartido />
           <TawkTo />
         </AudioPlayerProvider>
       </body>
