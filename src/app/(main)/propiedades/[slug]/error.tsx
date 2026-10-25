@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { haptico } from '@/lib/haptico'
 
 export default function PropertyError({
   error,
@@ -10,9 +12,24 @@ export default function PropertyError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const router = useRouter()
+  const [reintentando, startTransition] = useTransition()
+
   useEffect(() => {
     console.error(error)
   }, [error])
+
+  // reset() solo vuelve a dibujar en el cliente lo que ya había llegado del
+  // server, con el error adentro: si Hilo tuvo un 5xx pasajero, "Reintentar"
+  // no reintentaba nada. router.refresh() le vuelve a pedir la ficha al server;
+  // juntos en una transición, el botón queda en "Reintentando…" hasta que llega.
+  const reintentar = () => {
+    haptico()
+    startTransition(() => {
+      router.refresh()
+      reset()
+    })
+  }
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
@@ -22,14 +39,17 @@ export default function PropertyError({
       </p>
       <div className="flex gap-3">
         <button
-          onClick={reset}
-          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors"
+          type="button"
+          onClick={reintentar}
+          disabled={reintentando}
+          aria-busy={reintentando}
+          className="si-tap min-h-[44px] px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-70"
         >
-          Reintentar
+          {reintentando ? 'Reintentando…' : 'Reintentar'}
         </button>
         <Link
           href="/propiedades"
-          className="px-6 py-3 border border-gray-200 text-gray-600 hover:border-brand-600 hover:text-brand-600 font-semibold rounded-lg transition-colors"
+          className="si-tap inline-flex min-h-[44px] items-center px-6 py-3 border border-gray-200 text-gray-600 hover:border-brand-600 hover:text-brand-600 font-semibold rounded-lg transition-colors"
         >
           Ver catálogo
         </Link>
