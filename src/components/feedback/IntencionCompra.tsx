@@ -34,9 +34,10 @@ const FRENOS = [
   { choice: 'expensas', label: 'Expensas' },
 ] as const
 
-// "esta casa", "este lote"… según el tipo publicado.
+// "esta casa", "este lote"… según el label en español (propertyTypeLabelById).
 function objeto(tipo: string): string {
   const t = tipo.toLowerCase()
+  if (t.includes('quinta')) return 'esta quinta'
   if (t.includes('casa')) return 'esta casa'
   if (t.includes('depart')) return 'este depto'
   if (t.includes('lote') || t.includes('terreno')) return 'este lote'
@@ -44,8 +45,9 @@ function objeto(tipo: string): string {
   if (t.includes('local')) return 'este local'
   if (t.includes('oficina')) return 'esta oficina'
   if (t.includes('galp')) return 'este galpón'
-  if (t.includes('quinta')) return 'esta quinta'
+  if (t.includes('dep')) return 'este depósito'
   if (t.includes('cochera')) return 'esta cochera'
+  if (t.includes('campo')) return 'este campo'
   return 'esta propiedad'
 }
 

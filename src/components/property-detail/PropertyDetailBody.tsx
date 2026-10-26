@@ -29,6 +29,7 @@ import {
   operacionPrincipal,
   tituloVisible,
   getProducerName,
+  propertyTypeLabelById,
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import ContactoSecundario from './ContactoSecundario'
@@ -580,7 +581,7 @@ export default function PropertyDetailBody({
             : 0
         }
         currency={price0?.currency ?? 'USD'}
-        tipo={property.type?.name ?? ''}
+        tipo={propertyTypeLabelById(property.type?.id)}
         alquiler={op0?.operation_type === 'Rent' || op0?.operation_type === 'Temporary rent'}
       />
 

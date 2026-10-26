@@ -29,7 +29,7 @@ export default function FeedbackDetalle({
   /** Precio publicado numérico. <= 0 → sin slider de valuación. */
   publishedPrice: number
   currency: string
-  /** Nombre del tipo publicado ("Casa", "Lote"…): arma "¿Comprarías esta casa?". */
+  /** Label en español del tipo ("Casa", "Terreno"…): arma "¿Comprarías esta casa?". */
   tipo: string
   /** Alquiler (permanente o temporario) → "¿Alquilarías…?". */
   alquiler: boolean
