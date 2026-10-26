@@ -6,7 +6,8 @@
 // contadores `feedback:property:{id}:objection:{choice}` con dedupe por vid.
 // AGREGADO 100% PRIVADO — nunca se muestra al público.
 //
-// Body: { propertyId: number, valor: number, objeciones?: string[] }
+// Body: { propertyId: number, valor: number | null, objeciones?: string[] }
+// valor null = solo objeciones (el "No → ¿Qué te frena?" de la ficha).
 
 import { NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
 
   const propertyId = parsePropertyId(body.propertyId)
   const valor = typeof body.valor === 'number' && Number.isFinite(body.valor) ? body.valor : null
-  if (!propertyId || valor == null || valor < 0) {
+  if (!propertyId || (valor == null && !Array.isArray(body.objeciones)) || (valor != null && valor < 0)) {
     return NextResponse.json({ error: 'invalid_body' }, { status: 400 })
   }
 
@@ -56,8 +57,10 @@ export async function POST(req: Request) {
     const base = fbKey(propertyId)
 
     // Valor de valuación (overwrite por vid).
-    await redis.hset(`${base}:valuation`, { [vid]: valor })
-    await redis.expire(`${base}:valuation`, FB_TTL)
+    if (valor != null) {
+      await redis.hset(`${base}:valuation`, { [vid]: valor })
+      await redis.expire(`${base}:valuation`, FB_TTL)
+    }
 
     // Objeciones: diff contra lo previo para mantener contadores sin doble conteo.
     if (objeciones != null) {

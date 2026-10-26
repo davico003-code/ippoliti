@@ -1,7 +1,7 @@
 'use client'
 
-// C — Slider de valuación, versión compacta. "¿Está bien valuada?" con el
-// valor a la derecha y un slider fino debajo. Rango simétrico ±15% alrededor
+// C — Slider de valuación, versión compacta. "¿Cuánto pagarías?" (se abre
+// después de un Sí/Tal vez a "¿Comprarías…?") con el valor a la derecha y un slider fino debajo. Rango simétrico ±15% alrededor
 // del precio publicado, arranca en "Justa". Al bajar del publicado se
 // despliegan (animado) las objeciones. AUTO-GUARDA en onChange (debounce).
 // Data PRIVADA.
@@ -96,13 +96,13 @@ export default function ValuationSlider({
     save(pct, next)
   }
 
-  let lblText = 'Justo el publicado'
+  let lblText = 'Lo que piden'
   let lblColor = 'text-gray-400'
   if (pct < 0) {
-    lblText = `${Math.abs(pct)}% menos · la ves cara`
+    lblText = `${Math.abs(pct)}% menos de lo que piden`
     lblColor = 'text-[#C0563E]'
   } else if (pct > 0) {
-    lblText = `+${pct}% · la ves barata`
+    lblText = `${pct}% más de lo que piden`
     lblColor = 'text-[#1A5C38]'
   }
 
@@ -117,8 +117,8 @@ export default function ValuationSlider({
     <div className="py-3">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[13px] font-semibold text-[#24292B]">¿Está bien valuada?</p>
-          <p className="mt-0.5 text-[11.5px] text-gray-400">Movela hasta lo que pagarías</p>
+          <p className="text-[13px] font-semibold text-[#24292B]">¿Cuánto pagarías?</p>
+          <p className="mt-0.5 text-[11.5px] text-gray-400">Mové la barra hasta tu número</p>
         </div>
         <div className="text-right">
           <p className="font-numeric text-[14px] font-semibold tabular-nums text-[#24292B]">
@@ -137,14 +137,14 @@ export default function ValuationSlider({
           step={1}
           value={pct}
           onChange={onSlide}
-          aria-label="Ajustar valuación percibida"
+          aria-label="Cuánto pagarías"
           aria-valuetext={`${currency} ${valor.toLocaleString('es-AR')}`}
           style={{ background: track }}
         />
         <div className="mt-1 flex justify-between text-[10px] text-gray-400">
-          <span>La veo cara</span>
-          <span>Justa</span>
-          <span>Vale más</span>
+          <span>Menos</span>
+          <span>Lo que piden</span>
+          <span>Más</span>
         </div>
       </div>
 
