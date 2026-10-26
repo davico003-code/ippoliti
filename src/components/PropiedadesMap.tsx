@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import 'leaflet/dist/leaflet.css'
@@ -21,6 +20,7 @@ import { DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES, DEFAULT_ZOOM, esEncuadreInicia
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
 import CapaCalles from './CapaCalles'
+import FotosVistaPrevia from './FotosVistaPrevia'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -859,6 +859,14 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   [properties])
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
+  // Posición fija por propiedad: con un array nuevo en cada render (al elegir un
+  // pin, al pasar el mouse por una tarjeta) react-leaflet movía todos los pines
+  // y el agrupador los sacaba y volvía a poner: se cerraba el popup abierto y
+  // sus fotos volvían a la primera.
+  const posiciones = useMemo(
+    () => new Map(standalone.map(p => [p.id, [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number]])),
+    [standalone],
+  )
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const devCerca = zoom >= DEV_ZOOM_CERCA
   const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, devCerca ? createDevPill(g.devName) : createDevCircle()])), [devGroups, devCerca])
@@ -935,8 +943,6 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       >
         {/* Standalone properties */}
         {standalone.map(property => {
-          const lat = parseFloat(property.geo_lat!)
-          const lng = parseFloat(property.geo_long!)
           const isSelected = property.id === selectedId
           const isHovered = property.id === hoveredId
           const priceLabel = shortPrice(property)
@@ -948,7 +954,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           return (
             <Marker
               key={property.id}
-              position={[lat, lng]}
+              position={posiciones.get(property.id)!}
               icon={createPriceBubble(priceLabel, isSelected, isHovered)}
               zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
               eventHandlers={{
@@ -958,16 +964,18 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
             >
               {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
                 <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
+                  {/* Fotos que se pasan con las flechas sin abrir la ficha. Va
+                      de borde a borde del popup (por eso el ancho y el margen). */}
                   {photo && (
-                    <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={photo}
-                        alt={tituloVisible(property) || property.address}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                      />
+                    <FotosVistaPrevia
+                      property={property}
+                      alt={tituloVisible(property) || property.address}
+                      className="aspect-[16/9]"
+                      style={{ width: 'calc(100% + 40px)', margin: '-10px -20px 12px', borderRadius: 0 }}
+                    >
                       {typeName && (
                         <span style={{
-                          position: 'absolute', top: '8px', left: '8px',
+                          position: 'absolute', top: '8px', left: '8px', zIndex: 10, transform: 'translateZ(0)',
                           background: 'rgba(26,92,56,0.85)', color: '#fff',
                           fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
                           letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
@@ -984,7 +992,7 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
                         right={8}
                         size={32}
                       />
-                    </div>
+                    </FotosVistaPrevia>
                   )}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                     <span style={{
