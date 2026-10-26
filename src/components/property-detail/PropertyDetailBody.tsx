@@ -567,10 +567,10 @@ export default function PropertyDetailBody({
         </SectionBoundary>
       )}
 
-      {/* FEEDBACK ANÓNIMO — caritas + valuación + "avisame si baja".
-          Aditivo y detrás de NEXT_PUBLIC_FEEDBACK_ENABLED (se auto-oculta si
-          el flag está off). publishedPrice=0 cuando no hay precio visible
-          (oculta el slider, deja caritas + alerta). */}
+      {/* FEEDBACK ANÓNIMO — "¿Comprarías esta casa?" + cuánto pagarías / qué
+          te frena. Aditivo y detrás de NEXT_PUBLIC_FEEDBACK_ENABLED (se
+          auto-oculta si el flag está off). publishedPrice=0 cuando no hay
+          precio visible (sin slider). El "Avisame si baja" va solo bajo el precio. */}
       <FeedbackDetalle
         key={property.id}
         propertyId={property.id}
@@ -580,6 +580,8 @@ export default function PropertyDetailBody({
             : 0
         }
         currency={price0?.currency ?? 'USD'}
+        tipo={property.type?.name ?? ''}
+        alquiler={op0?.operation_type === 'Rent' || op0?.operation_type === 'Temporary rent'}
       />
 
       {/* "Otras opciones para vos" ya no va acá — el parent lo renderiza full-width
