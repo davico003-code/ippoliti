@@ -1,7 +1,8 @@
 'use client'
 
-// Wrapper del feedback de la ficha de detalle: UNA tarjeta compacta con tres
-// filas (caritas · valuación · avisame si baja) separadas por líneas finas.
+// Wrapper del feedback de la ficha de detalle: UNA tarjeta compacta con dos
+// filas (caritas · valuación) separadas por una línea fina. El "Avisame si
+// baja" vive solo bajo el precio de la ficha: acá no se repite.
 // Una sola inyección en PropertyDetailBody (compartido mobile + desktop). Hace
 // UN fetch de estado inicial para restaurar lo respondido. Todo detrás del flag.
 
@@ -9,7 +10,6 @@ import { useEffect, useState } from 'react'
 import { FEEDBACK_ENABLED } from './flag'
 import ReactFaces from './ReactFaces'
 import ValuationSlider from './ValuationSlider'
-import AvisameSiBaja from './AvisameSiBaja'
 
 interface EstadoInicial {
   react: string | null
@@ -28,7 +28,6 @@ export default function FeedbackDetalle({
   currency: string
 }) {
   const [estado, setEstado] = useState<EstadoInicial | null>(null)
-  const [valuacionActual, setValuacionActual] = useState<number | null>(null)
 
   useEffect(() => {
     if (!FEEDBACK_ENABLED) return
@@ -56,7 +55,6 @@ export default function FeedbackDetalle({
   if (!estado) return null
 
   const hasPrice = publishedPrice > 0
-  const currentValuacion = valuacionActual ?? estado.valuation
 
   return (
     <section
@@ -80,11 +78,9 @@ export default function FeedbackDetalle({
             currency={currency}
             initialValor={estado.valuation}
             initialObjeciones={estado.objeciones}
-            onValuationChange={setValuacionActual}
           />
         )}
 
-        <AvisameSiBaja propertyId={propertyId} valuacion={currentValuacion} />
       </div>
     </section>
   )

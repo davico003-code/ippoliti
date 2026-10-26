@@ -222,7 +222,7 @@ export default function VisitWidget({
                 style={active ? { border: `2px solid ${GREEN}`, background: '#F4F8F5' } : { border: '1px solid #e5e7eb' }}
               >
                 <span className="text-[11px] font-semibold" style={{ color: active ? GREEN : '#9ca3af' }}>{DAY_NAMES[d.getDay()]}</span>
-                <span className="text-2xl font-bold font-numeric leading-none" style={{ color: active ? GREEN : '#111' }}>{d.getDate()}</span>
+                <span className="text-2xl font-bold font-numeric leading-none" style={{ color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #111)' }}>{d.getDate()}</span>
                 <span className="text-[11px] font-medium" style={{ color: active ? GREEN : '#9ca3af' }}>{MONTH_NAMES[d.getMonth()]}</span>
               </button>
             )
