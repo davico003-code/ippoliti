@@ -173,6 +173,11 @@ html[data-theme='dark'] :is(input, textarea)::placeholder { color: var(--tinta-m
 html[data-theme='dark'] .leaflet-container { background: var(--background); }
 html[data-theme='dark'] :is(.leaflet-popup-content-wrapper, .leaflet-popup-tip, .leaflet-bar a, .leaflet-control-attribution) { background: var(--card-surface); color: var(--foreground); }
 html[data-theme='dark'] .leaflet-control-attribution a { color: var(--brand); }
+/* Safari (con aceleración gráfica) pinta el canvas WebGL de la capa oscura
+   (CapaOscuraVectorial) encima de pines y botones aunque el z-index diga lo
+   contrario. Cada pane de arriba y cada esquina de controles va en su propia capa. */
+.leaflet-container .leaflet-gl-layer { z-index: 1; }
+.leaflet-container :is(.leaflet-shadow-pane, .leaflet-marker-pane, .leaflet-tooltip-pane, .leaflet-popup-pane, .leaflet-control-container > div) { transform: translateZ(0); }
 /* Only the street basemap follows the theme. Satellite photography is untouched.
    CapaCalles uses CARTO Dark Matter in dark mode; lifted so streets and labels read
    on a phone at night. Inverting the light tiles is only the fallback without a key. */
