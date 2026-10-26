@@ -15,7 +15,7 @@ const cspReportOnly = [
   "font-src 'self' data:",
   // analytics.google.com no matchea *.google-analytics.com (dominio distinto):
   // GA4 manda /g/collect ahí y sin esta entrada quedaba como violación.
-  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
+  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org https://tiles.openfreemap.org",
   // kuula.co (tours 360 de /dockgarden) y cloudflarestream (videos del
   // desarrollador vía Brickfy) se embeben en iframes; www.google.com es el mapa
   // embebido de /emprendimientos/fisherton-work.
