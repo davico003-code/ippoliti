@@ -47,3 +47,11 @@ export const LIGHT_TILES: BaseTiles = CARTO_KEY ? cartoTiles('light_all') : OSM_
  * clara se invierte por CSS como antes.
  */
 export const DARK_TILES: BaseTiles | null = CARTO_KEY ? cartoTiles('rastertiles/dark_all') : null
+
+/**
+ * Dark Matter partido en dos capas (fondo sin nombres + solo nombres), para
+ * teñir el fondo azul pizarra como Google Maps y aclarar aparte los nombres
+ * de calles y barrios (en dark_all salen grises, casi ilegibles).
+ */
+export const DARK_BASE_TILES: BaseTiles | null = CARTO_KEY ? cartoTiles('rastertiles/dark_nolabels') : null
+export const DARK_LABEL_TILES: BaseTiles | null = CARTO_KEY ? cartoTiles('rastertiles/dark_only_labels') : null

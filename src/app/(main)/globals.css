@@ -170,13 +170,14 @@ html[data-theme='dark'] :is(.border-gray-100, .border-gray-200, .border-gray-300
 html[data-theme='dark'] :is(.hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover, .focus\:bg-white:focus) { background-color: var(--theme-surface-soft); }
 html[data-theme='dark'] :is(input, textarea, select) { color-scheme: dark; }
 html[data-theme='dark'] :is(input, textarea)::placeholder { color: var(--tinta-mute); }
-html[data-theme='dark'] .leaflet-container { background: var(--background); }
+html[data-theme='dark'] .leaflet-container { background: #2c3441; }
 html[data-theme='dark'] :is(.leaflet-popup-content-wrapper, .leaflet-popup-tip, .leaflet-bar a, .leaflet-control-attribution) { background: var(--card-surface); color: var(--foreground); }
 html[data-theme='dark'] .leaflet-control-attribution a { color: var(--brand); }
 /* Only the street basemap follows the theme. Satellite photography is untouched.
    CapaCalles uses CARTO Dark Matter in dark mode; lifted so streets and labels read
    on a phone at night. Inverting the light tiles is only the fallback without a key. */
-.si-tiles-oscuras { filter: brightness(1.9) contrast(1.05); }
+.si-tiles-oscuras { filter: brightness(1.7) contrast(.74) sepia(.7) hue-rotate(178deg) saturate(1.5); }
+.si-tiles-oscuras-nombres { filter: brightness(1.45) sepia(.25) hue-rotate(178deg); }
 html[data-theme='dark'] .si-street-tiles { filter: invert(1) hue-rotate(180deg) brightness(.75) saturate(.45); }
 /* Map pins: brand green with white text in light mode; in dark mode, white pills with
    dark text (chosen by David over the real map). Hover and selected turn brand-light green. */

@@ -138,6 +138,7 @@ export default function MapaDistritoRoldanClient() {
 
     tilesRef.current = L.tileLayer(tiles.url, {
       attribution: tiles.attribution,
+      className: tiles === DARK_TILES ? 'si-tiles-oscuras' : '',
       maxZoom: 19,
     }).addTo(map)
 
@@ -188,6 +189,7 @@ export default function MapaDistritoRoldanClient() {
   // Si cambia el tema con el mapa abierto, cambian las tejas (misma URL: nada).
   useEffect(() => {
     tilesRef.current?.setUrl(tiles.url)
+    tilesRef.current?.getContainer()?.classList.toggle('si-tiles-oscuras', tiles === DARK_TILES)
   }, [tiles])
 
   // Cancela animaciones en curso y limpia línea + marker del destino anterior.
