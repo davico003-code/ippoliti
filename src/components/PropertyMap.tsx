@@ -77,13 +77,18 @@ export default function PropertyMap({ lat, lng, address }: Props) {
 
   useEffect(() => {
     if (!grande) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setGrande(false) }
+    // En captura y cortando: Esc cierra el mapa grande, no la ficha que está debajo.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopImmediatePropagation()
+      setGrande(false)
+    }
     const overflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
     return () => {
       document.body.style.overflow = overflow
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey, true)
     }
   }, [grande])
 
