@@ -12,6 +12,7 @@ import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
 import { anotarLectura, guardarLectura, listarPublicaciones, type ResultadoLectura } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
+import { salaDe } from '@/lib/ronda/sala'
 import { barrioVisible, chequeoAlPublicar, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
 import { sesionDe } from '@/lib/ronda/sesion'
 
@@ -62,8 +63,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const grilla = await listarPublicaciones(true)
-    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza })
+    const sala = salaDe(req)
+    const grilla = await listarPublicaciones(true, sala)
+    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza }, Date.now(), sala?.maxCaptacionesPorAgente ?? null)
     if (traba) return error(traba.error, traba.status, traba.limite ? { limite: true } : {})
     const clave = claveDeUrl(url)
 

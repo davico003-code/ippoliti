@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { borrarPedido, pedidoPorId } from '@/lib/ronda/almacen'
+import { salaDe } from '@/lib/ronda/sala'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -21,11 +22,12 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   const sesion = modera ? null : sesionDe(req)
   if (!modera && !sesion) return NextResponse.json({ error: 'Primero cargá tus datos para entrar a la ronda.' }, { status: 401 })
   try {
-    const pedido = await pedidoPorId(id)
+    const sala = salaDe(req)
+    const pedido = await pedidoPorId(id, sala)
     if (!pedido) return NextResponse.json({ ok: true })
     const suyo = pedido.agente.id === sesion?.aid || pedido.agente.whatsapp === sesion?.whatsapp
     if (!modera && !suyo) return NextResponse.json({ error: 'Solo lo puede eliminar quien lo publicó.' }, { status: 403 })
-    await borrarPedido(id)
+    await borrarPedido(id, sala)
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'No se pudo eliminar. Probá de nuevo.' }, { status: 503 })

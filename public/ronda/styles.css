@@ -534,3 +534,29 @@ dialog.visor::backdrop { background: #000; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ── Salas (27-oct-2026): tercera pestaña "Cruces" ─────────────────────── */
+.vistas.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 479px) {
+  .vistas.tres .vista-boton small { display: none; }
+  .vistas.tres .vista-boton { min-height: 52px; padding: 10px; min-width: 0; }
+  .vistas.tres .vista-boton[aria-pressed='true'] { padding: 9px; }
+  .vistas.tres .vista-titulo { flex-wrap: wrap; gap: 4px; font-size: 15px; }
+}
+.grilla .cruce {
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 16px;
+  background: var(--blanco); border: 1px solid var(--linea); border-top: 3px solid var(--acento); border-radius: var(--radio); box-shadow: var(--sombra);
+}
+.cruce .cruce-insignia {
+  align-self: flex-start; padding: 6px 10px; border-radius: 8px; background: var(--acento); color: var(--blanco);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.cruce .cruce-lado { display: grid; gap: 4px; padding: 12px; border-radius: 12px; background: var(--suave); }
+.cruce .cruce-lado strong { font: 800 16px/1.25 var(--titulos); letter-spacing: -0.3px; }
+.cruce .cruce-lado p { color: var(--gris); font-size: 15px; overflow-wrap: anywhere; }
+.cruce .cruce-propiedad { display: flex; gap: 10px; align-items: center; }
+.cruce .cruce-propiedad img { flex: none; width: 96px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--linea); }
+.cruce .cruce-propiedad div { display: grid; gap: 2px; min-width: 0; }
+.cruce .cruce-precio { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cruce .cruce-agente { color: var(--tinta) !important; font-size: 14px !important; }
+.cruce .acciones { margin-top: 0; }
