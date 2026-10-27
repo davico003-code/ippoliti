@@ -15,7 +15,7 @@ import {
   getOperationType,
   operationBadgeColor,
   preciosPorOperacion,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -71,7 +71,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const precios = preciosPorOperacion(property)
   const otrosPrecios = precios.slice(1)
   const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
-  const roofed = getRoofedArea(property)
+  // Superficie TOTAL (cubierta + semicubierta), como en toda pieza pública.
+  const total = getTotalSurface(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
   const mono = isMonoambiente(property)
@@ -96,8 +97,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   if (!land && mono) specs.push({ num: '', label: 'Monoambiente' })
   else if (!land && beds > 0) specs.push({ num: String(beds), label: ' dorm' })
   if (!land && baths > 0) specs.push({ num: String(baths), label: ` baño${baths > 1 ? 's' : ''}` })
-  if (roofed != null && roofed > 0) specs.push({ num: roofed.toLocaleString('es-AR'), label: ' m²' })
-  if (lot != null && lot > 0 && lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
+  if (!land && total != null && total > 0) specs.push({ num: total.toLocaleString('es-AR'), label: ' m²' })
+  if (lot != null && lot > 0 && lot !== total) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
   if (land && lot != null && lot > 0 && specs.length === 0) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m²' })
 
 

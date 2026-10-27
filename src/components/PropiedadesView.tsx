@@ -58,7 +58,7 @@ import {
   operacionPrincipal,
   priorizarOperacion,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -2185,7 +2185,7 @@ export default function PropiedadesView({
               <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, color: 'var(--theme-subtle, #6b7280)', margin: '0 0 6px' }}>
                 {(() => {
                   const specs: string[] = []
-                  const r = getRoofedArea(selectedProperty)
+                  const r = getTotalSurface(selectedProperty)
                   const land2 = isLand(selectedProperty)
                   const lot = getLotSurface(selectedProperty)
                   if (!land2 && isMonoambiente(selectedProperty))
@@ -2194,7 +2194,7 @@ export default function PropiedadesView({
                     specs.push(`${selectedProperty.suite_amount || selectedProperty.room_amount} dorm`)
                   if (!land2 && selectedProperty.bathroom_amount > 0)
                     specs.push(`${selectedProperty.bathroom_amount} baño${selectedProperty.bathroom_amount > 1 ? 's' : ''}`)
-                  if (r != null && r > 0) specs.push(`${r} m² cub`)
+                  if (!land2 && r != null && r > 0) specs.push(`${r.toLocaleString('es-AR')} m²`)
                   if (lot != null && lot > 0 && lot !== r) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
                   if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
                   return specs.join(' · ')
