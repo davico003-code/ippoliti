@@ -439,7 +439,9 @@
       marcarMotivosLargos()
     } else if (todas.length === 0) {
       grilla.innerHTML =
-        '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Publicar oportunidad</button></div>'
+        SALA
+          ? '<div class="vacio"><strong>Todavía no hay captaciones</strong><p>Presentá la tuya: pegás el enlace del aviso y contás lo bueno y lo malo.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Presentar captación</button></div>'
+          : '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Publicar oportunidad</button></div>'
     } else {
       grilla.innerHTML =
         '<div class="vacio"><strong>No hay oportunidades con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
@@ -502,7 +504,9 @@
       marcarMotivosLargos()
     } else if (todos.length === 0) {
       grilla.innerHTML =
-        '<div class="vacio"><strong>Todavía no hay pedidos este mes</strong><p>¿Tenés un cliente buscando? Publicá qué busca, en qué barrios y con qué presupuesto: te mostramos qué oportunidades encajan y los colegas que tienen algo te escriben.</p><button type="button" class="boton primario" data-publicar-pedido>+ Publicar pedido</button></div>'
+        SALA
+          ? '<div class="vacio"><strong>Todavía no hay búsquedas</strong><p>Cargá qué busca tu cliente: tipo, zona, presupuesto y operación. Si encaja con una captación de la otra inmobiliaria, aparece en Cruces.</p><button type="button" class="boton primario" data-publicar-pedido>+ Presentar búsqueda</button></div>'
+          : '<div class="vacio"><strong>Todavía no hay pedidos este mes</strong><p>¿Tenés un cliente buscando? Publicá qué busca, en qué barrios y con qué presupuesto: te mostramos qué oportunidades encajan y los colegas que tienen algo te escriben.</p><button type="button" class="boton primario" data-publicar-pedido>+ Publicar pedido</button></div>'
     } else {
       grilla.innerHTML =
         '<div class="vacio"><strong>No hay pedidos con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
@@ -994,7 +998,7 @@
     publicar.close()
     if (detalle.open) detalle.close()
     pintar()
-    avisar(reemplazada ? 'Listo. La reemplazaste: la nueva queda 30 días en la ronda.' : 'Listo. Tu oportunidad queda en la ronda por 30 días.')
+    avisar(SALA ? (reemplazada ? 'Listo. La reemplazaste.' : 'Listo. Tu captación ya está en la ronda.') : reemplazada ? 'Listo. La reemplazaste: la nueva queda 30 días en la ronda.' : 'Listo. Tu oportunidad queda en la ronda por 30 días.')
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
@@ -1439,7 +1443,7 @@
       // Vuelve a pedir la grilla: el cruce con las oportunidades lo arma el servidor.
       await cargar({ fresco: true })
       cambiarVista('pedidos')
-      avisar('Listo, tu pedido quedó publicado por 30 días.')
+      avisar(SALA ? 'Listo, tu búsqueda ya está en la ronda.' : 'Listo, tu pedido quedó publicado por 30 días.')
     } catch (err) {
       if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       error('pedidoError', err.message)
@@ -1680,6 +1684,35 @@
       $('small', boton).textContent = bajada
     }
     titulo('oportunidades', 'Captaciones', 'Lo que presenta cada uno')
+    // Los textos fijos de la página que hablan de la Ronda de los colegas.
+    const textos = [
+      ['.antetitulo[translate="no"]', SALA.nombre.toUpperCase()],
+      ['footer [translate="no"]', `↗ ${SALA.nombre.toUpperCase()}`],
+      ['#guiaTitulo', 'Así funciona esta ronda'],
+      ['#guia [data-cerrar].boton', 'Ver las captaciones'],
+      ['[data-publicar-oportunidad].opcion-grande strong', 'Presento una captación'],
+      ['[data-publicar-oportunidad].opcion-grande span', 'Una propiedad tuya para la reunión. Pegás el link del aviso.'],
+      ['#publicarTitulo', 'Presentar una captación'],
+      ['#pasoConfirmar button[type="submit"]', 'Presentar captación'],
+      ['#pedidoForm button[type="submit"]', 'Presentar búsqueda'],
+    ]
+    for (const [sel, texto] of textos) for (const el of $$(sel)) el.textContent = texto
+    const ayudaClave = $('#clave .ayuda')
+    if (ayudaClave) ayudaClave.textContent = 'Esta ronda es para la reunión de SI con Freguglia.'
+    const rotuloMotivo = $('label[for="oportunidad"]')
+    if (rotuloMotivo) rotuloMotivo.firstChild.textContent = '¿Por qué la traés? Lo bueno y lo malo '
+    $('#oportunidad')?.setAttribute('placeholder', 'Ej.: precio real, lo bueno (ubicación, estado) y lo malo (expensas, papeles)…')
+    const pasos = $('#guia .pasos')
+    if (pasos) {
+      pasos.innerHTML = [
+        ['1', 'Presentá tus captaciones', `Hasta ${SALA.maxCaptaciones} de ${CIUDADES.join(' o ')}. Pegás el link del aviso (Zonaprop o ficha de Tokko) y contás lo bueno y lo malo, con el precio real.`],
+        ['2', 'Cargá tus búsquedas', `Hasta ${SALA.maxPedidos}. En 1 minuto: qué busca tu cliente, en qué zona, con qué presupuesto y cómo puede cerrar.`],
+        ['3', 'Mirá los Cruces', 'Si una búsqueda encaja con una captación de la otra inmobiliaria, aparece en Cruces con la propiedad, el cliente y los dos agentes.'],
+        ['4', 'Mandale la ficha a tu cliente', '«Copiar ficha para mi cliente» te da el enlace listo para mandar.'],
+      ]
+        .map(([n, t, p]) => `<li><span aria-hidden="true">${n}</span><div><strong>${t}</strong><p>${p}</p></div></li>`)
+        .join('')
+    }
     titulo('pedidos', 'Búsquedas', 'Lo que buscan los clientes')
     const pedidosBoton = $('[data-vista="pedidos"]')
     if (pedidosBoton) {
