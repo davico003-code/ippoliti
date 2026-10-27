@@ -41,6 +41,7 @@ import {
   tituloRonda,
   type Publicacion,
 } from '@/lib/ronda/reglas'
+import { ciudadesDe, salaDe } from '@/lib/ronda/sala'
 import { ipDe, sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -56,8 +57,9 @@ export async function GET(req: Request) {
   const cerrado = await sinAcceso(req)
   if (cerrado) return cerrado
 
+  const sala = salaDe(req)
   try {
-    const publicaciones = (await completarDirecciones(await completarDetalles(await listarPublicaciones()))).map((p) =>
+    const publicaciones = (await completarDirecciones(await completarDetalles(await listarPublicaciones(false, sala)))).map((p) =>
       ({
         ...p,
         // Tokko se comparte tal cual: también las publicadas antes del cambio (14-oct-2026).
@@ -68,7 +70,10 @@ export async function GET(req: Request) {
       }),
     )
     // El contador y los pedidos no pueden tirar abajo la grilla: si fallan, la pantalla no los muestra.
-    const [actividad, pedidos] = await Promise.all([actividadDelMes().catch(() => null), listarPedidos().catch(() => [])])
+    const [actividad, pedidos] = await Promise.all([
+      sala ? null : actividadDelMes().catch(() => null),
+      listarPedidos(false, sala).catch(() => []),
+    ])
     const conPedidos = publicaciones.map((p) => ({ ...p, buscan: pedidos.filter((q) => encaja(q, p)).map((q) => q.id) }))
     const pedidosCruzados = pedidos.map((q) => ({ ...q, encajan: publicaciones.filter((p) => encaja(q, p)).map((p) => p.id) }))
     return NextResponse.json(
@@ -97,7 +102,9 @@ export async function POST(req: Request) {
   const motivo = leerMotivo(body.oportunidad)
   if ('error' in motivo) return error(motivo.error)
   const oportunidad = motivo.motivo
-  if (!esCiudadRonda(ciudad)) return error('Elegí si la propiedad está en Funes o en Roldán.')
+  const sala = salaDe(req)
+  const ciudades = ciudadesDe(sala)
+  if (!esCiudadRonda(ciudad, ciudades)) return error(`Elegí si la propiedad está en ${ciudades.join(' o en ')}.`)
 
   // Se publica solo pegando el link (David, 14-oct-2026): no hay carga a mano.
   if (body.manual !== undefined) return error(ENLACE_NO_SIRVE)
@@ -108,10 +115,10 @@ export async function POST(req: Request) {
     const inmobiliaria = await inmobiliariaPorId(sesion.iid)
     if (!inmobiliaria) return error('Tu inmobiliaria ya no está en la lista. Volvé a cargar tus datos.', 401)
 
-    await limpiarVencidas()
-    const grilla = await listarPublicaciones(true)
+    await limpiarVencidas(sala)
+    const grilla = await listarPublicaciones(true, sala)
     const reemplaza = typeof body.reemplaza === 'string' ? body.reemplaza.slice(0, 24) : null
-    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza })
+    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza }, Date.now(), sala?.maxCaptacionesPorAgente ?? null)
     if (traba) return error(traba.error, traba.status, traba.limite ? { limite: true } : {})
     const clave = claveDeUrl(url)
 
@@ -164,9 +171,9 @@ export async function POST(req: Request) {
       vence: ahora + DIAS_PUBLICACION * DIA_MS,
       detalle: ficha.detalle,
     }
-    await guardarPublicacion(publicacion)
+    await guardarPublicacion(publicacion, sala)
     // Reemplazo: la nueva ya está; la vieja sale (y su lugar queda para la nueva, que arranca de cero).
-    if (reemplaza) await borrarPublicacion(reemplaza)
+    if (reemplaza) await borrarPublicacion(reemplaza, sala)
     return NextResponse.json({ publicacion, reemplazada: reemplaza }, { status: 201 })
   } catch (e) {
     if (e instanceof AvisoSinLectura) return error(e.message, 422, { aMano: true })

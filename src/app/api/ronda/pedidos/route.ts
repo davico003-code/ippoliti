@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { guardarPedido, inmobiliariaPorId, limpiarPedidosVencidos, listarPedidos } from '@/lib/ronda/almacen'
 import { DIA_MS, DIAS_PUBLICACION, leerPedido, MAX_PEDIDOS_POR_INMOBILIARIA, type Pedido } from '@/lib/ronda/reglas'
+import { ciudadesDe, salaDe } from '@/lib/ronda/sala'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -28,15 +29,21 @@ export async function POST(req: Request) {
   } catch {
     return error('Datos inválidos.')
   }
-  const leido = leerPedido(body)
+  const sala = salaDe(req)
+  const leido = leerPedido(body, ciudadesDe(sala))
   if ('error' in leido) return error(leido.error)
 
   try {
     const inmobiliaria = await inmobiliariaPorId(sesion.iid)
     if (!inmobiliaria) return error('Tu inmobiliaria ya no está en la lista. Volvé a cargar tus datos.', 401)
-    await limpiarPedidosVencidos()
-    const suyos = (await listarPedidos(true)).filter((p) => p.inmobiliaria.id === inmobiliaria.id)
-    if (suyos.length >= MAX_PEDIDOS_POR_INMOBILIARIA) {
+    await limpiarPedidosVencidos(sala)
+    const vigentes = await listarPedidos(true, sala)
+    // En una sala el tope es por agente (2 búsquedas cada uno, instructivo de la reunión).
+    if (sala && vigentes.filter((p) => p.agente.id === sesion.aid).length >= sala.maxPedidosPorAgente) {
+      return error(`Ya presentaste ${sala.maxPedidosPorAgente} búsquedas, que es el máximo de esta ronda. Eliminá una para presentar otra.`, 409, { limite: true })
+    }
+    const suyos = vigentes.filter((p) => p.inmobiliaria.id === inmobiliaria.id)
+    if (!sala && suyos.length >= MAX_PEDIDOS_POR_INMOBILIARIA) {
       return error(`Tu inmobiliaria ya tiene ${MAX_PEDIDOS_POR_INMOBILIARIA} pedidos en la ronda. Eliminá uno para publicar otro.`, 409, { limite: true })
     }
     const ahora = Date.now()
@@ -48,7 +55,7 @@ export async function POST(req: Request) {
       creada: ahora,
       vence: ahora + DIAS_PUBLICACION * DIA_MS,
     }
-    await guardarPedido(pedido)
+    await guardarPedido(pedido, sala)
     return NextResponse.json({ pedido }, { status: 201, headers: { 'Cache-Control': 'private, no-store' } })
   } catch {
     return error('No se pudo publicar el pedido. Probá de nuevo.', 503)

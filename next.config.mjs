@@ -54,6 +54,11 @@ const nextConfig = {
         source: '/ronda',
         destination: '/ronda/index.html',
       },
+      // Salas de la Ronda (src/lib/ronda/sala.ts): la misma pantalla, su propia grilla.
+      {
+        source: '/ronda/freguglia',
+        destination: '/ronda/index.html',
+      },
     ]
   },
   async redirects() {
