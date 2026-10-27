@@ -4,7 +4,7 @@
 // pantalla manda la sala en el encabezado `x-ronda-sala`. Las inmobiliarias y los
 // agentes son los de la Ronda (el mismo registro sirve en las dos); lo publicado no
 // se mezcla. Reglas de la sala = las del instructivo de la reunión: cada AGENTE
-// presenta hasta 2 captaciones y 2 búsquedas, de las ciudades de la sala.
+// presenta hasta 3 captaciones (David, 27-oct: "dejá subir hasta 3 propiedades por agente") y 2 búsquedas.
 
 import { CIUDADES_DE_SIEMPRE, type CiudadRonda } from './reglas'
 
@@ -18,7 +18,7 @@ export interface Sala {
 }
 
 export const SALAS: Record<string, Sala> = {
-  freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptacionesPorAgente: 2, maxPedidosPorAgente: 2 },
+  freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptacionesPorAgente: 3, maxPedidosPorAgente: 2 },
 }
 
 /** La sala del pedido; null = la Ronda de siempre. Una sala que no existe también es la de siempre. */
