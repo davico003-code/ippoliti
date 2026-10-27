@@ -12,7 +12,7 @@
    * /ronda/<sala>. Las mismas que src/lib/ronda/sala.ts: el servidor las valida.
    */
   const SALAS = {
-    freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', marca: 'con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptaciones: 2, maxPedidos: 2 },
+    freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', marca: 'con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptaciones: 3, maxPedidos: 2 },
   }
   const SALA = SALAS[(location.pathname.split('/')[2] || '').toLowerCase()] || null
   const CIUDADES = SALA ? SALA.ciudades : ['Funes', 'Roldán']
