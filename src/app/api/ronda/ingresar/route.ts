@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid'
 import { rateLimit } from '@/lib/feedback'
 import { actualizarContacto, crearInmobiliaria, guardarAgente, inmobiliariaPorId } from '@/lib/ronda/almacen'
 import { normalizarWhatsapp, type Inmobiliaria } from '@/lib/ronda/reglas'
+import { fueraDeSala, inmobiliariaDeSala, salaDe } from '@/lib/ronda/sala'
 import { firmarSesion, ipDe, sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -40,12 +41,14 @@ export async function POST(req: Request) {
   const whatsapp = normalizarWhatsapp(body.whatsapp)
   if (!whatsapp) return error('Escribí tu WhatsApp con característica, sin 0 y sin 15. Ejemplo: 3413340916')
 
+  const sala = salaDe(req)
   try {
     let inmobiliaria: Inmobiliaria | null
     const elegida = limpio(body.inmobiliariaId, 40)
     if (elegida) {
       inmobiliaria = await inmobiliariaPorId(elegida)
       if (!inmobiliaria) return error('Esa inmobiliaria ya no está en la lista. Elegila de nuevo.', 404)
+      if (sala && !inmobiliariaDeSala(sala, inmobiliaria.nombre)) return error(fueraDeSala(sala), 403)
     } else {
       const nueva = (body.inmobiliaria ?? {}) as Record<string, unknown>
       const datos = {
@@ -54,6 +57,12 @@ export async function POST(req: Request) {
         matricula: limpio(nueva.matricula, 40),
       }
       if (datos.nombre.length < 2) return error('Escribí el nombre de tu inmobiliaria.')
+      if (sala) {
+        // En la sala solo se da de alta una de las suyas, con su nombre oficial.
+        const oficial = inmobiliariaDeSala(sala, datos.nombre)
+        if (!oficial) return error(fueraDeSala(sala), 403)
+        datos.nombre = oficial
+      }
       if (datos.matriculado.length < 3) return error('Escribí el nombre del matriculado a cargo.')
       if (!datos.matricula) return error('Escribí el número de matrícula.')
       inmobiliaria = await crearInmobiliaria(datos)

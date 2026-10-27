@@ -41,7 +41,7 @@ import {
   tituloRonda,
   type Publicacion,
 } from '@/lib/ronda/reglas'
-import { ciudadesDe, salaDe } from '@/lib/ronda/sala'
+import { ciudadesDe, fueraDeSala, inmobiliariaDeSala, salaDe } from '@/lib/ronda/sala'
 import { ipDe, sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -114,6 +114,7 @@ export async function POST(req: Request) {
   try {
     const inmobiliaria = await inmobiliariaPorId(sesion.iid)
     if (!inmobiliaria) return error('Tu inmobiliaria ya no está en la lista. Volvé a cargar tus datos.', 401)
+    if (sala && !inmobiliariaDeSala(sala, inmobiliaria.nombre)) return error(fueraDeSala(sala), 403, { fueraDeSala: true })
 
     await limpiarVencidas(sala)
     const grilla = await listarPublicaciones(true, sala)
