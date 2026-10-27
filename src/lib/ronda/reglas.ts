@@ -9,6 +9,8 @@
 // Rosario solo existe en las salas (sala.ts): la Ronda de siempre ofrece Funes y Roldán.
 export const CIUDADES_RONDA = ['Funes', 'Roldán', 'Rosario'] as const
 export type CiudadRonda = (typeof CIUDADES_RONDA)[number]
+/** Las de la Ronda de siempre: el valor por defecto de todo lo que valida una ciudad. */
+export const CIUDADES_DE_SIEMPRE: readonly CiudadRonda[] = ['Funes', 'Roldán']
 
 /** Los tres botones de la grilla; lo demás (locales, galpones…) sale en "Todas". */
 export type GrupoTipo = 'Casa' | 'Lote' | 'Departamento' | 'Otro'
@@ -134,7 +136,7 @@ export function detectarCiudad(...textos: Array<string | null | undefined>): Ciu
   return funes ? 'Funes' : 'Roldán'
 }
 
-export function esCiudadRonda(v: unknown, permitidas: readonly CiudadRonda[] = CIUDADES_RONDA): v is CiudadRonda {
+export function esCiudadRonda(v: unknown, permitidas: readonly CiudadRonda[] = CIUDADES_DE_SIEMPRE): v is CiudadRonda {
   return permitidas.some((c) => c === v)
 }
 
@@ -506,7 +508,7 @@ export interface Pedido {
 export type DatosPedido = Omit<Pedido, 'id' | 'agente' | 'inmobiliaria' | 'creada' | 'vence'>
 
 /** Valida lo que manda la pantalla. Pide qué, dónde y el presupuesto o cómo cierra. */
-export function leerPedido(crudo: unknown, permitidas: readonly CiudadRonda[] = CIUDADES_RONDA): { pedido: DatosPedido } | { error: string } {
+export function leerPedido(crudo: unknown, permitidas: readonly CiudadRonda[] = CIUDADES_DE_SIEMPRE): { pedido: DatosPedido } | { error: string } {
   const c = (crudo && typeof crudo === 'object' ? crudo : {}) as Record<string, unknown>
   const lista = (v: unknown) => (Array.isArray(v) ? v.map((x) => String(x ?? '').trim()) : [])
   const operacion = c.operacion === 'Alquiler' ? 'Alquiler' : c.operacion === 'Compra' ? 'Compra' : null

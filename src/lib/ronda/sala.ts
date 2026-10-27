@@ -6,7 +6,7 @@
 // se mezcla. Reglas de la sala = las del instructivo de la reunión: cada AGENTE
 // presenta hasta 2 captaciones y 2 búsquedas, de las ciudades de la sala.
 
-import { CIUDADES_RONDA, type CiudadRonda } from './reglas'
+import { CIUDADES_DE_SIEMPRE, type CiudadRonda } from './reglas'
 
 export interface Sala {
   id: string
@@ -29,5 +29,5 @@ export function salaDe(req: Request): Sala | null {
 
 /** Las ciudades que se pueden elegir: las de la sala o Funes y Roldán. */
 export function ciudadesDe(sala: Sala | null): readonly CiudadRonda[] {
-  return sala?.ciudades ?? CIUDADES_RONDA.filter((c) => c !== 'Rosario')
+  return sala?.ciudades ?? CIUDADES_DE_SIEMPRE
 }

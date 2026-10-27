@@ -12,8 +12,8 @@ import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
 import { anotarLectura, guardarLectura, listarPublicaciones, type ResultadoLectura } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
-import { salaDe } from '@/lib/ronda/sala'
-import { barrioVisible, chequeoAlPublicar, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
+import { ciudadesDe, salaDe } from '@/lib/ronda/sala'
+import { barrioVisible, chequeoAlPublicar, esCiudadRonda, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -83,7 +83,8 @@ export async function POST(req: Request) {
       aviso: {
         tipo: aviso.tipo,
         operacion: aviso.operacion,
-        ciudad: aviso.ciudad,
+        // Solo se preselecciona una ciudad que se pueda elegir acá (Rosario solo en las salas).
+        ciudad: esCiudadRonda(aviso.ciudad, ciudadesDe(sala)) ? aviso.ciudad : null,
         barrio: aviso.ciudad ? barrioVisible(aviso.barrio, aviso.ciudad) : aviso.barrio,
         precio: aviso.precio,
         moneda: aviso.moneda,
