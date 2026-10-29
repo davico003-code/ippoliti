@@ -18,6 +18,7 @@
 // top/right/bottom/left, márgenes y padding-bottom.
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { RespaldosJpg, Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
 
 const FOTO_MS = 4000
@@ -53,6 +54,9 @@ type ElFs = HTMLElement & { webkitRequestFullscreen?: () => void }
 const sinError = (p: Promise<void> | void) => {
   if (p && typeof p.catch === 'function') p.catch(() => {})
 }
+// Keyboard Lock (solo donde exista): con Escape bloqueado, un toque suelto no
+// saca de pantalla completa (hay que mantenerlo apretado).
+type NavegadorConTeclado = Navigator & { keyboard?: { lock?: (teclas: string[]) => Promise<void> } }
 const enPantallaCompleta = () => {
   const d = document as DocFs
   return !!(d.fullscreenElement ?? d.webkitFullscreenElement)
@@ -108,6 +112,8 @@ export default function TvKioskClient({
 }) {
   // Un paso cada FOTO_MS: FOTOS_POR_CASA pasos por casa.
   const [paso, setPaso] = useState(0)
+  // En una ref, como el resto de la recarga (no cambia entre renders).
+  const router = useRef(useRouter())
   // Fotos: primero la copia de R2; la que no abre pasa a su JPG de la web, y con
   // FALLAS_PARA_JPG fallidas pasan todas (así no queda en negro ni una).
   const [fallidas, setFallidas] = useState<string[]>([])
@@ -159,9 +165,12 @@ export default function TvKioskClient({
     return () => clearInterval(t)
   }, [])
 
-  // Recarga para traer stock nuevo: pasados RELOAD_MS, recién al terminar la
-  // vuelta, así ninguna casa se queda sin salir aunque la vuelta dure más (con
-  // ~130 casas son ~35 min). Sin casas (feed caído) recarga a los RELOAD_MS.
+  // Stock nuevo: pasados RELOAD_MS, recién al terminar la vuelta, así ninguna
+  // casa se queda sin salir aunque la vuelta dure más (con ~130 casas son
+  // ~35 min). Sin casas (feed caído) a los RELOAD_MS. SIN recargar la página
+  // (David, 29-oct: "que no se minimice"): un reload saca de pantalla completa
+  // y sin un toque no vuelve; router.refresh trae la lista nueva del servidor
+  // y la tele sigue en pantalla completa.
   // Solo si la web contesta: sin internet, reload() deja la pantalla de "sin
   // conexión" del navegador hasta que alguien la toque. Mientras no contesta,
   // sigue pasando lo que tiene y prueba de nuevo cada REINTENTO_MS.
@@ -175,7 +184,9 @@ export default function TvKioskClient({
       fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`)
-          window.location.reload()
+          router.current.refresh()
+          recargando.current = false
+          inicio.current = Date.now()
         })
         .catch(() => setTimeout(probar, REINTENTO_MS))
     }
@@ -190,10 +201,23 @@ export default function TvKioskClient({
   useEffect(() => {
     if (paso > 0 && vuelta > 0 && paso % vuelta === 0 && Date.now() - inicio.current >= RELOAD_MS) recargar()
   }, [paso, vuelta])
+  // Llegó la lista nueva: la vuelta arranca de nuevo con ella.
+  const primeraLista = useRef(true)
+  useEffect(() => {
+    if (primeraLista.current) {
+      primeraLista.current = false
+      return
+    }
+    setPaso(0)
+  }, [slides])
 
   // El botón "Girar" (tele parada) se ve solo mientras la página no está en pantalla completa.
   useEffect(() => {
-    const cambio = () => setCompleta(enPantallaCompleta())
+    const cambio = () => {
+      const completaAhora = enPantallaCompleta()
+      setCompleta(completaAhora)
+      if (completaAhora) sinError((navigator as NavegadorConTeclado).keyboard?.lock?.(['Escape']))
+    }
     cambio()
     document.addEventListener('fullscreenchange', cambio)
     document.addEventListener('webkitfullscreenchange', cambio)
@@ -223,13 +247,8 @@ export default function TvKioskClient({
     }
   }, [])
 
-  // Tocar/clickear la pantalla → entra o sale de pantalla completa.
-  const toggleFullscreen = () => {
-    const d = document as DocFs
-    if (!enPantallaCompleta()) entrarPantallaCompleta()
-    else if (d.exitFullscreen) sinError(d.exitFullscreen())
-    else d.webkitExitFullscreen?.()
-  }
+  // Tocar la pantalla (o el OK del control, que muchas teles mandan como toque)
+  // solo ENTRA en pantalla completa: nunca la saca.
 
   if (slides.length === 0) {
     return (
@@ -288,7 +307,7 @@ export default function TvKioskClient({
   return (
     <main
       className={`tv-root${vertical ? ' tv-modo-vertical' : ''}${alReves ? ' tv-al-reves' : ''}`}
-      onClick={toggleFullscreen}
+      onClick={entrarPantallaCompleta}
     >
       <div className="tv-stage">
       {/* Foto a sangre (izquierda, o arriba en la tele parada) */}
