@@ -122,7 +122,6 @@ export default function TvKioskClient({
   }
   const [clock, setClock] = useState<{ h: string; d: string } | null>(null)
   const [completa, setCompleta] = useState(false)
-  const botonFull = useRef<HTMLButtonElement>(null)
   // Tele parada al revés de lo previsto: el giro va para el otro lado.
   const [alReves, setAlReves] = useState(false)
 
@@ -192,12 +191,10 @@ export default function TvKioskClient({
     if (paso > 0 && vuelta > 0 && paso % vuelta === 0 && Date.now() - inicio.current >= RELOAD_MS) recargar()
   }, [paso, vuelta])
 
-  // El botón "Pantalla completa" se ve solo mientras la página no lo está.
+  // El botón "Girar" (tele parada) se ve solo mientras la página no está en pantalla completa.
   useEffect(() => {
     const cambio = () => setCompleta(enPantallaCompleta())
     cambio()
-    // Con el control remoto alcanza con apretar OK (autoFocus no corre al hidratar).
-    botonFull.current?.focus()
     document.addEventListener('fullscreenchange', cambio)
     document.addEventListener('webkitfullscreenchange', cambio)
     return () => {
@@ -206,14 +203,31 @@ export default function TvKioskClient({
     }
   }, [])
 
-  // Tocar/clickear la pantalla (o el botón) → pantalla completa; el TV no maximiza solo.
+  const entrarPantallaCompleta = () => {
+    if (enPantallaCompleta()) return
+    const el = document.documentElement as ElFs
+    if (el.requestFullscreen) sinError(el.requestFullscreen())
+    else el.webkitRequestFullscreen?.()
+  }
+
+  // Pantalla completa sin cartel (David, 29-oct-2026): la página la pide sola a
+  // los 15 s y con CUALQUIER tecla del control remoto. Los navegadores solo la
+  // dan después de una tecla o un toque: si el de la tele no deja la de los
+  // 15 s, alcanza con apretar un botón del control una vez.
+  useEffect(() => {
+    const t = setTimeout(entrarPantallaCompleta, 15_000)
+    document.addEventListener('keydown', entrarPantallaCompleta)
+    return () => {
+      clearTimeout(t)
+      document.removeEventListener('keydown', entrarPantallaCompleta)
+    }
+  }, [])
+
+  // Tocar/clickear la pantalla → entra o sale de pantalla completa.
   const toggleFullscreen = () => {
     const d = document as DocFs
-    const el = document.documentElement as ElFs
-    if (!enPantallaCompleta()) {
-      if (el.requestFullscreen) sinError(el.requestFullscreen())
-      else el.webkitRequestFullscreen?.()
-    } else if (d.exitFullscreen) sinError(d.exitFullscreen())
+    if (!enPantallaCompleta()) entrarPantallaCompleta()
+    else if (d.exitFullscreen) sinError(d.exitFullscreen())
     else d.webkitExitFullscreen?.()
   }
 
@@ -275,7 +289,6 @@ export default function TvKioskClient({
     <main
       className={`tv-root${vertical ? ' tv-modo-vertical' : ''}${alReves ? ' tv-al-reves' : ''}`}
       onClick={toggleFullscreen}
-      title="Tocar para pantalla completa"
     >
       <div className="tv-stage">
       {/* Foto a sangre (izquierda, o arriba en la tele parada) */}
@@ -293,22 +306,6 @@ export default function TvKioskClient({
           )}
           {s.kind === 'propiedad' && s.destacada && <span className="tv-badge">Selección SI</span>}
         </div>
-        {!completa && (
-          <button
-            ref={botonFull}
-            type="button"
-            className="tv-full"
-            onClick={(e) => {
-              e.stopPropagation()
-              toggleFullscreen()
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
-            </svg>
-            Pantalla completa
-          </button>
-        )}
         {vertical && !completa && (
           <button
             type="button"
