@@ -77,10 +77,16 @@ export interface CalcularInput {
   //  - '3cuotas' (default): 1ª cuota al ingresar, 2ª y 3ª en los meses 2 y 3.
   //  - '1pago': honorarios completos (con IVA) al ingresar.
   formaPagoHonorarios?: FormaPagoHonorarios
+  // Factura A: el propietario factura el alquiler con IVA (21%). Se suma solo
+  // a lo que se paga cada mes; honorarios, admin, sellado y depósito siguen
+  // sobre el alquiler neto.
+  facturaA?: boolean
 }
 
 export interface CalcularOutput {
   primerMes: number
+  alquilerMensual: number  // alquiler que se paga cada mes: neto, o neto + IVA con Factura A
+  ivaAlquiler: number      // IVA del alquiler mensual (0 sin Factura A)
   honoTotal: number        // total honorarios CON IVA
   honoCuota: number        // honoTotal / 3 (1ª de 3 cuotas)
   honoEnMes1: number       // lo que entra al ingreso: cuota (3cuotas) o total (1pago)
@@ -103,7 +109,10 @@ export function calcularCostosIngreso({
   cotizacion,
   incluirAdmin = true,
   formaPagoHonorarios = '3cuotas',
+  facturaA = false,
 }: CalcularInput): CalcularOutput {
+  const ivaAlquiler = facturaA ? alquiler * IVA : 0
+  const alquilerMensual = alquiler + ivaAlquiler
   // Honorarios SIEMPRE con IVA en el monto final (no se descompone en pantalla).
   const honoTotal = alquiler * meses * HONORARIOS_PCT * (1 + IVA)
   const honoCuota = honoTotal / 3
@@ -125,12 +134,14 @@ export function calcularCostosIngreso({
   // ARS: alquiler + honoEnMes1 + sellado + verificacion + admin (todo ARS)
   const totalSubMonedaContrato =
     moneda === 'USD'
-      ? alquiler + honoEnMes1 + admin
-      : alquiler + honoEnMes1 + sellado + verificacion + admin
+      ? alquilerMensual + honoEnMes1 + admin
+      : alquilerMensual + honoEnMes1 + sellado + verificacion + admin
   const totalSubARS = moneda === 'USD' ? sellado + verificacion : 0
 
   return {
-    primerMes: alquiler,
+    primerMes: alquilerMensual,
+    alquilerMensual,
+    ivaAlquiler,
     honoTotal,
     honoCuota,
     honoEnMes1,
