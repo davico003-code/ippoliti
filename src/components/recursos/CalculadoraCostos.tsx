@@ -212,6 +212,8 @@ export default function CalculadoraCostos() {
   const [incluirAdmin, setIncluirAdmin] = useState<boolean>(true)
   // Forma de pago de honorarios: 3 cuotas (default) o 1 pago al ingreso.
   const [formaPago, setFormaPago] = useState<FormaPagoHonorarios>('3cuotas')
+  // Factura A: el alquiler mensual suma IVA (21%). Query ?factura=A.
+  const [facturaA, setFacturaA] = useState<boolean>(false)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   // Toast inline para feedback de "Compartir cálculo".
   const [toast, setToast] = useState<string | null>(null)
@@ -268,6 +270,7 @@ export default function CalculadoraCostos() {
     if (searchParams?.get('admin') === 'no' || searchParams?.get('sinAdmin') === '1') setIncluirAdmin(false)
     // Forma de pago de honorarios: ?pago=1pago. Legacy: ?honoCuotas=1.
     if (searchParams?.get('pago') === '1pago' || searchParams?.get('honoCuotas') === '1') setFormaPago('1pago')
+    if (searchParams?.get('factura') === 'A') setFacturaA(true)
     // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -306,8 +309,8 @@ export default function CalculadoraCostos() {
 
   // ── Cálculo principal ──────────────────────────────────────────────────
   const c = useMemo(
-    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago }),
-    [alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPago],
+    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago, facturaA }),
+    [alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPago, facturaA],
   )
 
   // Total al ingresar — separado por moneda
@@ -322,10 +325,11 @@ export default function CalculadoraCostos() {
   // Con pago único, los honorarios van completos en el Mes 1: los meses 2 y 3 ya
   // no suman cuota (quedan como el Mes 4: solo alquiler + admin).
   const honoMes23 = c.honoEnMes23
-  const mes23Usd = moneda === 'USD' ? alquiler + honoMes23 + c.admin : 0
-  const mes23Ars = moneda === 'USD' ? 0 : alquiler + honoMes23 + c.admin
-  const mes4Usd = moneda === 'USD' ? alquiler + c.admin : 0
-  const mes4Ars = moneda === 'USD' ? 0 : alquiler + c.admin
+  const alqMes = c.alquilerMensual
+  const mes23Usd = moneda === 'USD' ? alqMes + honoMes23 + c.admin : 0
+  const mes23Ars = moneda === 'USD' ? 0 : alqMes + honoMes23 + c.admin
+  const mes4Usd = moneda === 'USD' ? alqMes + c.admin : 0
+  const mes4Ars = moneda === 'USD' ? 0 : alqMes + c.admin
 
   // ── Descarga PDF — abre la planilla en nueva pestaña y dispara print() ─
   // El browser muestra el diálogo nativo de impresión donde el usuario elige
@@ -343,6 +347,7 @@ export default function CalculadoraCostos() {
       cotizacion: String(cotizacion),
       pago: formaPago,
       admin: incluirAdmin ? 'incluir' : 'no',
+      ...(facturaA ? { factura: 'A' } : {}),
     })
     window.open(
       `/recursos/calculadora-alquiler/planilla?${params.toString()}`,
@@ -366,6 +371,7 @@ export default function CalculadoraCostos() {
       indice,
       pago: formaPago,
       admin: incluirAdmin ? 'incluir' : 'no',
+      ...(facturaA ? { factura: 'A' } : {}),
     })
     const url = `${window.location.origin}/recursos/calculadora-alquiler?${params.toString()}`
 
@@ -397,6 +403,7 @@ export default function CalculadoraCostos() {
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
   // Sufijo de admin en el detalle del cronograma — vacío si no se incluye admin.
   const adminLabel = incluirAdmin ? ' + admin' : ''
+  const alquilerLabel = facturaA ? 'alquiler + IVA' : 'alquiler'
   const ajusteSubtitulo =
     moneda === 'USD'
       ? 'Consultar ajuste anual. Los contratos en dólares tienen un solo ajuste al año.'
@@ -711,6 +718,25 @@ export default function CalculadoraCostos() {
               </p>
             </div>
 
+            {/* Factura A — IVA sobre el alquiler */}
+            <div className="mt-4">
+              <Label>Factura del alquiler</Label>
+              <Toggle<'sin' | 'A'>
+                cols={2}
+                value={facturaA ? 'A' : 'sin'}
+                onChange={(v) => setFacturaA(v === 'A')}
+                options={[
+                  { value: 'sin', label: 'Sin IVA' },
+                  { value: 'A', label: 'Factura A (+IVA)' },
+                ]}
+              />
+              <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
+                {facturaA
+                  ? 'Se suma 21% de IVA al alquiler de cada mes. Honorarios y depósito se calculan sobre el alquiler sin IVA.'
+                  : 'Elegí "Factura A" si el propietario factura el alquiler con IVA (habitual en comercios).'}
+              </p>
+            </div>
+
             {/* Cotización */}
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
@@ -792,7 +818,7 @@ export default function CalculadoraCostos() {
               Costos al ingresar — desglose
             </h2>
             <div>
-              <DesgloseRow label="PRIMER MES" value={fmt(alquiler, moneda)} />
+              <DesgloseRow label={facturaA ? 'PRIMER MES + IVA' : 'PRIMER MES'} value={fmt(c.alquilerMensual, moneda)} />
               <DesgloseRow
                 label={`HONORARIOS ${c.honoMes1Label}`}
                 value={fmt(c.honoEnMes1, moneda)}
@@ -937,27 +963,27 @@ export default function CalculadoraCostos() {
 
             <TimelineRow
               title="Mes 1 — al ingresar"
-              detail={`alquiler + ${honoMes1Label} + sellado + verificación${adminLabel}`}
+              detail={`${alquilerLabel} + ${honoMes1Label} + sellado + verificación${adminLabel}`}
             >
               <MesValor usd={mes1Usd} ars={mes1Ars} />
             </TimelineRow>
 
             {c.mostrarMeses23 ? (
               <>
-                <TimelineRow title="Mes 2" detail={`alquiler + 2ª cuota honorarios${adminLabel}`}>
+                <TimelineRow title="Mes 2" detail={`${alquilerLabel} + 2ª cuota honorarios${adminLabel}`}>
                   <MesValor usd={mes23Usd} ars={mes23Ars} />
                 </TimelineRow>
 
-                <TimelineRow title="Mes 3" detail={`alquiler + 3ª cuota honorarios${adminLabel}`}>
+                <TimelineRow title="Mes 3" detail={`${alquilerLabel} + 3ª cuota honorarios${adminLabel}`}>
                   <MesValor usd={mes23Usd} ars={mes23Ars} />
                 </TimelineRow>
 
-                <TimelineRow title="Mes 4 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
+                <TimelineRow title="Mes 4 en adelante" detail={`${alquilerLabel}${adminLabel} · ${ajusteSubtitulo}`} last>
                   <MesValor usd={mes4Usd} ars={mes4Ars} />
                 </TimelineRow>
               </>
             ) : (
-              <TimelineRow title="Mes 2 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
+              <TimelineRow title="Mes 2 en adelante" detail={`${alquilerLabel}${adminLabel} · ${ajusteSubtitulo}`} last>
                 <MesValor usd={mes4Usd} ars={mes4Ars} />
               </TimelineRow>
             )}
