@@ -13,7 +13,7 @@ import { celularDeCookie } from '@/lib/cookie-whatsapp'
  * ficha. Hilo deja anotado el toque. Mismo camino que los anuncios (/w/<ref>).
  *
  * Si la visita vino de un anuncio, TODAS las fichas pasan por acá (también las
- * de un captador, con `alt` = su WhatsApp de respaldo) y con `utm` = el ref del
+ * de un captador: Hilo las manda a su captador igual) y con `utm` = el ref del
  * anuncio: Hilo anota de qué anuncio vino el toque y el agente lo pega al
  * contacto cuando lo carga (David, 1-nov-2026).
  *
@@ -34,11 +34,7 @@ function irA(url: string) {
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   const url = new URL(req.url)
   const texto = (url.searchParams.get('text') ?? '').slice(0, 1000) || 'Hola {agente}, te escribo por una propiedad de la web.'
-  // Fichas con captador que pasan por acá porque la visita vino de un anuncio
-  // (WhatsappConDatos): si Hilo no contesta, van a SU captador, como siempre.
-  const alt = url.searchParams.get('alt') ?? ''
-  const numeroRespaldo = /^549\d{10}$/.test(alt) ? alt : CENTRAL_VENTAS
-  const respaldo = () => `https://wa.me/${numeroRespaldo}?text=${encodeURIComponent(texto.replaceAll('{agente}', numeroRespaldo === CENTRAL_VENTAS ? 'SI INMOBILIARIA' : '').replace(/^Hola\s+,/, 'Hola,'))}`
+  const respaldo = () => `https://wa.me/${CENTRAL_VENTAS}?text=${encodeURIComponent(texto.replaceAll('{agente}', 'SI INMOBILIARIA'))}`
   // utm_content del anuncio (= ref en Hilo): así el toque queda atado al anuncio.
   const utm = (url.searchParams.get('utm') ?? '').trim().toLowerCase()
 

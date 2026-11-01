@@ -28,8 +28,8 @@ export function sinHojaPorPrecio(precio?: string): boolean {
  * "que guarde de dónde viene y por lo que consulta"): pasa SIEMPRE por Hilo
  * (/w/ficha/<id>) con el ref del anuncio, así el toque queda anotado con su
  * anuncio. Una ficha con captador (wa.me directo) también: Hilo la manda a su
- * captador igual, y `alt` es el WhatsApp de respaldo si Hilo no contesta. El
- * saludo pasa a {agente}: lo completa Hilo con quien atiende.
+ * captador igual (si Hilo no contesta, va al WhatsApp central, como las que
+ * rotan). El saludo pasa a {agente}: lo completa Hilo con quien atiende.
  */
 export function hrefPorHilo(href: string, propertyId: number, utmContent: string | null): string {
   if (!(propertyId > 0)) return href
@@ -46,11 +46,9 @@ export function hrefPorHilo(href: string, propertyId: number, utmContent: string
   }
   if (url.pathname.startsWith('/w/ficha/')) return conUtm(url)
   if (url.hostname !== 'wa.me') return href
-  const numero = url.pathname.replace(/\D/g, '')
   const texto = (url.searchParams.get('text') ?? '').replace(/^Hola\b[^,!\n]*([,!])/, 'Hola {agente}$1')
   const destino = new URL(`/w/ficha/${propertyId}`, 'https://siinmobiliaria.com')
   if (texto) destino.searchParams.set('text', texto)
-  if (/^549\d{10}$/.test(numero)) destino.searchParams.set('alt', numero)
   return conUtm(destino)
 }
 
