@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import { Calendar, MessageCircle, X } from 'lucide-react'
 import { events, idEventoMeta, trackEvent, trackFbEvent } from '@/lib/analytics'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
-import { marcarVisitaDePauta, urlConUtmDePauta } from '@/lib/pauta-visita'
+import { marcarVisitaDePauta, urlConUtmDePauta, utmContentDePauta } from '@/lib/pauta-visita'
 import { guardarCookieWhatsapp } from '@/lib/cookie-whatsapp'
 import {
   WHATSAPP_CON_DATOS_ACTIVO,
@@ -13,6 +13,7 @@ import {
   contarWcd,
   guardarConsultaEnviada,
   guardarTurnoPedido,
+  hrefPorHilo,
   pedirTurno,
   sinHojaPorPrecio,
   urlWhatsappConDatos,
@@ -48,17 +49,21 @@ type RespuestaLeads = { agente?: AgenteFicha | null; metaEventId?: string; conve
 export default function WhatsappConDatos({ href, propertyId, propertyTitle, propertyPrice, children, ...rest }: Props) {
   const [pauta, setPauta] = useState(false)
   const [abierta, setAbierta] = useState(false)
+  // Vino de un anuncio: el botón pasa por Hilo con el ref del anuncio (hrefPorHilo).
+  const [hrefFinal, setHrefFinal] = useState(href)
 
   useEffect(() => {
-    setPauta(WHATSAPP_CON_DATOS_ACTIVO && marcarVisitaDePauta() && !sinHojaPorPrecio(propertyPrice))
+    const dePauta = marcarVisitaDePauta()
+    setHrefFinal(dePauta ? hrefPorHilo(href, propertyId, utmContentDePauta()) : href)
+    setPauta(WHATSAPP_CON_DATOS_ACTIVO && dePauta && !sinHojaPorPrecio(propertyPrice))
     // Quien dejó su celular antes de que existiera la cookie (o hace más de 30 días) la recupera acá.
     guardarCookieWhatsapp(leerContacto().whatsapp)
-  }, [propertyPrice])
+  }, [href, propertyId, propertyPrice])
 
   return (
     <>
       <a
-        href={href}
+        href={hrefFinal}
         target="_blank"
         rel="noopener noreferrer"
         {...rest}
