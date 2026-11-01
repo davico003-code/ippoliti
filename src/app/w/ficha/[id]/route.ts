@@ -12,6 +12,11 @@ import { celularDeCookie } from '@/lib/cookie-whatsapp'
  * habla con un agente, ese agente) y se abre el chat con él, con el texto de la
  * ficha. Hilo deja anotado el toque. Mismo camino que los anuncios (/w/<ref>).
  *
+ * Si la visita vino de un anuncio, TODAS las fichas pasan por acá (también las
+ * de un captador: Hilo las manda a su captador igual) y con `utm` = el ref del
+ * anuncio: Hilo anota de qué anuncio vino el toque y el agente lo pega al
+ * contacto cuando lo carga (David, 1-nov-2026).
+ *
  * Servidor a servidor con HILO_INGEST_SECRET. Si Hilo no contesta a tiempo, va
  * al WhatsApp central de ventas (como antes): el botón nunca queda muerto.
  */
@@ -30,6 +35,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const url = new URL(req.url)
   const texto = (url.searchParams.get('text') ?? '').slice(0, 1000) || 'Hola {agente}, te escribo por una propiedad de la web.'
   const respaldo = () => `https://wa.me/${CENTRAL_VENTAS}?text=${encodeURIComponent(texto.replaceAll('{agente}', 'SI INMOBILIARIA'))}`
+  // utm_content del anuncio (= ref en Hilo): así el toque queda atado al anuncio.
+  const utm = (url.searchParams.get('utm') ?? '').trim().toLowerCase()
 
   const id = Number(params.id)
   const secret = process.env.HILO_INGEST_SECRET
@@ -49,6 +56,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         userAgent: req.headers.get('user-agent'),
         // Si ya dejó su celular en la web y habla con un agente, Hilo lo manda con ese.
         celular: celularDeCookie(req.headers.get('cookie')),
+        utm: /^[a-z0-9][a-z0-9_-]{1,79}$/.test(utm) ? utm : undefined,
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(2500),
