@@ -14,6 +14,7 @@ import {
   guardarConsultaEnviada,
   guardarTurnoPedido,
   pedirTurno,
+  sinHojaPorPrecio,
   urlWhatsappConDatos,
   type AgenteFicha,
   type ConsultaEnviada,
@@ -28,6 +29,7 @@ import {
  * misma hoja le ofrece elegir día + franja para una visita: opcional, sin
  * pedirle nada más; Hilo se la agenda al mismo agente, que confirma la hora
  * por WhatsApp. Los días y franjas los manda Hilo con la consulta.
+ * Desde USD 400K no hay hoja: va directo al chat (sinHojaPorPrecio).
  */
 
 type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onClick'> & {
@@ -48,10 +50,10 @@ export default function WhatsappConDatos({ href, propertyId, propertyTitle, prop
   const [abierta, setAbierta] = useState(false)
 
   useEffect(() => {
-    setPauta(WHATSAPP_CON_DATOS_ACTIVO && marcarVisitaDePauta())
+    setPauta(WHATSAPP_CON_DATOS_ACTIVO && marcarVisitaDePauta() && !sinHojaPorPrecio(propertyPrice))
     // Quien dejó su celular antes de que existiera la cookie (o hace más de 30 días) la recupera acá.
     guardarCookieWhatsapp(leerContacto().whatsapp)
-  }, [])
+  }, [propertyPrice])
 
   return (
     <>

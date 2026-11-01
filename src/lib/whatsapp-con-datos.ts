@@ -10,6 +10,19 @@ import { visitante } from '@/lib/tinder-contador'
 /** La llave: prendido salvo NEXT_PUBLIC_WHATSAPP_CON_DATOS=off (se apaga sin revertir el merge). */
 export const WHATSAPP_CON_DATOS_ACTIVO = process.env.NEXT_PUBLIC_WHATSAPP_CON_DATOS !== 'off'
 
+// WHATSAPP DIRECTO en las casas caras (David, 1-nov-2026): el comprador de
+// USD 400K+ mira la ficha pero no deja nombre y celular (Alta Gama: 973 vistas,
+// 3 datos, 0 visitas). Desde ese precio el botón abre el chat con el captador
+// sin la hoja; el toque igual cuenta en Hilo y en el píxel (Contact).
+export const PRECIO_SIN_HOJA_USD = 400_000
+
+/** true si el precio de la ficha ("USD 450.000") llega al tope en que se saltea la hoja. */
+export function sinHojaPorPrecio(precio?: string): boolean {
+  if (!precio || !/^\s*(USD|U\$S|US\$)/i.test(precio)) return false
+  const numero = Number(precio.replace(/\D/g, ''))
+  return numero >= PRECIO_SIN_HOJA_USD
+}
+
 // 'turno' (17-oct-2026): eligió día + franja después de abrir WhatsApp (el "segundo filtro").
 export const EVENTOS_WCD = ['toque', 'datos', 'turno'] as const
 export type EventoWcd = (typeof EVENTOS_WCD)[number]
