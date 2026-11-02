@@ -250,7 +250,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning className={`${raleway.variable} ${poppins.variable}${mundial ? ' mundial' : ''}`}>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('si-color-theme');var d=t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=null;try{t=sessionStorage.getItem('si-color-theme')}catch(e){}var h=(new Date().getUTCHours()+21)%24;var d=t?t==='dark':(h>=22||h<7);document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}` }} />
         {/* Favicon Edición Mundial (placeholder /favicon-mundial.png — reemplazar). */}
         {mundial && <link rel="icon" type="image/png" href="/favicon-mundial.png" />}
         {/* Sin preconnect a CDNs de fotos: las imágenes salen todas por
