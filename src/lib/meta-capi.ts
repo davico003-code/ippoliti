@@ -38,3 +38,18 @@ export function metaDeLaConsulta(request: NextRequest, body: Record<string, unkn
   // Sin nada de Meta no vale la pena mandarlo (la consulta igual entra a Hilo).
   return meta.eventId || meta.fbp || meta.fbc || /[?&]fbclid=/.test(pageUrl ?? '') ? meta : null
 }
+
+/**
+ * Lo mismo para un TOQUE de WhatsApp (rutas /w/…, 1-nov-2026): cookies del
+ * píxel y la página. Hilo lo guarda con el toque y, si el agente lo pega a un
+ * contacto que después visita, manda el QualifiedLead con esto + el teléfono.
+ * Sin cookie _fbc, Hilo la arma desde el fbclid de `url`.
+ */
+export function metaDelToque(req: Request, pagina: string | null): { fbp?: string; fbc?: string; url?: string } {
+  const cookies = req.headers.get('cookie') ?? ''
+  const cookie = (n: string) => {
+    const m = cookies.match(new RegExp(`(?:^|;\\s*)${n}=([^;]{1,300})`))
+    return m ? decodeURIComponent(m[1]) : undefined
+  }
+  return { fbp: cookie('_fbp'), fbc: cookie('_fbc'), url: pagina ? pagina.slice(0, 500) : undefined }
+}
