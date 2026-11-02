@@ -2,7 +2,6 @@ import { condicionesTemporario, type PrecioTemporario, type TemporadaFeed } from
 import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
-import { resolverUbicacion } from './ubicacion'
 import { conFotosFijas, esFotoR2 } from './fotos-fijas';
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
@@ -347,12 +346,12 @@ export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string):
   return urlConsultaWhatsapp(property, (name) => `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`)
 }
 
-// Pedido de visita ("Solicitar visita" del mobile): los alquileres de Roldán van
-// a la línea de la ficha — el feed de HILO ya pone ahí al agente de alquileres
-// (Leticia), pedido de David 11-sep. El resto sigue al número general (undefined).
-export function numeroVisitaWhatsapp(property: TokkoProperty): string | undefined {
-  const alquila = (property.operations ?? []).some((op) => String(op.operation_type) !== 'Sale')
-  if (!alquila || resolverUbicacion(property).ciudad !== 'Roldán') return undefined
+// Pedido de visita ("Agendar visita" de la ficha): el chat se abre con el agente
+// que Hilo le asignó al lead (agendar-visita devuelve `agente`). Este número es
+// el RESPALDO si Hilo no contesta: la línea de la ficha (el captador; las de
+// David y las sin captador, la central). Antes iba SIEMPRE a la central salvo
+// alquileres de Roldán, y le llegaban a David hasta las de otros agentes.
+export function numeroVisitaWhatsapp(property: TokkoProperty): string {
   return getProducerWhatsappNumber(property)
 }
 
