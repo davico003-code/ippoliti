@@ -80,6 +80,7 @@ export default function VisitWidget({
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [waHref, setWaHref] = useState('')
+  const [waAbierto, setWaAbierto] = useState(true)
 
   const days = useMemo(() => getNextBusinessDays(7), [])
 
@@ -157,9 +158,9 @@ export default function VisitWidget({
         : urlPedido(whatsappNumber, '')
 
     setWaHref(url)
+    setWaAbierto(abrirWhatsapp(url))
     setLoading(false)
     setSent(true)
-    abrirWhatsapp(url)
   }
 
   const CARD = 'bg-white rounded-3xl p-6 border border-gray-200 shadow-sm'
@@ -173,7 +174,9 @@ export default function VisitWidget({
         </div>
         <p className="text-[17px] font-bold text-gray-900 mb-1.5">¡Casi listo!</p>
         <p className="text-sm text-gray-500 mb-4">
-          Te abrimos WhatsApp con tu pedido. Enviá el mensaje y te confirmamos la visita en menos de 2 hs.
+          {waAbierto
+            ? 'Te abrimos WhatsApp con tu pedido. Enviá el mensaje y te confirmamos la visita en menos de 2 hs.'
+            : 'Tocá “Enviar por WhatsApp” para mandar tu pedido. Te confirmamos la visita en menos de 2 hs.'}
         </p>
         <div className="rounded-xl p-3.5 text-left text-sm space-y-1 bg-gray-50 mb-4">
           <p><span className="text-gray-400">Día:</span> <span className="font-semibold text-gray-900">{dateLabel}</span></p>

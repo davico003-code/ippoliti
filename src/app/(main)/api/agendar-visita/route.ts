@@ -96,24 +96,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No se pudo guardar el lead' }, { status: 500 })
   }
 
-  // Empujar al inbox de Hilo (best-effort): lead caliente con propiedad + fecha.
-  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna (captador, o turno si
-  // es de David). Hilo devuelve el WhatsApp de ESE agente y el widget abre el
-  // chat con él: la persona escribe a quien tiene el lead (2-nov-2026).
-  const hilo = await enviarLeadAHilo({
-    name: nombre,
-    phone: telefono || null,
-    email: email || null,
-    origen: `visita-${source}`,
-    tokkoPropertyId: propiedad_id,
-    message: `Agendó visita a "${propiedad_titulo}" para ${fecha_preferida} ${horario}.${
-      propiedad_url ? ` ${propiedad_url}` : ''
-    }`,
-    sourceUrl: pageUrl || propiedad_url || null,
-    attribution: attributionDeUrl(pageUrl),
-  })
-
-  // Notificar al admin por WhatsApp (best-effort, no bloquea respuesta)
+  // Notificar al admin por WhatsApp (best-effort). Corre EN PARALELO con Hilo:
+  // el widget espera la respuesta para abrir el chat del agente (tope 6 s) y
+  // Twilio no puede comerse ese tiempo y mandarlo al número de respaldo.
   const mensaje = [
     `🔔 *Nueva consulta de ${tipo}*`,
     '',
@@ -132,12 +117,30 @@ export async function POST(request: Request) {
     .filter(Boolean)
     .join('\n')
 
-  try {
-    await enviarWhatsAppAdmin(mensaje)
-  } catch (err) {
+  const avisoAdmin = enviarWhatsAppAdmin(mensaje).catch((err) => {
     console.error('[agendar-visita] Error enviando WhatsApp admin:', err)
     // No rompemos la respuesta al cliente por un fallo de notificación
-  }
+  })
+
+  // Empujar al inbox de Hilo (best-effort): lead caliente con propiedad + fecha.
+  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna (captador, o turno si
+  // es de David). Hilo devuelve el WhatsApp de ESE agente y el widget abre el
+  // chat con él: la persona escribe a quien tiene el lead (2-nov-2026).
+  const hilo = await enviarLeadAHilo({
+    name: nombre,
+    phone: telefono || null,
+    email: email || null,
+    origen: `visita-${source}`,
+    tokkoPropertyId: propiedad_id,
+    message: `Agendó visita a "${propiedad_titulo}" para ${fecha_preferida} ${horario}.${
+      propiedad_url ? ` ${propiedad_url}` : ''
+    }`,
+    sourceUrl: pageUrl || propiedad_url || null,
+    attribution: attributionDeUrl(pageUrl),
+  })
+
+  // Le damos un margen corto al aviso si sigue en vuelo, sin frenar al cliente.
+  await Promise.race([avisoAdmin, new Promise((r) => setTimeout(r, 1500))])
 
   return NextResponse.json({ ok: true, id: visita.id, agente: hilo.agente })
 }
