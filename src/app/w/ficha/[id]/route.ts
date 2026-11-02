@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { celularDeCookie } from '@/lib/cookie-whatsapp'
+import { metaDelToque } from '@/lib/meta-capi'
 
 /**
  * GET siinmobiliaria.com/w/ficha/<id>?text=… — el botón de WhatsApp de una
@@ -57,6 +58,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
         // Si ya dejó su celular en la web y habla con un agente, Hilo lo manda con ese.
         celular: celularDeCookie(req.headers.get('cookie')),
         utm: /^[a-z0-9][a-z0-9_-]{1,79}$/.test(utm) ? utm : undefined,
+        // Cookies del píxel + la ficha (con su fbclid): si el toque termina en visita, Meta se entera.
+        ...metaDelToque(req, req.headers.get('referer')),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(2500),
