@@ -10,7 +10,7 @@ import { CIUDADES_DE_SIEMPRE, sinTildes, type CiudadRonda } from './reglas'
 
 export interface Sala {
   id: string
-  /** "Ronda con Freguglia" */
+  /** "Ronda con Pérez" */
   nombre: string
   ciudades: CiudadRonda[]
   maxCaptacionesPorAgente: number
@@ -19,9 +19,15 @@ export interface Sala {
   inmobiliarias: string[]
 }
 
-export const SALAS: Record<string, Sala> = {
-  freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptacionesPorAgente: 3, maxPedidosPorAgente: 2, inmobiliarias: ['SI INMOBILIARIA', 'Freguglia'] },
-}
+/**
+ * Las salas abiertas. Hoy ninguna: la de Freguglia se dio de baja (David, 2-nov-2026:
+ * "al final no lo usamos… dejalo listo para cuando hagamos con otra inmobiliaria").
+ * Para abrir una, sumar la entrada ACÁ y la misma en SALAS de public/ronda/app.js
+ * (la pantalla), y queda en verficha.casa/ronda/<id>. Ejemplo:
+ *   perez: { id: 'perez', nombre: 'Ronda con Pérez', ciudades: ['Funes', 'Rosario'],
+ *            maxCaptacionesPorAgente: 3, maxPedidosPorAgente: 2, inmobiliarias: ['SI INMOBILIARIA', 'Pérez'] },
+ */
+export const SALAS: Record<string, Sala> = {}
 
 /** La sala del pedido; null = la Ronda de siempre. Una sala que no existe también es la de siempre. */
 export function salaDe(req: Request): Sala | null {
@@ -29,7 +35,7 @@ export function salaDe(req: Request): Sala | null {
   return SALAS[id] ?? null
 }
 
-/** El nombre oficial si la inmobiliaria entra en la sala ("Freguglia Propiedades" → "Freguglia"); null si no. Sin sala entran todas. */
+/** El nombre oficial si la inmobiliaria entra en la sala ("Pérez Propiedades" → "Pérez"); null si no. Sin sala entran todas. */
 export function inmobiliariaDeSala(sala: Sala | null, nombre: string): string | null {
   if (!sala) return nombre
   const n = sinTildes(nombre)

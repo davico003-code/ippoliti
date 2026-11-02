@@ -11,10 +11,13 @@
    * Salas: una ronda aparte para una reunión con una inmobiliaria (27-oct-2026), en
    * /ronda/<sala>. Las mismas que src/lib/ronda/sala.ts: el servidor las valida.
    */
-  const SALAS = {
-    freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', marca: 'con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptaciones: 3, maxPedidos: 2, inmobiliarias: ['SI INMOBILIARIA', 'Freguglia'] },
-  }
-  const SALA = SALAS[(location.pathname.split('/')[2] || '').toLowerCase()] || null
+  // Ejemplo: perez: { id: 'perez', nombre: 'Ronda con Pérez', marca: 'con Pérez', ciudades: ['Funes', 'Rosario'],
+  //                   maxCaptaciones: 3, maxPedidos: 2, inmobiliarias: ['SI INMOBILIARIA', 'Pérez'] },
+  const SALAS = {}
+  const idSala = (location.pathname.split('/')[2] || '').toLowerCase()
+  const SALA = SALAS[idSala] || null
+  // Una sala que no existe (o ya se dio de baja) lleva a la Ronda de siempre.
+  if (idSala && !SALA) location.replace('/ronda')
   const CIUDADES = SALA ? SALA.ciudades : ['Funes', 'Roldán']
   const NOMBRE_RONDA = SALA ? `la ${SALA.nombre}` : 'la Ronda Funes Roldán'
   const CIUDADES_TEXTO = CIUDADES.join(' o en ')
@@ -1738,7 +1741,7 @@
     ]
     for (const [sel, texto] of textos) for (const el of $$(sel)) el.textContent = texto
     const ayudaClave = $('#clave .ayuda')
-    if (ayudaClave) ayudaClave.textContent = 'Esta ronda es para la reunión de SI con Freguglia.'
+    if (ayudaClave) ayudaClave.textContent = `Esta ronda es para la reunión de ${SALA.inmobiliarias.join(' con ')}.`
     const rotuloMotivo = $('label[for="oportunidad"]')
     if (rotuloMotivo) rotuloMotivo.firstChild.textContent = '¿Por qué la traés? Lo bueno y lo malo '
     $('#oportunidad')?.setAttribute('placeholder', 'Ej.: precio real, lo bueno (ubicación, estado) y lo malo (expensas, papeles)…')
