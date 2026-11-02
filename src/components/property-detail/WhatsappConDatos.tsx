@@ -17,6 +17,7 @@ import {
   pedirTurno,
   sinHojaPorPrecio,
   urlWhatsappConDatos,
+  abrirWhatsapp,
   type AgenteFicha,
   type ConsultaEnviada,
   type TurnosFicha,
@@ -93,16 +94,6 @@ export default function WhatsappConDatos({ href, propertyId, propertyTitle, prop
         )}
     </>
   )
-}
-
-function abrirWhatsapp(url: string) {
-  // En el celu, navegar abre la app; en la compu, otra pestaña (como el botón de siempre).
-  if (window.matchMedia?.('(pointer: coarse)').matches) {
-    window.location.href = url
-    return
-  }
-  const w = window.open(url, '_blank')
-  if (w) w.opener = null
 }
 
 function HojaWhatsapp({

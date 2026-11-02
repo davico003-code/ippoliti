@@ -5,6 +5,7 @@ import { Calendar, Check, ChevronLeft, ChevronRight, Clock, MessageCircle, X } f
 import { events } from '@/lib/analytics'
 import { urlConUtmDePauta } from '@/lib/pauta-visita'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
+import { abrirWhatsapp } from '@/lib/whatsapp-con-datos'
 
 interface Props {
   propertyId: number
@@ -16,13 +17,15 @@ interface Props {
   source?: 'mobile-sticky' | 'desktop-sidebar' | 'emprendimiento' | 'otro'
   /** Si se pasa, muestra la X de cerrar (ej. bottom-sheet mobile). */
   onClose?: () => void
-  /** WhatsApp (formato wa.me) al que va el pedido; sin esto, el número general. */
+  /** WhatsApp (formato wa.me) de respaldo si Hilo no devuelve al agente asignado; sin esto, el número general. */
   whatsappNumber?: string
   /** Operación de la propiedad, para etiquetar el lead (default venta). */
   tipo?: 'venta' | 'alquiler'
 }
 
 const WHATSAPP_GENERAL = '5493413340916'
+// Lo que se espera a Hilo antes de abrir igual el chat de respaldo (como el WhatsApp con datos).
+const TOPE_MS = 6000
 
 function getNextBusinessDays(count: number): Date[] {
   const days: Date[] = []
@@ -53,7 +56,9 @@ const DAY_WIN = 3
 const HOUR_WIN = 3
 
 // Diseño: header con ícono + fecha/horario en ventanas de 3 con flechas, y el
-// verde solo en el botón. Al agendar, registra el lead y abre WhatsApp al agente.
+// verde solo en el botón. Al agendar, registra el lead y abre WhatsApp con el
+// agente que Hilo le asignó (2-nov-2026: antes abría siempre el de David aunque
+// el lead rotara a otro, y la persona le escribía a quien no la tenía).
 // Pide nombre + WhatsApp (17-oct-2026): sin el celular, Hilo rechazaba el pedido
 // ("Falta correo o teléfono") y NINGUNA visita pedida desde la web entraba al
 // CRM. Es un solo campo más, prellenado si ya lo dejó en este navegador.
@@ -74,6 +79,7 @@ export default function VisitWidget({
   const [hourStart, setHourStart] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [waHref, setWaHref] = useState('')
 
   const days = useMemo(() => getNextBusinessDays(7), [])
 
@@ -91,59 +97,69 @@ export default function VisitWidget({
   const digitos = whatsapp.replace(/\D/g, '')
   const canSubmit = selectedDay !== null && selectedHour !== '' && nombre.trim() !== '' && digitos.length >= 10
 
-  // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
-  // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
-  const waHref = selectedDate
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        [
-          `Hola! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
-          ``,
-          `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
-          nombre.trim() ? `\nSoy ${nombre.trim()}.` : '',
-        ].join('\n'),
-      )}`
-    : ''
+  // El wa.me con el pedido pre-cargado, saludando a quien atiende si se sabe.
+  function urlPedido(numero: string, agente: string) {
+    return `https://wa.me/${numero}?text=${encodeURIComponent(
+      [
+        `Hola${agente ? ` ${agente}` : ''}! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
+        ``,
+        `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
+        nombre.trim() ? `\nSoy ${nombre.trim()}.` : '',
+      ].join('\n'),
+    )}`
+  }
 
+  // Primero el pedido entra a Hilo (que elige al agente: captador, o el de turno
+  // si es de David) y recién ahí se abre WhatsApp con ESE agente. Por eso no se
+  // abre dentro del gesto: abrirWhatsapp navega en el celu, donde window.open
+  // después de un await quedaría bloqueado. Si Hilo tarda, va la línea de la ficha.
   async function handleSubmit() {
     if (!canSubmit || !selectedDate) return
 
-    // Abrir WhatsApp SINCRÓNICO, dentro del gesto del click: si va después del
-    // `await fetch`, iOS Safari lo bloquea y el flujo principal de leads mobile
-    // no abre WhatsApp. El registro de la visita se hace en background.
-    if (waHref) window.open(waHref, '_blank')
     if (propertyId) events.contactoPropiedad(propertyId, propertyTitle, 'visita')
     escribirContacto({ nombre: nombre.trim(), whatsapp: digitos })
 
     setLoading(true)
     const fechaStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
 
-    try {
-      const res = await fetch('/api/agendar-visita', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: nombre.trim() || null,
-          telefono: digitos,
-          email: null,
-          fecha_preferida: fechaStr,
-          horario: `${selectedHour} hs`,
-          propiedad_id: propertyId,
-          propiedad_titulo: propertyTitle,
-          propiedad_url: propertyUrl,
-          tipo,
-          source,
-          pageUrl: urlConUtmDePauta(),
-        }),
+    const envio = fetch('/api/agendar-visita', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre: nombre.trim() || null,
+        telefono: digitos,
+        email: null,
+        fecha_preferida: fechaStr,
+        horario: `${selectedHour} hs`,
+        propiedad_id: propertyId,
+        propiedad_titulo: propertyTitle,
+        propiedad_url: propertyUrl,
+        tipo,
+        source,
+        pageUrl: urlConUtmDePauta(),
+      }),
+    })
+      .then(async (r) => {
+        // Solo se deja rastro para no volver a perder visitas sin enterarnos.
+        if (!r.ok) console.warn('[VisitWidget] agendar-visita respondió', r.status)
+        return r.ok ? ((await r.json().catch(() => null)) as { agente?: { nombre?: unknown; whatsapp?: unknown } | null } | null) : null
       })
-      // WhatsApp ya se abrió: el cliente igual llega al agente. Solo se deja
-      // rastro para no volver a perder visitas sin enterarnos.
-      if (!res.ok) console.warn('[VisitWidget] agendar-visita respondió', res.status)
-    } catch (e) {
-      console.warn('[VisitWidget] agendar-visita falló', e)
-    }
+      .catch((e) => {
+        console.warn('[VisitWidget] agendar-visita falló', e)
+        return null
+      })
+    const res = await Promise.race([envio, new Promise<null>((r) => window.setTimeout(() => r(null), TOPE_MS))])
+    const a = res?.agente
+    const url =
+      a && typeof a.whatsapp === 'string' && /^549\d{10}$/.test(a.whatsapp)
+        ? urlPedido(a.whatsapp, typeof a.nombre === 'string' ? a.nombre.slice(0, 40) : '')
+        : urlPedido(whatsappNumber, '')
 
+    setWaHref(url)
     setLoading(false)
     setSent(true)
+    abrirWhatsapp(url)
   }
 
   const CARD = 'bg-white rounded-3xl p-6 border border-gray-200 shadow-sm'

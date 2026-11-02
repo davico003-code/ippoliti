@@ -8,7 +8,7 @@
 import { NextResponse } from 'next/server'
 import { enviarWhatsAppAdmin } from '@/agents/blog/lib/whatsapp'
 import { crearVisita, type VisitaSource, type VisitaTipo } from '@/lib/visitas'
-import { pushLeadToHilo } from '@/lib/hilo-leads'
+import { enviarLeadAHilo } from '@/lib/hilo-leads'
 import { attributionDeUrl } from '@/lib/pauta-visita'
 import { rateLimit } from '@/lib/feedback'
 
@@ -97,8 +97,10 @@ export async function POST(request: Request) {
   }
 
   // Empujar al inbox de Hilo (best-effort): lead caliente con propiedad + fecha.
-  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna al captador.
-  await pushLeadToHilo({
+  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna (captador, o turno si
+  // es de David). Hilo devuelve el WhatsApp de ESE agente y el widget abre el
+  // chat con él: la persona escribe a quien tiene el lead (2-nov-2026).
+  const hilo = await enviarLeadAHilo({
     name: nombre,
     phone: telefono || null,
     email: email || null,
@@ -137,5 +139,5 @@ export async function POST(request: Request) {
     // No rompemos la respuesta al cliente por un fallo de notificación
   }
 
-  return NextResponse.json({ ok: true, id: visita.id })
+  return NextResponse.json({ ok: true, id: visita.id, agente: hilo.agente })
 }

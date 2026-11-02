@@ -99,6 +99,16 @@ export function urlWhatsappConDatos(hrefFicha: string, nombre: string, agente: A
   return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`
 }
 
+/** Abre el chat después de un await: en el celu navegar abre la app (window.open quedaría bloqueado); en la compu, otra pestaña. */
+export function abrirWhatsapp(url: string): void {
+  if (window.matchMedia?.('(pointer: coarse)').matches) {
+    window.location.href = url
+    return
+  }
+  const w = window.open(url, '_blank')
+  if (w) w.opener = null
+}
+
 /** Suma un paso de la prueba (sendBeacon: no frena nada). Nunca rompe el botón. */
 export function contarWcd(evento: EventoWcd): void {
   try {
