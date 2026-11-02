@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { guardarPedido, inmobiliariaPorId, limpiarPedidosVencidos, listarPedidos } from '@/lib/ronda/almacen'
 import { DIA_MS, DIAS_PUBLICACION, leerPedido, MAX_PEDIDOS_POR_INMOBILIARIA, type Pedido } from '@/lib/ronda/reglas'
-import { ciudadesDe, salaDe } from '@/lib/ronda/sala'
+import { ciudadesDe, fueraDeSala, inmobiliariaDeSala, salaDe } from '@/lib/ronda/sala'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
   try {
     const inmobiliaria = await inmobiliariaPorId(sesion.iid)
     if (!inmobiliaria) return error('Tu inmobiliaria ya no está en la lista. Volvé a cargar tus datos.', 401)
+    if (sala && !inmobiliariaDeSala(sala, inmobiliaria.nombre)) return error(fueraDeSala(sala), 403, { fueraDeSala: true })
     await limpiarPedidosVencidos(sala)
     const vigentes = await listarPedidos(true, sala)
     // En una sala el tope es por agente (2 búsquedas cada uno, instructivo de la reunión).

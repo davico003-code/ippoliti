@@ -560,3 +560,12 @@ dialog.visor::backdrop { background: #000; }
 .cruce .cruce-precio { font-weight: 700; font-variant-numeric: tabular-nums; }
 .cruce .cruce-agente { color: var(--tinta) !important; font-size: 14px !important; }
 .cruce .acciones { margin-top: 0; }
+/* Sala: la inmobiliaria se elige con un toque entre las dos de la reunión. */
+.inmo-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.inmo-opciones[hidden] { display: none; }
+.inmo-boton {
+  min-height: 52px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--linea-fuerte); background: var(--blanco);
+  color: var(--tinta); font: 700 15px/1.2 inherit; font-family: inherit; cursor: pointer;
+}
+.inmo-boton[aria-pressed='true'] { background: var(--tinta); border-color: var(--tinta); color: var(--blanco); }
+.inmo-boton:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }

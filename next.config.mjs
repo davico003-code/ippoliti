@@ -55,8 +55,9 @@ const nextConfig = {
         destination: '/ronda/index.html',
       },
       // Salas de la Ronda (src/lib/ronda/sala.ts): la misma pantalla, su propia grilla.
+      // Los archivos de public/ronda se sirven antes que esta regla; una sala que no existe vuelve a /ronda.
       {
-        source: '/ronda/freguglia',
+        source: '/ronda/:sala',
         destination: '/ronda/index.html',
       },
     ]

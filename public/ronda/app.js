@@ -11,13 +11,19 @@
    * Salas: una ronda aparte para una reunión con una inmobiliaria (27-oct-2026), en
    * /ronda/<sala>. Las mismas que src/lib/ronda/sala.ts: el servidor las valida.
    */
-  const SALAS = {
-    freguglia: { id: 'freguglia', nombre: 'Ronda con Freguglia', marca: 'con Freguglia', ciudades: ['Funes', 'Rosario'], maxCaptaciones: 3, maxPedidos: 2 },
-  }
-  const SALA = SALAS[(location.pathname.split('/')[2] || '').toLowerCase()] || null
+  // Ejemplo: perez: { id: 'perez', nombre: 'Ronda con Pérez', marca: 'con Pérez', ciudades: ['Funes', 'Rosario'],
+  //                   maxCaptaciones: 3, maxPedidos: 2, inmobiliarias: ['SI INMOBILIARIA', 'Pérez'] },
+  const SALAS = {}
+  const idSala = (location.pathname.split('/')[2] || '').toLowerCase()
+  const SALA = SALAS[idSala] || null
+  // Una sala que no existe (o ya se dio de baja) lleva a la Ronda de siempre.
+  if (idSala && !SALA) location.replace('/ronda')
   const CIUDADES = SALA ? SALA.ciudades : ['Funes', 'Roldán']
   const NOMBRE_RONDA = SALA ? `la ${SALA.nombre}` : 'la Ronda Funes Roldán'
   const CIUDADES_TEXTO = CIUDADES.join(' o en ')
+  /** En una sala: el nombre oficial de la inmobiliaria si es una de las suyas (como inmobiliariaDeSala del servidor). */
+  const deLaSala = (nombre) =>
+    SALA ? SALA.inmobiliarias.find((i) => sinTildes(nombre) === sinTildes(i) || sinTildes(nombre).includes(sinTildes(i))) || null : nombre
   const CLAVES = { acceso: 'ronda.acceso.v1', sesion: 'ronda.sesion.v1', guia: 'ronda.guia.v1', notas: 'ronda.notas.v1' }
 
   const $ = (sel, raiz = document) => raiz.querySelector(sel)
@@ -47,6 +53,8 @@
   if (typeof acceso !== 'string') acceso = null
   let sesion = leerLocal(CLAVES.sesion, null)
   if (!sesion?.token || !sesion?.agente?.id || !sesion?.inmobiliaria?.id) sesion = null
+  // En una sala, quien entró a la Ronda con otra inmobiliaria se vuelve a registrar.
+  if (sesion && !deLaSala(sesion.inmobiliaria.nombre)) sesion = null
   /** null = cargando · 'error' = no se pudo · [] = la grilla */
   let publicaciones = null
   let inmobiliarias = []
@@ -644,7 +652,11 @@
   function elegirInmobiliaria(inmo) {
     elegida = inmo
     const caja = $('#inmoElegida')
-    $('#inmoNombre').hidden = Boolean(inmo)
+    $('#inmoNombre').hidden = Boolean(inmo) || Boolean(SALA)
+    if (SALA) {
+      $('#inmoOpciones').hidden = Boolean(inmo)
+      if (!inmo) for (const b of $$('#inmoOpciones button')) b.setAttribute('aria-pressed', 'false')
+    }
     caja.hidden = !inmo
     $('#inmoLista').hidden = true
     $('#inmoNombre').setAttribute('aria-expanded', 'false')
@@ -657,6 +669,7 @@
   }
 
   function sugerir() {
+    if (SALA) return
     const campo = $('#inmoNombre')
     const lista = $('#inmoLista')
     const texto = campo.value.trim()
@@ -714,6 +727,36 @@
       $('#nombre').focus()
     }
   })
+  // En la sala no se busca: se elige una de las dos con un toque.
+  if (SALA) {
+    const campo = $('#inmoNombre')
+    campo.insertAdjacentHTML(
+      'afterend',
+      `<div id="inmoOpciones" class="inmo-opciones" role="group" aria-label="Tu inmobiliaria">${SALA.inmobiliarias
+        .map((n) => `<button type="button" class="inmo-boton" data-inmo="${esc(n)}" aria-pressed="false">${esc(n)}</button>`)
+        .join('')}</div>`,
+    )
+    campo.hidden = true
+    $('label[for="inmoNombre"]').textContent = '¿De qué inmobiliaria sos?'
+    $('#inmoOpciones').addEventListener('click', (e) => {
+      const boton = e.target.closest('[data-inmo]')
+      if (!boton) return
+      error('inmoError', '')
+      const nombre = boton.dataset.inmo
+      const inmo = inmobiliarias.find((i) => deLaSala(i.nombre) === nombre)
+      if (inmo) {
+        elegirInmobiliaria(inmo)
+        $('#nombre').focus()
+        return
+      }
+      // Todavía no está dada de alta (la primera persona de esa inmobiliaria): pide el matriculado.
+      for (const b of $$('#inmoOpciones button')) b.setAttribute('aria-pressed', String(b === boton))
+      campo.value = nombre
+      registrarNueva()
+      $('#matriculado').focus()
+    })
+  }
+
   $('#inmoCambiar').addEventListener('click', () => {
     elegirInmobiliaria(null)
     const campo = $('#inmoNombre')
@@ -774,7 +817,7 @@
     }
 
     const errores = [
-      ['inmoError', 'inmoNombre', nueva && nombreInmo.length < 2 ? 'Escribí el nombre de tu inmobiliaria y elegila de la lista.' : ''],
+      ['inmoError', SALA ? 'inmoOpciones' : 'inmoNombre', nueva && nombreInmo.length < 2 ? (SALA ? `Elegí ${SALA.inmobiliarias.join(' o ')}.` : 'Escribí el nombre de tu inmobiliaria y elegila de la lista.') : ''],
       ['matriculadoError', 'matriculado', nueva && nombreInmo.length >= 2 && $('#matriculado').value.trim().length < 3 ? 'Escribí el nombre del matriculado a cargo.' : ''],
       ['matriculaError', 'matricula', nueva && nombreInmo.length >= 2 && !$('#matricula').value.trim() ? 'Escribí el número de matrícula.' : ''],
       ['nombreError', 'nombre', nombre.length < 3 ? 'Escribí tu nombre y apellido.' : ''],
@@ -1698,7 +1741,7 @@
     ]
     for (const [sel, texto] of textos) for (const el of $$(sel)) el.textContent = texto
     const ayudaClave = $('#clave .ayuda')
-    if (ayudaClave) ayudaClave.textContent = 'Esta ronda es para la reunión de SI con Freguglia.'
+    if (ayudaClave) ayudaClave.textContent = `Esta ronda es para la reunión de ${SALA.inmobiliarias.join(' con ')}.`
     const rotuloMotivo = $('label[for="oportunidad"]')
     if (rotuloMotivo) rotuloMotivo.firstChild.textContent = '¿Por qué la traés? Lo bueno y lo malo '
     $('#oportunidad')?.setAttribute('placeholder', 'Ej.: precio real, lo bueno (ubicación, estado) y lo malo (expensas, papeles)…')
