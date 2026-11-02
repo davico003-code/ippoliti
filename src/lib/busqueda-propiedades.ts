@@ -20,8 +20,9 @@
 // - Negaciones ("que no sea barrio cerrado", "no alquiler", "sin pileta").
 // - Lugar antes que calle ("barrio martin" no es la calle San Martín) y calle +
 //   altura ("cordoba 1234", "san juan al 2000": misma cuadra de ESA calle).
-// - Lo que el inventario no puede verificar ("linda", "con pileta") suma orden
+// - Lo que el inventario no puede verificar ("linda", "luminosa") suma orden
 //   pero no filtra; lo que no aparece en ningún aviso se ignora y se informa.
+//   "Con pileta" sí filtra: HILO manda las comodidades tildadas en la carga.
 // - Nunca un callejón sin salida: si la combinación exacta no existe, se afloja
 //   lo mínimo (lo menos importante primero) y se avisa qué se aflojó.
 //
@@ -179,7 +180,7 @@ const RELLENO = new Set([
 ])
 
 // Suman orden si aparecen en el aviso, nunca filtran: el feed del listado no
-// trae descripción ni amenities, así que "pileta" solo se ve si está en el título.
+// trae descripción. La pileta es la excepción: ver rasgosVerificables.
 const SUAVES = new Set([
   'lindo', 'linda', 'lindos', 'lindas', 'hermoso', 'hermosa', 'hermosos', 'hermosas', 'bueno', 'buena', 'buenos',
   'buenas', 'grande', 'grandes', 'amplio', 'amplia', 'amplios', 'amplias', 'luminoso', 'luminosa', 'luminosos',
@@ -265,7 +266,16 @@ type Prop = Pick<TokkoProperty,
   'id' | 'publication_title' | 'address' | 'fake_address' | 'reference_code' | 'type' | 'location' |
   'operations' | 'web_price' | 'suite_amount' | 'room_amount' | 'surface' | 'roofed_surface' |
   'total_surface' | 'development' | 'is_starred_on_web'
-> & { bathroom_amount?: number | null; parking_lot_amount?: number | null }
+> & { bathroom_amount?: number | null; parking_lot_amount?: number | null; rasgos?: string[]; comodidades?: string[] }
+
+/**
+ * Lo que el buscador puede verificar de las comodidades de HILO. Hoy solo la
+ * pileta (2-nov-2026: "casa con pileta" mostraba las 89 casas). Cuenta también
+ * "pileta comun": la carga guarda así la "Pileta" de Zonaprop, sea propia o no.
+ */
+export function rasgosVerificables(comodidades: string[]): string[] {
+  return comodidades.some(c => /\b(pool|pileta|piscina)\b/i.test(c)) ? ['pileta'] : []
+}
 
 interface Entrada {
   p: Prop
@@ -294,9 +304,13 @@ interface Entrada {
   supCubierta: number[]
   codigo: string
   ops: Set<string>
+  /** Tiene pileta (comodidades de HILO o lo dice el título). */
+  pileta: boolean
 }
 
 export interface Indice {
+  /** Hay comodidades en el inventario: "con pileta" puede filtrar. */
+  conRasgos: boolean
   entradas: Entrada[]
   vocab: Set<string>
   /** Palabras de ubicación (barrios, countries), sin ciudades ni relleno. */
@@ -435,12 +449,18 @@ export function construirIndice(props: Prop[]): Indice {
       mono, supLote: num(p.surface) ?? (esLote ? num(p.total_surface) : null),
       supCubierta: esLote ? [] : [p.roofed_surface, p.total_surface].map(num).filter((n): n is number => n != null),
       codigo, ops: new Set(opsReales(p)),
+      pileta: rasgosDe(p).includes('pileta') || tituloLista.includes('pileta') || tituloLista.includes('piscina'),
     }
     porId.set(String(p.id), e)
     if (codigo) porId.set(codigo, e)
     return e
   })
-  return { entradas, vocab, vocabLugar, porId, tiposConStock, frasesLugar, forma }
+  const conRasgos = props.some(p => Array.isArray(p.rasgos) || Array.isArray(p.comodidades))
+  return { conRasgos, entradas, vocab, vocabLugar, porId, tiposConStock, frasesLugar, forma }
+}
+
+function rasgosDe(p: Prop): string[] {
+  return p.rasgos ?? (p.comodidades ? rasgosVerificables(p.comodidades) : [])
 }
 
 // Operaciones que el aviso realmente ofrece: una venta "en 0" junto a un
@@ -522,6 +542,8 @@ export interface Interpretacion {
   cerrado: boolean
   noCerrado: boolean
   abiertoEscrito: boolean
+  /** "Con pileta" con comodidades disponibles: filtra (lo pone buscar()). */
+  pileta: boolean
   orden: 'barato' | 'caro' | 'recientes' | null
   codigo: string | null
   codigoPrefijo: string | null
@@ -568,7 +590,7 @@ const monedaDe = (t: string | undefined): Moneda | null => {
 export function interpretar(query: string, indice?: Indice): Interpretacion {
   const out: Interpretacion = {
     tipos: [], excluirTipos: [], operacion: null, temporario: false, excluirOp: null, dorms: null,
-    ambientes: null, banos: null, cocheras: null, mono: false, noMono: false, sinCochera: false, suavesNegadas: [],
+    ambientes: null, banos: null, cocheras: null, mono: false, noMono: false, sinCochera: false, suavesNegadas: [], pileta: false,
     precio: null, moneda: null, superficie: null,
     cerrado: false, noCerrado: false, abiertoEscrito: false, orden: null, codigo: null, codigoPrefijo: null,
     codigoBuscado: null, terminos: [], excluir: [], suaves: [], ignoradas: [], toks: [], originales: new Map(), vacia: true,
@@ -1536,7 +1558,7 @@ function comparable(opType: string, moneda: string, v: number, opEscrita: boolea
 // Restricciones que se pueden aflojar, de la menos a la más importante.
 type Llave = 'lugarComoCalle' | 'precioAncho' | 'superficieAncha' | 'dormsAncho' | 'banos' | 'cocheras' | 'superficie' | 'precio' |
   'moneda' | 'cerrado' | 'temporario' | 'dorms' | 'tiposParecidos' | 'terminosParcial' | 'terminosACiudad' |
-  'terminos' | 'tipos' | 'operacion'
+  'terminos' | 'tipos' | 'operacion' | 'pileta'
 
 interface Chequeo { ok: boolean; score: number; terminosOk: number }
 
@@ -1598,6 +1620,10 @@ function evaluar(e: Entrada, it: Interpretacion, flojas: Set<Llave>, ctx: Contex
     if (flojas.has('terminosParcial') && it.terminos.length && !terminosOk) return no
   }
   for (const t of it.excluir) if (puntajeTermino(e, t) >= 3) return no
+  if (it.pileta && !flojas.has('pileta')) {
+    if (!e.pileta) return no
+    score += 1
+  }
 
   if (it.noCerrado && e.cerrado) return no
   if (it.noMono && e.mono) return no
@@ -1730,6 +1756,7 @@ function escalera(it: Interpretacion): Llave[][] {
     ['dormsAncho'],
     ['banos', 'cocheras'],
     ['superficie'],
+    ['pileta'],
     ['temporario'],
     ['precio', 'moneda'],
     ['cerrado'],
@@ -1984,9 +2011,15 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
     return { ids: [], score: new Map(), rango: new Map(), interpretacion: it, aproximado: false, aflojado: [], etiquetas: [`Código ${it.codigoBuscado.toUpperCase()}`], orden: null }
   }
 
+  // "Con pileta": con las comodidades de HILO deja de ser una palabra suave y
+  // pasa a filtrar (y a aflojarse si no hay ninguna).
+  if (indice.conRasgos && it.suaves.some(w => w === 'pileta' || w === 'piscina')) {
+    it.pileta = true
+    it.suaves = it.suaves.filter(w => w !== 'pileta' && w !== 'piscina')
+  }
   const sinRestricciones = () => !it.codigo && !it.codigoPrefijo && !it.tipos.length && !it.operacion &&
     !it.terminos.length && !it.dorms && !it.ambientes && !it.mono && !it.superficie && !it.precio && !it.moneda &&
-    !it.cerrado && !it.noCerrado && !it.banos && !it.cocheras && !it.excluir.length && !it.excluirTipos.length && !it.excluirOp
+    !it.cerrado && !it.noCerrado && !it.pileta && !it.banos && !it.cocheras && !it.excluir.length && !it.excluirTipos.length && !it.excluirOp
   // Solo características ("pileta", "golf"): ahí sí filtran, porque es todo lo
   // que se pidió ("pileta" y "piscina" son lo mismo).
   if (sinRestricciones() && it.suaves.length) {
@@ -2096,7 +2129,7 @@ function buscarInterno(indice: Indice, query: string): Resultado | null {
     interpretacion: it,
     aproximado: Array.from(flojas).some(k => k !== 'lugarComoCalle') && hits.length > 0,
     aflojado: unicos(aflojado),
-    etiquetas: etiquetas(it, indice),
+    etiquetas: etiquetas(it, indice, flojas),
     orden,
   }
 }
@@ -2118,6 +2151,7 @@ function aplica(it: Interpretacion, k: Llave, ctx: Contexto): boolean {
     case 'tiposParecidos': return it.tipos.some(k => TIPOS[k].parecido?.length)
     case 'tipos': return it.tipos.length > 0
     case 'operacion': return !!it.operacion
+    case 'pileta': return it.pileta
   }
 }
 
@@ -2236,6 +2270,7 @@ function describirFloja(it: Interpretacion, k: Llave, flojas: Set<Llave>, hits: 
     case 'superficie': return it.superficie ? `sin el filtro de superficie (${textoSuperficie(it.superficie).replace('~', 'alrededor de ')})` : null
     case 'dorms': return textoDorms(it) ? `sin el filtro de ${textoDorms(it)}` : null
     case 'cerrado': return 'también fuera de barrio cerrado'
+    case 'pileta': return 'también sin pileta'
     case 'temporario': return 'alquileres comunes (no hay temporarios)'
     case 'tiposParecidos': return flojas.has('tipos') ? null : `parecidos a ${textoTipos(it.tipos)}`
     case 'terminosParcial': case 'terminosACiudad': {
@@ -2265,7 +2300,7 @@ function describirFloja(it: Interpretacion, k: Llave, flojas: Set<Llave>, hits: 
   }
 }
 
-function etiquetas(it: Interpretacion, indice: Indice): string[] {
+function etiquetas(it: Interpretacion, indice: Indice, flojas: Set<Llave> = new Set()): string[] {
   const out: string[] = []
   if (it.codigo) return [`Código ${it.codigo.toUpperCase()}`]
   if (it.codigoPrefijo) out.push(`Código ${it.codigoPrefijo.toUpperCase()}…`)
@@ -2282,6 +2317,8 @@ function etiquetas(it: Interpretacion, indice: Indice): string[] {
   for (const t of it.excluir) out.push(`${esTerminoDeLugar(t) ? 'Fuera de' : 'Sin'} ${nombreTermino(t)}`)
   if (it.cerrado) out.push('Barrio cerrado')
   if (it.noCerrado) out.push(it.abiertoEscrito ? 'Barrio abierto' : 'Fuera de barrio cerrado')
+  // Solo si de verdad se filtró: la lista no explica lo que se aflojó.
+  if (it.pileta && !flojas.has('pileta')) out.push('Con pileta')
   const d = textoDorms(it)
   if (d) out.push(primeraMayuscula(d))
   if (it.noMono) out.push('Sin monoambientes')

@@ -150,6 +150,9 @@ export interface TokkoProperty {
   agente?: { name: string; picture: string } | null;
   /** Barrio cerrado según HILO (0230; null = no se sabe). Tokko no lo manda. */
   barrio_cerrado?: boolean | null;
+  /** Comodidades tildadas en HILO ("pool", "pileta comun", "parrilla"…);
+   *  undefined = el feed no las trajo. El buscador filtra "con pileta" con esto. */
+  comodidades?: string[];
 }
 
 export interface TokkoMeta {
@@ -283,6 +286,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     // undefined = el feed no lo trajo (Tokko / HILO viejo) → la tarjeta lo pide aparte.
     ...(p.agente !== undefined ? { agente: p.agente } : {}),
     ...(p.barrio_cerrado != null ? { barrio_cerrado: p.barrio_cerrado } : {}),
+    ...(Array.isArray(p.comodidades) ? { comodidades: p.comodidades } : {}),
     ...(p.portada_viva ? { portada_viva: p.portada_viva } : {}),
     ...(p.rebaja ? { rebaja: p.rebaja } : {}),
   });
