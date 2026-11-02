@@ -8,7 +8,7 @@ import {
   formatPrice,
   generatePropertySlug,
   getMainPhoto,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   translatePropertyType,
 } from '@/lib/tokko'
@@ -20,7 +20,7 @@ import SelloVendida from '@/components/SelloVendida'
 function PlacaVendida({ p }: { p: TokkoProperty }) {
   const photo = getMainPhoto(p)
   const lot = getLotSurface(p)
-  const roofed = getRoofedArea(p)
+  const total = getTotalSurface(p)
   const tipo = translatePropertyType(p.type?.name)
   const ubicacion = formatUbicacion(p)
   return (
@@ -46,7 +46,7 @@ function PlacaVendida({ p }: { p: TokkoProperty }) {
         </p>
         <div className="flex gap-3 text-xs text-stone-600 font-numeric tabular-nums">
           {lot ? <span>{lot} m² lote</span> : null}
-          {roofed ? <span>· {roofed} m² cub.</span> : null}
+          {total && total !== lot ? <span>· {total.toLocaleString('es-AR')} m²</span> : null}
         </div>
       </div>
     </div>
@@ -167,7 +167,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
           const photo = getMainPhoto(p)
           const url = `/propiedades/${generatePropertySlug(p)}`
           const lot = getLotSurface(p)
-          const roofed = getRoofedArea(p)
+          const total = getTotalSurface(p)
           return (
             <Link
               key={p.id}
@@ -201,7 +201,7 @@ export default function BarrioStockTokko({ slug, nombre, tipo, title }: Props) {
                 </p>
                 <div className="flex gap-3 text-xs text-stone-600 font-numeric tabular-nums">
                   {lot ? <span>{lot} m² lote</span> : null}
-                  {roofed ? <span>· {roofed} m² cub.</span> : null}
+                  {total && total !== lot ? <span>· {total.toLocaleString('es-AR')} m²</span> : null}
                 </div>
               </div>
             </Link>

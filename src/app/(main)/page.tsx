@@ -29,7 +29,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -68,7 +68,8 @@ async function FeaturedPropertiesSection() {
     const fotos = portada ? [portada, ...getAllPhotos(property).filter(f => f !== portada)] : []
     const price = formatPrice(property)
     const operation = getOperationType(property)
-    const roofed = getRoofedArea(property)
+    // Superficie TOTAL (cubierta + semicubierta), como en toda pieza pública.
+    const total = getTotalSurface(property)
     const land = isLand(property)
     const mono = isMonoambiente(property)
     const beds = property.suite_amount ?? property.room_amount
@@ -84,11 +85,11 @@ async function FeaturedPropertiesSection() {
     if (!land && mono) specs.push({ num: '', unit: 'Monoambiente' })
     else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
     if (!land && baths != null && baths > 0) specs.push({ num: String(baths), unit: ` baño${baths > 1 ? 's' : ''}` })
-    if (roofed != null && roofed > 0) specs.push({ num: String(roofed), unit: ' m²' })
+    if (!land && total != null && total > 0) specs.push({ num: total.toLocaleString('es-AR'), unit: ' m²' })
     const lot = getLotSurface(property)
     if (lot != null && lot > 0) {
       if (land) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' })
-      else if (lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m² lote' })
+      else if (lot !== total) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m² lote' })
     }
 
     return (

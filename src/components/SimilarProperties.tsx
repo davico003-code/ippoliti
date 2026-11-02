@@ -11,7 +11,6 @@ import {
   getMainPhoto,
   formatPrice,
   getTotalSurface,
-  getRoofedArea,
   translatePropertyType,
   operationBadgeColor,
   tituloVisible,
@@ -140,7 +139,6 @@ export default function SimilarProperties({ properties }: Props) {
           const slug = generatePropertySlug(property)
           const price = formatPrice(property)
           const area = getTotalSurface(property)
-          const roofed = getRoofedArea(property)
           const typeName = translatePropertyType(property.type?.name)
           const op = property.operations?.[0]?.operation_type === 'Sale'
             ? 'Venta'
@@ -152,7 +150,7 @@ export default function SimilarProperties({ properties }: Props) {
           const beds = property.suite_amount || property.room_amount || 0
           const baths = property.bathroom_amount || 0
           const m2 = (n: number) => `${n.toLocaleString('es-AR')} m²`
-          const sizeLabel = roofed && roofed > 0 ? m2(roofed) : area && area > 0 ? m2(area) : null
+          const sizeLabel = area && area > 0 ? m2(area) : null
           const specsBits: string[] = []
           if (beds > 0) specsBits.push(`${beds} dorm`)
           if (baths > 0) specsBits.push(`${baths} baño${baths > 1 ? 's' : ''}`)

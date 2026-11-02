@@ -9,7 +9,7 @@ import {
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   getPropertyCount,
@@ -59,7 +59,8 @@ export default async function SeleccionCarousel() {
           const portada = getMainPhoto(p)
           const fotos = portada ? [portada, ...getAllPhotos(p).filter(f => f !== portada)] : []
           const price = formatPrice(p)
-          const roofed = getRoofedArea(p)
+          // Superficie TOTAL (cubierta + semicubierta), como el resto de las tarjetas.
+          const total = getTotalSurface(p)
           const land = isLand(p)
           const beds = p.suite_amount ?? p.room_amount
           const baths = p.bathroom_amount
@@ -76,11 +77,11 @@ export default async function SeleccionCarousel() {
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
           if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-          if (roofed != null && roofed > 0) specs.push(`${roofed.toLocaleString('es-AR')} m²`)
+          if (!land && total != null && total > 0) specs.push(`${total.toLocaleString('es-AR')} m²`)
           const lot = getLotSurface(p)
           if (lot != null && lot > 0) {
             if (land) specs.push(`${lot.toLocaleString('es-AR')} m²`)
-            else if (lot !== roofed) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
+            else if (lot !== total) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
           }
 
           return (
