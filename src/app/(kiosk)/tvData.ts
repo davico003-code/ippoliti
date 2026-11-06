@@ -8,7 +8,7 @@ import {
   getProperties,
   getMainPhoto,
   getAllPhotos,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   formatPrice,
   translatePropertyType,
@@ -140,8 +140,10 @@ function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
   if (dorm > 0) specs.push({ v: String(dorm), l: dorm === 1 ? 'Dormitorio' : 'Dormitorios' })
   else if (amb > 0) specs.push({ v: String(amb), l: amb === 1 ? 'Ambiente' : 'Ambientes' })
   if (p.bathroom_amount > 0) specs.push({ v: String(p.bathroom_amount), l: p.bathroom_amount === 1 ? 'Baño' : 'Baños' })
-  const cub = getRoofedArea(p)
-  if (cub) specs.push({ v: cub.toLocaleString('es-AR'), l: 'm² cubiertos' })
+  // Siempre los m² TOTALES, nunca los cubiertos (regla de David; en lotes la
+  // total es el terreno y ya va abajo como "m² de lote").
+  const total = p.type?.id === 1 ? null : getTotalSurface(p)
+  if (total) specs.push({ v: m2(total), l: 'm² totales' })
   const lote = getLotSurface(p)
   if (lote) specs.push({ v: lote.toLocaleString('es-AR'), l: 'm² de lote' })
   return specs.slice(0, 4)
@@ -207,10 +209,10 @@ function datoUnidad(p: TokkoProperty): string {
     return lote ? `Lote de ${m2(lote)} m²` : 'Lote'
   }
   const dorm = p.suite_amount || 0
-  const cub = getRoofedArea(p)
+  const total = getTotalSurface(p)
   return [
     dorm > 0 ? `${dorm} dorm.` : tipoEs(p),
-    cub ? `${m2(cub)} m²` : null,
+    total ? `${m2(total)} m²` : null,
     (p.parking_lot_amount ?? 0) > 0 ? 'cochera' : null,
   ].filter(Boolean).join(' · ')
 }
