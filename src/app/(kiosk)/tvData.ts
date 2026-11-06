@@ -17,6 +17,7 @@ import {
 import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion'
 import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
 import { getTarjetasEmprendimientos } from '@/lib/emprendimientos-tarjetas'
+import { rasgosVerificables } from '@/lib/busqueda-propiedades'
 
 interface SlideBase {
   photo: string          // foto de portada
@@ -33,6 +34,11 @@ export interface SlidePropiedad extends SlideBase {
   specs: { v: string; l: string }[]
   // "Bajó de precio" (David, 22-oct-2026): el precio de antes y cuánto bajó.
   rebaja: { anterior: string; diferencia: string } | null
+  // Tele parada, diseño galería: "Vida Crystal Lagoon · Funes", "Casa con pileta"
+  // y "4 dormitorios · 260 m² · lote 606 m²".
+  lugar: string
+  titular: string
+  datos: string[]
 }
 
 // Presentación especial de un emprendimiento (David, 22-oct-2026: "mechar con
@@ -147,6 +153,47 @@ function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
   const lote = getLotSurface(p)
   if (lote) specs.push({ v: lote.toLocaleString('es-AR'), l: 'm² de lote' })
   return specs.slice(0, 4)
+}
+
+// Tele parada, diseño galería (David, 5-nov-2026): un titular que diga QUÉ es
+// ("Casa con pileta", "Lote de 930 m²") y una línea de datos, siempre con los
+// m² TOTALES. Pileta: las comodidades de HILO o lo dice el título (la misma
+// regla del buscador). Si el titular ya nombra los dormitorios, los datos
+// llevan los baños.
+const conPileta = (p: TokkoProperty) =>
+  rasgosVerificables(p.comodidades ?? []).length > 0 || /\b(pileta|piscina)\b/i.test(p.publication_title ?? '')
+
+const cuantos = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
+
+function fichaGaleria(p: TokkoProperty): { titular: string; datos: string[] } {
+  const lote = getLotSurface(p)
+  if (p.type?.id === TIPO_LOTE) {
+    return { titular: lote ? `Lote de ${m2(lote)} m²` : 'Lote', datos: p.barrio_cerrado ? ['Barrio cerrado'] : [] }
+  }
+  const casa = p.type?.id === 3
+  const dorm = p.suite_amount || 0
+  const banos = p.bathroom_amount || 0
+  const total = getTotalSurface(p)
+  const pileta = conPileta(p)
+  const dormEnTitular = casa && !pileta && dorm > 0
+  const titular = pileta
+    ? `${casa ? 'Casa' : 'Depto.'} con pileta`
+    : dormEnTitular ? `Casa de ${cuantos(dorm, 'dormitorio', 'dormitorios')}` : casa ? 'Casa' : 'Departamento'
+  const datos = [
+    !dormEnTitular && dorm > 0 ? cuantos(dorm, 'dormitorio', 'dormitorios') : null,
+    dormEnTitular && banos > 0 ? cuantos(banos, 'baño', 'baños') : null,
+    total ? `${m2(total)} m²` : null,
+    casa && lote && (!total || lote > total) ? `lote ${m2(lote)} m²` : null,
+  ].filter((x): x is string => !!x)
+  return { titular, datos }
+}
+
+// Sin repetir la ciudad: "Zona 7 - Funes" → "Zona 7 · Funes"; "Funes Lakes" ya la dice.
+function lugarDe(p: TokkoProperty): string {
+  const { barrio, ciudad } = resolverUbicacion(p)
+  const b = barrio && ciudad ? barrio.replace(new RegExp(`\\s+-\\s+${ciudad}$`, 'i'), '') : barrio
+  if (b && ciudad && normalizar(b).includes(normalizar(ciudad))) return b
+  return [b, ciudad].filter(Boolean).join(' · ')
 }
 
 // De qué emprendimiento es una unidad: el del feed, o Tierra Nueva (los Condos
@@ -345,6 +392,8 @@ export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {
       destacada: !!p.is_starred_on_web,
       specs: buildSpecs(p),
       rebaja: rebajaDe(p),
+      lugar: lugarDe(p),
+      ...fichaGaleria(p),
     }
   })
 

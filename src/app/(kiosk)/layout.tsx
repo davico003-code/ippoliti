@@ -30,6 +30,17 @@ const poppins = localFont({
   display: 'swap',
 })
 
+const montserrat = localFont({
+  // Montserrat (tipografía de marca), en el repo: la usa la tele parada.
+  src: [
+    { path: '../../fonts/montserrat-latin.woff2', weight: '600' },
+    { path: '../../fonts/montserrat-latin.woff2', weight: '700' },
+    { path: '../../fonts/montserrat-latin.woff2', weight: '800' },
+  ],
+  variable: '--font-montserrat',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'SI INMOBILIARIA — Pantalla',
   description: 'Propiedades en Funes, Roldán y Rosario',
@@ -38,7 +49,7 @@ export const metadata: Metadata = {
 
 export default function KioskLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${raleway.variable} ${poppins.variable}`}>
+    <html lang="es" className={`${raleway.variable} ${poppins.variable} ${montserrat.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
