@@ -10,6 +10,6 @@ import TvKioskClient from '../tv/TvKioskClient'
 export const revalidate = 1800
 
 export default async function TvVerticalPage() {
-  const { slides, respaldos } = await getSlides({ conTasar: true })
+  const { slides, respaldos } = await getSlides({ conTasar: true, conEmprendimientos: true })
   return <TvKioskClient slides={slides} respaldos={respaldos} vertical />
 }
