@@ -335,10 +335,12 @@ async function placasTasar(propiedades: SlidePropiedad[]): Promise<SlideTasar[]>
   return (casas.length ? casas : propiedades).map((p) => ({ kind: 'tasar', photo: p.photo, photos: [p.photo], qr, url: 'siinmobiliaria.com/tasar' }))
 }
 
-export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {}): Promise<{ slides: Slide[]; respaldos: RespaldosJpg }> {
+// Los emprendimientos van solo en la parada (David, 6-nov-2026, de la acostada:
+// "sacá los emprendimientos, porque se ven mal, dejá solo placas").
+export async function getSlides({ conTasar = false, conEmprendimientos = false }: { conTasar?: boolean; conEmprendimientos?: boolean } = {}): Promise<{ slides: Slide[]; respaldos: RespaldosJpg }> {
   let objects: TokkoProperty[] = []
   const respaldos: RespaldosJpg = {}
-  const tarjetas = getTarjetasEmprendimientos().catch((): Tarjeta[] => [])
+  const tarjetas = conEmprendimientos ? getTarjetasEmprendimientos().catch((): Tarjeta[] => []) : Promise.resolve<Tarjeta[]>([])
   try {
     const resp = await getProperties({ operation: 'Sale', limit: 500 })
     objects = resp.objects ?? []
