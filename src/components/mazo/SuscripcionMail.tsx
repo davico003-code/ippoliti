@@ -13,7 +13,7 @@ import { VERDE } from './marca-mazo'
  * filtrada (dónde, qué, hasta cuánto) para los envíos. No es una consulta:
  * nadie lo llama; le llegan las nuevas que entren de lo que busca.
  */
-export function SuscripcionMail({ criterios, compacta = false, origen }: { criterios: CriteriosBusqueda; compacta?: boolean; origen?: OrigenTinder }) {
+export function SuscripcionMail({ criterios, compacta = false, origen, donde }: { criterios: CriteriosBusqueda; compacta?: boolean; origen?: OrigenTinder; donde?: string }) {
   const [email, setEmail] = useState('')
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'listo'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -35,7 +35,7 @@ export function SuscripcionMail({ criterios, compacta = false, origen }: { crite
       setEstado('idle')
       return setError('No pudimos anotarte. Probá de nuevo.')
     }
-    trackEvent('mazo_suscripcion_mail', { donde: compacta ? 'fila_compu' : 'final' })
+    trackEvent('mazo_suscripcion_mail', { donde: donde ?? (compacta ? 'fila_compu' : 'final') })
     if (origen) contarTinder('busca', origen)
     setEstado('listo')
   }

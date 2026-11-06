@@ -51,7 +51,7 @@ export type SuscripcionHilo = {
   zona: string | null
   tipo: 'house' | 'lot' | 'apartment' | null
   topeUsd: number | null
-  origen: 'conoce_tu_hogar' | 'ficha'
+  origen: 'conoce_tu_hogar' | 'ficha' | 'buscador'
   busqueda: string | null
   pagina: string | null
 }
