@@ -51,6 +51,8 @@ import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 import { highlightMatch } from '@/lib/highlight'
 import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
 import { ZONAS, type Zona } from '@/lib/zonas'
+import { criteriosDelBuscador } from '@/lib/avisame-nuevas'
+import { SuscripcionMail } from '@/components/mazo/SuscripcionMail'
 import {
   type TokkoProperty,
   formatPrice,
@@ -1134,6 +1136,19 @@ export default function PropiedadesView({
     [visibleProperties, tandas],
   )
   const hayMas = renderedProperties.length < visibleProperties.length
+  // "Avisame cuando entre algo así" (6-nov): con zona elegida, deja el mail y
+  // Hilo le manda las nuevas en venta que calcen (ver lib/avisame-nuevas.ts).
+  const criteriosAviso = useMemo(
+    () => criteriosDelBuscador({ operation: filters.operation, type: filters.type, location: filters.location, search: filters.search }),
+    [filters.operation, filters.type, filters.location, filters.search],
+  )
+  // Al final de la lista, en el celu, la lista ya deja 100 px para la barra de
+  // abajo: la caja se mete en ese hueco (y deja el suyo debajo).
+  const cajaAviso = (alFinal: boolean) => criteriosAviso ? (
+    <div className={`px-4 pb-[100px] md:pb-6 ${alFinal ? '-mt-[84px] md:mt-0' : 'pt-2'}`}>
+      <SuscripcionMail key={`${criteriosAviso.zona}-${criteriosAviso.tipo}`} criterios={criteriosAviso} donde="buscador" />
+    </div>
+  ) : null
 
   // Ids de las tarjetas pintadas: el provider pide sus agentes por tandas.
   // Solo las que el listado no trajo con agente (feed viejo o Tokko).
@@ -1812,6 +1827,7 @@ export default function PropiedadesView({
               </div>
             )}
             {visibleProperties.length === 0 ? (
+              <>
               <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
                 {mapBounds && propertiesSinZona.length > 0 ? (
@@ -1885,6 +1901,8 @@ export default function PropiedadesView({
                   {smartActivo ? 'Empezar de nuevo' : 'Borrar filtros'}
                 </button>
               </div>
+              {cajaAviso(false)}
+              </>
             ) : (
               <>
                 {/* Desktop grid — lazy + gate por viewport.
@@ -1942,6 +1960,7 @@ export default function PropiedadesView({
                     </button>
                   </div>
                 )}
+                {!hayMas && cajaAviso(true)}
               </>
             )}
           </div>
