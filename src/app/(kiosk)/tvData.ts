@@ -14,7 +14,7 @@ import {
   translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
-import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion'
+import { resolverUbicacion } from '@/lib/ubicacion'
 import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
 import { getTarjetasEmprendimientos } from '@/lib/emprendimientos-tarjetas'
 import { rasgosVerificables } from '@/lib/busqueda-propiedades'
@@ -27,14 +27,10 @@ interface SlideBase {
 export interface SlidePropiedad extends SlideBase {
   kind: 'propiedad'
   precio: string
-  tipo: string
-  ubicacion: string
-  titulo: string
-  destacada: boolean
-  specs: { v: string; l: string }[]
-  // "Bajó de precio" (David, 22-oct-2026): el precio de antes y cuánto bajó.
-  rebaja: { anterior: string; diferencia: string } | null
-  // Tele parada, diseño galería: "Vida Crystal Lagoon · Funes", "Casa con pileta"
+  tipo: string // "Casa": la placa de tasar va sobre una casa
+  // "Bajó de precio" (David, 22-oct-2026): el precio de antes.
+  rebaja: { anterior: string } | null
+  // Ficha de galería: "Vida Crystal Lagoon · Funes", "Casa con pileta"
   // y "4 dormitorios · 260 m² · lote 606 m²".
   lugar: string
   titular: string
@@ -120,7 +116,7 @@ function rebajaDe(p: TokkoProperty): SlidePropiedad['rebaja'] {
   const actual = usdVenta(p)
   if (!r || r.moneda !== 'USD' || !conPrecio(p) || r.anterior <= actual) return null
   const usd = (n: number) => `USD ${Math.round(n).toLocaleString('es-AR')}`
-  return { anterior: usd(r.anterior), diferencia: usd(r.anterior - actual) }
+  return { anterior: usd(r.anterior) }
 }
 
 function entraEnLaTele(p: TokkoProperty): boolean {
@@ -139,25 +135,9 @@ function tipoEs(p: TokkoProperty): string {
   return translatePropertyType(p.type?.name)
 }
 
-function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
-  const specs: { v: string; l: string }[] = []
-  const dorm = p.suite_amount || 0
-  const amb = p.room_amount || 0
-  if (dorm > 0) specs.push({ v: String(dorm), l: dorm === 1 ? 'Dormitorio' : 'Dormitorios' })
-  else if (amb > 0) specs.push({ v: String(amb), l: amb === 1 ? 'Ambiente' : 'Ambientes' })
-  if (p.bathroom_amount > 0) specs.push({ v: String(p.bathroom_amount), l: p.bathroom_amount === 1 ? 'Baño' : 'Baños' })
-  // Siempre los m² TOTALES, nunca los cubiertos (regla de David; en lotes la
-  // total es el terreno y ya va abajo como "m² de lote").
-  const total = p.type?.id === 1 ? null : getTotalSurface(p)
-  if (total) specs.push({ v: m2(total), l: 'm² totales' })
-  const lote = getLotSurface(p)
-  if (lote) specs.push({ v: lote.toLocaleString('es-AR'), l: 'm² de lote' })
-  return specs.slice(0, 4)
-}
-
-// Tele parada, diseño galería (David, 5-nov-2026): un titular que diga QUÉ es
-// ("Casa con pileta", "Lote de 930 m²") y una línea de datos, siempre con los
-// m² TOTALES. Pileta: las comodidades de HILO o lo dice el título (la misma
+// Ficha de galería (David, 5-nov-2026; la acostada, 6-nov): un titular que diga
+// QUÉ es ("Casa con pileta", "Lote de 930 m²") y una línea de datos, siempre con
+// los m² TOTALES. Pileta: las comodidades de HILO o lo dice el título (la misma
 // regla del buscador). Si el titular ya nombra los dormitorios, los datos
 // llevan los baños.
 const conPileta = (p: TokkoProperty) =>
@@ -387,10 +367,6 @@ export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {
       photos,
       precio: formatPrice(p),
       tipo: tipoEs(p),
-      ubicacion: formatUbicacion(p),
-      titulo: p.publication_title ?? '',
-      destacada: !!p.is_starred_on_web,
-      specs: buildSpecs(p),
       rebaja: rebajaDe(p),
       lugar: lugarDe(p),
       ...fichaGaleria(p),

@@ -31,7 +31,7 @@ const poppins = localFont({
 })
 
 const montserrat = localFont({
-  // Montserrat (tipografía de marca), en el repo: la usa la tele parada.
+  // Montserrat (tipografía de marca), en el repo: la usa la ficha de galería de las teles.
   src: [
     { path: '../../fonts/montserrat-latin.woff2', weight: '600' },
     { path: '../../fonts/montserrat-latin.woff2', weight: '700' },
