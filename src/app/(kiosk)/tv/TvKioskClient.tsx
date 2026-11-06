@@ -16,10 +16,17 @@
 // la foto medía cero (quedaba negra) y el panel cambiaba de alto en cada
 // transición (23-oct-2026). Acá nada de inset, gap en flex, aspect-ratio ni dvh:
 // top/right/bottom/left, márgenes y padding-bottom.
+//
+// Tele parada = "lámina de galería" (David, 5-nov-2026: la vidriera no se leía
+// desde la vereda). Fondo papel, la foto como un cuadro con margen, y abajo una
+// ficha que se lee desde el auto: barrio, QUÉ es ("Casa con pileta"), el precio
+// enorme y una línea de datos con los m² totales. Las 4 miniaturas van en el
+// tercio de abajo (lo que tapan las plantas). Cada renglón se achica solo para
+// entrar en una línea. Emprendimientos y tasar siguen a pantalla completa encima.
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { RespaldosJpg, Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
+import type { RespaldosJpg, Slide, SlideEmprendimiento, SlidePropiedad, SlideTasar } from '../tvData'
 
 const FOTO_MS = 4000
 const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
@@ -100,6 +107,35 @@ const reglasParada = (pre: string) => `
 `
 
 const GIRO_KEY = 'si.tv-vertical.girada-al-reves'
+
+// "USD 455.000" → moneda chica arriba y el número grande.
+const partirPrecio = (t: string) => {
+  const m = /^([^\d]+?)\s*(\d.*)$/.exec(t)
+  return m ? { mon: m[1], num: m[2] } : { mon: '', num: t }
+}
+
+// Galería: cada renglón de la ficha se achica hasta entrar en una línea, sin
+// bajar de su mínimo (proporción del tamaño de diseño).
+const MINIMOS_FICHA: [string, string, number][] = [
+  ['.gal-lugar', '.gal-lugar', 0.68],
+  ['.gal-titular', '.gal-titular', 0.66],
+  ['.gal-precio', '.gal-num', 0.66],
+  ['.gal-datos', '.gal-datos', 0.7],
+]
+function encogerFicha(caja: HTMLElement) {
+  for (const [linea, texto, minimo] of MINIMOS_FICHA) {
+    const l = caja.querySelector<HTMLElement>(linea)
+    const t = caja.querySelector<HTMLElement>(texto)
+    if (!l || !t) continue
+    t.style.fontSize = ''
+    let z = parseFloat(window.getComputedStyle(t).fontSize)
+    const tope = z * minimo
+    while (l.scrollWidth > l.clientWidth && z > tope) {
+      z -= 1
+      t.style.fontSize = `${z}px`
+    }
+  }
+}
 
 export default function TvKioskClient({
   slides,
@@ -250,6 +286,32 @@ export default function TvKioskClient({
   // Tocar la pantalla (o el OK del control, que muchas teles mandan como toque)
   // solo ENTRA en pantalla completa: nunca la saca.
 
+  // Galería: la ficha se vuelve a medir cuando cargan las letras (antes miden
+  // con la de reemplazo) y si cambia el tamaño de la pantalla.
+  const ficha = useRef<HTMLDivElement>(null)
+  const [medida, setMedida] = useState(0)
+  useEffect(() => {
+    if (!vertical) return
+    const otra = () => setMedida((n) => n + 1)
+    const letras = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts?.ready
+    if (letras) letras.then(otra, () => {})
+    window.addEventListener('resize', otra)
+    return () => window.removeEventListener('resize', otra)
+  }, [vertical])
+
+  // La ficha muestra la última propiedad: mientras pasa un emprendimiento o
+  // tasar (que la tapan), queda la de antes y no hay un hueco en el fundido.
+  const idxActual = slides.length ? enPaso(slides, paso).idx : 0
+  let iFicha: number | null = null
+  for (let k = 0; k < slides.length && iFicha === null; k++) {
+    const i = mod(idxActual - k, slides.length)
+    if (slides[i].kind === 'propiedad') iFicha = i
+  }
+  const fichaS = iFicha !== null ? (slides[iFicha] as SlidePropiedad) : null
+  useEffect(() => {
+    if (ficha.current) encogerFicha(ficha.current)
+  }, [fichaS, medida])
+
   if (slides.length === 0) {
     return (
       <main style={{ height: '100vh', display: 'grid', placeItems: 'center', textAlign: 'center' }}>
@@ -303,13 +365,91 @@ export default function TvKioskClient({
     })
   const fotos = fotosDe(s)
   const precioLargo = s.kind === 'propiedad' && s.precio.length > 11
+  const botonGirar = vertical && !completa && (
+    <button
+      type="button"
+      className="tv-full tv-girar"
+      onClick={(e) => {
+        e.stopPropagation()
+        girar()
+      }}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4.5h-4.5" />
+      </svg>
+      Girar
+    </button>
+  )
+  const precioFicha = fichaS ? partirPrecio(fichaS.precio) : null
 
   return (
     <main
-      className={`tv-root${vertical ? ' tv-modo-vertical' : ''}${alReves ? ' tv-al-reves' : ''}`}
+      className={`tv-root${vertical ? ' tv-modo-vertical tv-galeria' : ''}${alReves ? ' tv-al-reves' : ''}`}
       onClick={entrarPantallaCompleta}
     >
       <div className="tv-stage">
+      {vertical ? (
+        <>
+          {/* La foto como un cuadro con margen; sus fotos pasan como siempre. */}
+          <section className="gal-foto">
+            {slides.map((sl, i) => (montadas.has(i) ? capas(sl, i) : null))}
+            {botonGirar}
+          </section>
+
+          {fichaS && precioFicha && iFicha !== null && (
+            <>
+              <div key={`f-${iFicha}`} ref={ficha} className="gal-ficha tv-in">
+                <div className="gal-lugar">{fichaS.lugar}</div>
+                <h2 className="gal-titular">{fichaS.titular}</h2>
+                <div className="gal-raya" />
+                <div className="gal-precio">
+                  {precioFicha.mon && <span className="gal-mon">{precioFicha.mon}</span>}
+                  <span className="gal-num">{precioFicha.num}</span>
+                  {fichaS.rebaja && (
+                    <span className="gal-antes">
+                      <small>Bajó de</small>
+                      <s>{partirPrecio(fichaS.rebaja.anterior).num}</s>
+                    </span>
+                  )}
+                </div>
+                {fichaS.datos.length > 0 && (
+                  <div className="gal-datos">
+                    {fichaS.datos.map((d, k) => (
+                      <span key={k}>
+                        {k > 0 && <b>·</b>}
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Miniaturas en el tercio de abajo; la raya verde marca la que se ve. */}
+              {fotosDe(fichaS).length > 1 && (
+                <div key={`g-${iFicha}`} className="gal-tira tv-in">
+                  {fotosDe(fichaS).map((src, k) => (
+                    <div
+                      key={k}
+                      className={`gal-mini${iFicha === idx && k === visible ? ' gal-mini-on' : ''}`}
+                      style={{ left: `${k * 22.41}vmin` }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={fuente(src)} ref={vigilar(src)} onError={() => fallo(src)} alt="" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          <footer className="gal-pie">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-si-inmobiliaria.svg" alt="SI INMOBILIARIA" />
+            <span>siinmobiliaria.com</span>
+          </footer>
+        </>
+      ) : (
+      <>
       {/* Foto a sangre (izquierda, o arriba en la tele parada) */}
       <section className="tv-foto">
         {slides.map((sl, i) => (montadas.has(i) ? capas(sl, i) : null))}
@@ -325,21 +465,7 @@ export default function TvKioskClient({
           )}
           {s.kind === 'propiedad' && s.destacada && <span className="tv-badge">Selección SI</span>}
         </div>
-        {vertical && !completa && (
-          <button
-            type="button"
-            className="tv-full tv-girar"
-            onClick={(e) => {
-              e.stopPropagation()
-              girar()
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4.5h-4.5" />
-            </svg>
-            Girar
-          </button>
-        )}
+        {botonGirar}
       </section>
 
       {/* Panel de datos (derecha, o abajo en la tele parada) */}
@@ -428,6 +554,8 @@ export default function TvKioskClient({
         </footer>
         <div key={`p-${idx}`} className="tv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
       </aside>
+      </>
+      )}
 
       {/* Emprendimiento: un momento aparte, a pantalla completa (David, 22-oct-2026:
           "debería ser más distinta la sección de cada emprendimiento"). */}
@@ -731,8 +859,41 @@ export default function TvKioskClient({
         }
         @media (orientation: portrait) { .tv-girar { display: none; } }
 
+        /* Tele parada = lámina de galería, diseñada sobre 1080 × 1920 (1 px = 1/10,8 vmin).
+           Todo lo que hay que leer termina antes del 70 % del alto (abajo tapan las plantas). */
+        .tv-root.tv-galeria { background: #F6F4EF; }
+        .tv-galeria .tv-stage { display: block; background: #F6F4EF; }
+        .gal-foto { position: absolute; left: 5.93vmin; right: 5.93vmin; top: 5.93vmin; height: 70vmin; overflow: hidden;
+          background: #E7E3DA; }
+        .gal-ficha, .gal-pie { font-family: var(--font-montserrat), var(--font-poppins), sans-serif; color: #141413; }
+        .gal-ficha { position: absolute; left: 5.93vmin; right: 5.93vmin; top: 78.89vmin; }
+        .gal-lugar, .gal-titular, .gal-datos { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gal-lugar { font-weight: 700; font-size: 3.52vmin; line-height: 1.2; letter-spacing: .14em; text-transform: uppercase; color: #17613C; }
+        .gal-titular { margin: 1.3vmin 0 0; font-weight: 700; font-size: 10vmin; line-height: 1.04; letter-spacing: -.025em; }
+        .gal-raya { width: 8.15vmin; height: .56vmin; margin-top: 2.78vmin; background: #17613C; }
+        .gal-precio { margin-top: 2.59vmin; white-space: nowrap; overflow: hidden; line-height: 1; }
+        .gal-mon { display: inline-block; vertical-align: top; margin: 1.48vmin 1.48vmin 0 0; font-weight: 700; font-size: 4.07vmin;
+          letter-spacing: .08em; color: #6E6A60; }
+        .gal-num { font-weight: 800; font-size: 14.44vmin; letter-spacing: -.035em; }
+        .gal-antes { display: inline-block; vertical-align: top; margin: 1.3vmin 0 0 2.78vmin; padding-left: 2.59vmin;
+          border-left: 2px solid #CFCAC0; }
+        .gal-antes small { display: block; font-weight: 700; font-size: 2.59vmin; letter-spacing: .14em; text-transform: uppercase; color: #17613C; }
+        .gal-antes s { display: block; margin-top: .93vmin; font-weight: 700; font-size: 4.63vmin; color: #8F8A7F; }
+        .gal-datos { margin-top: 2.78vmin; font-weight: 600; font-size: 4.44vmin; line-height: 1.2; color: #3D3A34; }
+        .gal-datos b { margin: 0 1.67vmin; font-weight: 600; color: #ABA69A; }
+        .gal-tira { position: absolute; left: 5.93vmin; top: 134.44vmin; width: 88.15vmin; height: 19.26vmin; }
+        .gal-mini { position: absolute; top: 0; width: 20.93vmin; height: 19.26vmin; }
+        .gal-mini img { position: absolute; top: 0; left: 0; width: 100%; height: 17.41vmin; object-fit: cover; display: block;
+          background: #E7E3DA; }
+        .gal-mini:after { content: ''; position: absolute; left: 0; right: 0; top: 18.52vmin; height: .74vmin; background: #17613C;
+          opacity: 0; transition: opacity ${FUNDIDO_MS}ms; }
+        .gal-mini-on:after { opacity: 1; }
+        .gal-pie { position: absolute; left: 5.93vmin; right: 5.93vmin; bottom: 5.93vmin; height: 5.93vmin; border-top: 2px solid #DDD8CD; }
+        .gal-pie img { position: absolute; left: 0; bottom: 0; height: 4.26vmin; width: auto; }
+        .gal-pie span { position: absolute; right: 0; bottom: .56vmin; font-weight: 600; font-size: 2.78vmin; letter-spacing: .04em; color: #6E6A60; }
+
         @media (prefers-reduced-motion: reduce) {
-          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini, .tv-badge-rebaja { animation: none !important; transition: none !important; }
+          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini, .tv-badge-rebaja, .gal-mini:after { animation: none !important; transition: none !important; }
         }
       ` }} />
     </main>
