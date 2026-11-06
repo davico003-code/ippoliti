@@ -83,6 +83,10 @@ function conRespaldo(respaldos: RespaldosJpg, id: number, url: string): string {
 }
 
 const PROPIEDADES_POR_EMPRENDIMIENTO = 6
+// Emprendimientos que NO pasan por la tele (David, 6-nov-2026: "finca azul no lo
+// pongas, sacá fisherton work y aurea, dejá distrito, dockgarden y tierra nueva").
+// Por la `key` de la tarjeta de /emprendimientos.
+const EMPRENDIMIENTOS_FUERA = new Set(['fincazul', 'fisherton-work', 'aurea'])
 // La placa de tasar va cada 12 propiedades, corrida 3 para no pegarse a un emprendimiento.
 const PROPIEDADES_POR_TASAR = 12
 const URL_TASAR = 'https://siinmobiliaria.com/tasar?utm_source=tele&utm_medium=vidriera&utm_campaign=tasar'
@@ -214,11 +218,9 @@ type Tarjeta = Awaited<ReturnType<typeof getTarjetasEmprendimientos>>[number]
 
 // Unidades de cada emprendimiento en el feed: las de su development en Hilo, o
 // por nombre para las landings propias (los Condos de Tierra Nueva no traen
-// development). Fincazul y Hausing no tienen unidades cargadas: van sin segundo momento.
+// development). Hausing no tiene unidades cargadas: va sin segundo momento.
 const UNIDADES_DE_LANDING: Record<string, (p: TokkoProperty) => boolean> = {
   'tierra-nueva': (p) => emprendimientoDe(p) === 'tierra-nueva',
-  aurea: (p) => normalizar(`${p.publication_title ?? ''} ${p.location?.name ?? ''}`).includes('aurea'),
-  'fisherton-work': (p) => normalizar(p.publication_title ?? '').includes('fisherton work'),
 }
 
 function unidadesDe(t: Tarjeta, objects: TokkoProperty[]): TokkoProperty[] {
@@ -282,6 +284,7 @@ function resumenUnidades(us: TokkoProperty[], respaldos: RespaldosJpg): SlideEmp
 
 function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[], respaldos: RespaldosJpg): SlideEmprendimiento[] {
   return tarjetas.flatMap((t): SlideEmprendimiento[] => {
+    if (EMPRENDIMIENTOS_FUERA.has(t.key)) return []
     const photos = (t.fotos?.length ? t.fotos : [t.image]).filter((x): x is string => !!x).slice(0, 4)
     if (!photos.length) return []
     return [{
