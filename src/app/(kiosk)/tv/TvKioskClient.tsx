@@ -133,6 +133,25 @@ function encogerFicha(caja: HTMLElement) {
   }
 }
 
+// Acostada (David, 6-nov-2026, "el A está bien"): la ficha y las miniaturas van
+// juntas al medio de la columna, entre el borde de arriba de la foto y el pie,
+// así no queda un hueco entre los datos y las fotos. Parada (o /tv en una
+// pantalla parada): mandan las medidas del CSS.
+const MARGEN = 5.93 // vmin, el de la foto
+const ANTES_DE_LA_TIRA = 4.4 // vmin
+const ANTES_DEL_PIE = 3 // vmin
+function centrarEnLaColumna(ficha: HTMLElement, tira: HTMLElement | null, pie: HTMLElement | null) {
+  ficha.style.top = ''
+  if (tira) tira.style.top = ''
+  if (!pie || !window.matchMedia('(orientation: landscape)').matches) return
+  const vmin = Math.min(window.innerWidth, window.innerHeight) / 100
+  const arriba = MARGEN * vmin
+  const alto = ficha.offsetHeight + (tira ? ANTES_DE_LA_TIRA * vmin + tira.offsetHeight : 0)
+  const top = Math.max(arriba, arriba + (pie.offsetTop - ANTES_DEL_PIE * vmin - arriba - alto) / 2)
+  ficha.style.top = `${top}px`
+  if (tira) tira.style.top = `${top + ficha.offsetHeight + ANTES_DE_LA_TIRA * vmin}px`
+}
+
 export default function TvKioskClient({
   slides,
   respaldos,
@@ -271,6 +290,8 @@ export default function TvKioskClient({
   // Galería: la ficha se vuelve a medir cuando cargan las letras (antes miden
   // con la de reemplazo) y si cambia el tamaño de la pantalla.
   const ficha = useRef<HTMLDivElement>(null)
+  const tira = useRef<HTMLDivElement>(null)
+  const pie = useRef<HTMLElement>(null)
   const [medida, setMedida] = useState(0)
   useEffect(() => {
     const otra = () => setMedida((n) => n + 1)
@@ -294,8 +315,10 @@ export default function TvKioskClient({
   const crema =
     !vertical && iFicha !== null && slides.slice(0, iFicha).filter((x) => x.kind === 'propiedad').length % 2 === 1
   useEffect(() => {
-    if (ficha.current) encogerFicha(ficha.current)
-  }, [fichaS, medida])
+    if (!ficha.current) return
+    encogerFicha(ficha.current)
+    if (!vertical) centrarEnLaColumna(ficha.current, tira.current, pie.current)
+  }, [fichaS, medida, vertical])
 
   if (slides.length === 0) {
     return (
@@ -407,7 +430,7 @@ export default function TvKioskClient({
 
           {/* Miniaturas (en la parada, en el tercio de abajo); la raya verde marca la que se ve. */}
           {fotosDe(fichaS).length > 1 && (
-            <div key={`g-${iFicha}`} className="gal-tira tv-in">
+            <div key={`g-${iFicha}`} ref={tira} className="gal-tira tv-in">
               {fotosDe(fichaS).map((src, k) => (
                 <div key={k} className={`gal-mini gal-m${k}${iFicha === idx && k === visible ? ' gal-mini-on' : ''}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -419,7 +442,7 @@ export default function TvKioskClient({
         </>
       )}
 
-      <footer className="gal-pie">
+      <footer ref={pie} className="gal-pie">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-si-inmobiliaria.svg" alt="SI INMOBILIARIA" />
         <span>siinmobiliaria.com</span>
@@ -683,11 +706,12 @@ export default function TvKioskClient({
 
         /* Acostada (/tv en una pantalla acostada), sobre 1920 × 1080: la foto a la izquierda
            de punta a punta del alto y la ficha en una columna de 60 vmin a la derecha, con
-           el titular en dos líneas, la rebaja abajo del precio y las miniaturas y el pie
-           al fondo de la columna. */
+           el titular a veces en dos líneas y la rebaja abajo del precio. La ficha y las
+           miniaturas van juntas al medio de la columna (centrarEnLaColumna; estos top son
+           los de una ficha corta, hasta que mide) y el pie al fondo. */
         @media (orientation: landscape) {
           .tv-root:not(.tv-modo-vertical) .gal-foto { right: 71.86vmin; bottom: 5.93vmin; height: auto; }
-          .tv-root:not(.tv-modo-vertical) .gal-ficha { left: auto; right: 5.93vmin; width: 60vmin; top: 5.3vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-ficha { left: auto; right: 5.93vmin; width: 60vmin; top: 18.5vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-lugar { font-size: 3.24vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-titular { font-size: 8.15vmin; white-space: normal;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
@@ -699,7 +723,7 @@ export default function TvKioskClient({
           .tv-root:not(.tv-modo-vertical) .gal-antes s { display: inline; margin: 0 0 0 1.3vmin; font-size: 3.7vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-datos { margin-top: 2.6vmin; font-size: 3.7vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-datos b { margin: 0 1.3vmin; }
-          .tv-root:not(.tv-modo-vertical) .gal-tira { left: auto; right: 5.93vmin; top: auto; bottom: 14.8vmin; width: 60vmin; height: 12.6vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-tira { left: auto; right: 5.93vmin; top: 59.6vmin; width: 60vmin; height: 12.6vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-mini { width: 13.61vmin; height: 12.6vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-mini img { height: 11.3vmin; }
           .tv-root:not(.tv-modo-vertical) .gal-mini:after { top: 11.96vmin; height: .64vmin; }
