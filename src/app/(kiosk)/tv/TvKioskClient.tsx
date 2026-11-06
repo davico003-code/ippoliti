@@ -699,7 +699,7 @@ export default function TvKioskClient({
         .tv-emp-marca strong { font-size: 2vmin; font-weight: 700; }
 
         .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); grid-gap: .8vw; gap: .8vw; margin-top: 4.4vmin; }
-        .tv-mini { position: relative; height: 0; padding-bottom: 75%; border-radius: 1vmin; overflow: hidden; opacity: .45;
+        .tv-mini { position: relative; height: 0; padding-bottom: 75%; border-radius: 1vmin; overflow: hidden; opacity: .85;
           outline: .35vmin solid transparent; outline-offset: .3vmin; transition: opacity ${FUNDIDO_MS}ms, outline-color ${FUNDIDO_MS}ms; }
         .tv-mini img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
         .tv-mini-on { opacity: 1; outline-color: #8FE3B0; }

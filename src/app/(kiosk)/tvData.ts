@@ -89,11 +89,16 @@ const URL_TASAR = 'https://siinmobiliaria.com/tasar?utm_source=tele&utm_medium=v
 // primeras (destacadas y más nuevas) y el emprendimiento tiene su presentación.
 const MAX_UNIDADES_POR_EMPRENDIMIENTO = 2
 
-// Qué pasa por la tele (David, 22-oct-2026): casas desde USD 250.000,
-// departamentos desde USD 125.000 y lotes desde USD 70.000. Nada más: ni PH,
-// ni locales, ni galpones, ni las de precio a consultar. Por id de tipo de
-// Tokko (3 casa, 2 departamento, 1 lote): por nombre, "Warehouse" contiene "house".
-const PISO_USD: Partial<Record<number, number>> = { 3: 250000, 2: 125000, 1: 70000 }
+// Qué pasa por la tele (David, 5-nov-2026: "mostrá la mercadería de Funes, de
+// 200.000 para arriba y lotes en barrios privados"): solo Funes; casas,
+// departamentos y lotes desde USD 200.000, y los lotes en barrio cerrado (el
+// dato de Hilo, `barrio_cerrado`) a cualquier precio. Nada más: ni PH, ni
+// locales, ni galpones, ni las de precio a consultar. Por id de tipo de Tokko
+// (3 casa, 2 departamento, 1 lote): por nombre, "Warehouse" contiene "house".
+const CIUDAD_TELE = 'funes'
+const PISO_USD = 200000
+const TIPO_LOTE = 1
+const TIPOS_TELE = new Set([TIPO_LOTE, 2, 3])
 
 function usdVenta(p: TokkoProperty): number {
   const venta = p.operations?.find((op) => op.operation_type === 'Sale')
@@ -113,9 +118,11 @@ function rebajaDe(p: TokkoProperty): SlidePropiedad['rebaja'] {
 }
 
 function entraEnLaTele(p: TokkoProperty): boolean {
-  const piso = p.type?.id != null ? PISO_USD[p.type.id] : undefined
-  if (!piso || !conPrecio(p)) return false
-  return usdVenta(p) >= piso
+  const tipo = p.type?.id
+  if (tipo == null || !TIPOS_TELE.has(tipo) || !conPrecio(p)) return false
+  if (normalizar(resolverUbicacion(p).ciudad ?? '') !== CIUDAD_TELE) return false
+  if (tipo === TIPO_LOTE && p.barrio_cerrado === true) return true
+  return usdVenta(p) >= PISO_USD
 }
 
 // Traducción de tipología: usa el mapa canónico de tokko.ts (única fuente de
@@ -140,9 +147,6 @@ function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
   return specs.slice(0, 4)
 }
 
-// Reordena para no repetir ciudad en slides consecutivos (variedad de zonas).
-// Por ciudad y no por "barrio, ciudad": si no, "Funes" → "Funes Lakes, Funes"
-// contaban como zonas distintas y la TV encadenaba Funes tras Funes.
 // De qué emprendimiento es una unidad: el del feed, o Tierra Nueva (los Condos
 // 22-24 no traen emprendimiento en el feed; los delata el barrio).
 const normalizar = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -266,17 +270,23 @@ function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[], res
   })
 }
 
+// Reordena para no repetir barrio en slides consecutivos (variedad de zonas).
+// Desde que la tele pasa solo Funes (5-nov-2026) la ciudad ya no separa nada:
+// se reparte por barrio, y las que no traen barrio cuentan como la ciudad.
 function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
   const out: TokkoProperty[] = []
   const pool = [...list]
-  const ciudad = (p: TokkoProperty) => resolverUbicacion(p).ciudad ?? ''
+  const zona = (p: TokkoProperty) => {
+    const u = resolverUbicacion(p)
+    return normalizar(u.barrio ?? u.ciudad ?? '')
+  }
   let lastZone = ''
   while (pool.length) {
-    let pick = pool.findIndex((p) => ciudad(p) !== lastZone)
+    let pick = pool.findIndex((p) => zona(p) !== lastZone)
     if (pick === -1) pick = 0
     const [p] = pool.splice(pick, 1)
     out.push(p)
-    lastZone = ciudad(p)
+    lastZone = zona(p)
   }
   return out
 }
