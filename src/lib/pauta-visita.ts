@@ -99,3 +99,15 @@ export function urlConUtmDePauta(): string {
     return typeof window === 'undefined' ? '' : window.location.href
   }
 }
+
+/** El utm_content del anuncio de esta visita (= ref en Hilo), aunque ya no esté en la barra. null si no vino de un anuncio. */
+export function utmContentDePauta(): string | null {
+  try {
+    const q = new URLSearchParams(window.location.search)
+    if (q.get('utm_content')) return q.get('utm_content')
+    const guardados = window.sessionStorage.getItem(CLAVE)
+    return guardados ? new URLSearchParams(guardados).get('utm_content') : null
+  } catch {
+    return null
+  }
+}

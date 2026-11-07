@@ -9,6 +9,8 @@
 //   ronda:zonaprop       → copia de los avisos de Zonaprop que Hilo ya tenía leídos
 //   ronda:contactos:<mes>, ronda:fichas:<mes> → la actividad del mes (ver abajo)
 //   ronda:lecturas:<día> → cómo salió cada link que pegó un colega (para el vigía, salud.ts)
+//   ronda:sala:<sala>:publicaciones / :pedidos → los de una sala (sala.ts, 27-oct-2026);
+//     las inmobiliarias y los agentes son los mismos de la Ronda.
 //
 // La cuota de Upstash es finita (se agotó el 25-ago-2026): leer la grilla es UN
 // hgetall y queda 15 s en memoria por instancia. Fuera de producción todo va a
@@ -17,6 +19,7 @@
 import { nanoid } from 'nanoid'
 import { redis } from '@/lib/redis'
 import { cifrar, descifrar, estaCifrado } from './cifrado'
+import type { Sala } from './sala'
 import { activas, pedidosActivos, sinTildes, type AgenteRonda, type Inmobiliaria, type Pedido, type Publicacion } from './reglas'
 
 // Las dos señales: el .env.local de esta máquina trae VERCEL_ENV="production"
@@ -28,14 +31,18 @@ const K = {
   agentes: `${P}:agentes`,
   publicaciones: `${P}:publicaciones`,
   pedidos: `${P}:pedidos`,
+  publicacionesDe: (sala: Sala | null) => (sala ? `${P}:sala:${sala.id}:publicaciones` : `${P}:publicaciones`),
+  pedidosDe: (sala: Sala | null) => (sala ? `${P}:sala:${sala.id}:pedidos` : `${P}:pedidos`),
   leido: (clave: string) => `${P}:leido:${clave}`,
 }
 
 const TTL_GRILLA_MS = 15_000
 const TTL_LISTA_MS = 30_000
 
-let _grilla: { filas: Publicacion[]; ts: number } | null = null
-let _pedidos: { filas: Pedido[]; ts: number } | null = null
+// Un caché por sala ('' = la Ronda de siempre).
+const _grillas = new Map<string, { filas: Publicacion[]; ts: number }>()
+const _listasPedidos = new Map<string, { filas: Pedido[]; ts: number }>()
+const idSala = (sala: Sala | null) => sala?.id ?? ''
 let _inmobiliarias: { filas: Inmobiliaria[]; ts: number } | null = null
 
 /**
@@ -95,64 +102,66 @@ export async function guardarAgente(agente: AgenteRonda): Promise<void> {
 // ── Publicaciones ───────────────────────────────────────────────────────
 
 /** Las publicaciones vigentes, la más nueva primero. */
-export async function listarPublicaciones(fresco = false): Promise<Publicacion[]> {
-  if (!fresco && _grilla && Date.now() - _grilla.ts < TTL_GRILLA_MS) return activas(_grilla.filas)
-  const filas = await todas<Publicacion>(K.publicaciones)
-  _grilla = { filas, ts: Date.now() }
+export async function listarPublicaciones(fresco = false, sala: Sala | null = null): Promise<Publicacion[]> {
+  const cache = _grillas.get(idSala(sala))
+  if (!fresco && cache && Date.now() - cache.ts < TTL_GRILLA_MS) return activas(cache.filas)
+  const filas = await todas<Publicacion>(K.publicacionesDe(sala))
+  _grillas.set(idSala(sala), { filas, ts: Date.now() })
   return activas(filas)
 }
 
-export async function guardarPublicacion(p: Publicacion): Promise<void> {
-  await redis.hset(K.publicaciones, { [p.id]: cifrar(p) })
-  _grilla = null
+export async function guardarPublicacion(p: Publicacion, sala: Sala | null = null): Promise<void> {
+  await redis.hset(K.publicacionesDe(sala), { [p.id]: cifrar(p) })
+  _grillas.delete(idSala(sala))
 }
 
-export async function publicacionPorId(id: string): Promise<Publicacion | null> {
-  return fila<Publicacion>(await redis.hget(K.publicaciones, id))
+export async function publicacionPorId(id: string, sala: Sala | null = null): Promise<Publicacion | null> {
+  return fila<Publicacion>(await redis.hget(K.publicacionesDe(sala), id))
 }
 
-export async function borrarPublicacion(id: string): Promise<void> {
-  await redis.hdel(K.publicaciones, id)
-  _grilla = null
+export async function borrarPublicacion(id: string, sala: Sala | null = null): Promise<void> {
+  await redis.hdel(K.publicacionesDe(sala), id)
+  _grillas.delete(idSala(sala))
 }
 
 /** Saca del hash las que ya vencieron. Se llama al publicar: no hace falta un cron. */
-export async function limpiarVencidas(): Promise<void> {
-  const filas = await todas<Publicacion>(K.publicaciones)
+export async function limpiarVencidas(sala: Sala | null = null): Promise<void> {
+  const filas = await todas<Publicacion>(K.publicacionesDe(sala))
   const vencidas = filas.filter((p) => p.vence <= Date.now()).map((p) => p.id)
-  if (vencidas.length > 0) await redis.hdel(K.publicaciones, ...vencidas)
-  await cifrarLoQueQuedoEnClaro()
+  if (vencidas.length > 0) await redis.hdel(K.publicacionesDe(sala), ...vencidas)
+  if (!sala) await cifrarLoQueQuedoEnClaro()
 }
 
 // ── Pedidos de búsqueda ─────────────────────────────────────────────────
 
 /** Los pedidos vigentes, el más nuevo primero (15 s en memoria, como la grilla). */
-export async function listarPedidos(fresco = false): Promise<Pedido[]> {
-  if (!fresco && _pedidos && Date.now() - _pedidos.ts < TTL_GRILLA_MS) return pedidosActivos(_pedidos.filas)
-  const filas = await todas<Pedido>(K.pedidos)
-  _pedidos = { filas, ts: Date.now() }
+export async function listarPedidos(fresco = false, sala: Sala | null = null): Promise<Pedido[]> {
+  const cache = _listasPedidos.get(idSala(sala))
+  if (!fresco && cache && Date.now() - cache.ts < TTL_GRILLA_MS) return pedidosActivos(cache.filas)
+  const filas = await todas<Pedido>(K.pedidosDe(sala))
+  _listasPedidos.set(idSala(sala), { filas, ts: Date.now() })
   return pedidosActivos(filas)
 }
 
-export async function guardarPedido(p: Pedido): Promise<void> {
-  await redis.hset(K.pedidos, { [p.id]: cifrar(p) })
-  _pedidos = null
+export async function guardarPedido(p: Pedido, sala: Sala | null = null): Promise<void> {
+  await redis.hset(K.pedidosDe(sala), { [p.id]: cifrar(p) })
+  _listasPedidos.delete(idSala(sala))
 }
 
-export async function pedidoPorId(id: string): Promise<Pedido | null> {
-  return fila<Pedido>(await redis.hget(K.pedidos, id))
+export async function pedidoPorId(id: string, sala: Sala | null = null): Promise<Pedido | null> {
+  return fila<Pedido>(await redis.hget(K.pedidosDe(sala), id))
 }
 
-export async function borrarPedido(id: string): Promise<void> {
-  await redis.hdel(K.pedidos, id)
-  _pedidos = null
+export async function borrarPedido(id: string, sala: Sala | null = null): Promise<void> {
+  await redis.hdel(K.pedidosDe(sala), id)
+  _listasPedidos.delete(idSala(sala))
 }
 
 /** Saca los vencidos. Se llama al publicar un pedido: no hace falta un cron. */
-export async function limpiarPedidosVencidos(): Promise<void> {
-  const filas = await todas<Pedido>(K.pedidos)
+export async function limpiarPedidosVencidos(sala: Sala | null = null): Promise<void> {
+  const filas = await todas<Pedido>(K.pedidosDe(sala))
   const vencidos = filas.filter((p) => p.vence <= Date.now()).map((p) => p.id)
-  if (vencidos.length > 0) await redis.hdel(K.pedidos, ...vencidos)
+  if (vencidos.length > 0) await redis.hdel(K.pedidosDe(sala), ...vencidos)
 }
 
 /** Los registros de antes del cifrado (13-oct-2026) se reescriben cifrados. */
@@ -253,7 +262,7 @@ export async function actualizarContacto(agente: { id: string; nombre: string; w
   const cambios: Record<string, string> = {}
   for (const p of suyas) cambios[p.id] = cifrar({ ...p, agente: { ...agente } })
   await redis.hset(K.publicaciones, cambios)
-  _grilla = null
+  _grillas.delete('')
 }
 
 // ── Copia de avisos de Zonaprop ─────────────────────────────────────────

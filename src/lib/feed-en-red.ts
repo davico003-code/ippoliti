@@ -553,7 +553,7 @@ export type CriteriosBusqueda = {
   dormMin?: number | null
   /** Barrio cerrado/abierto (solo "Conocé tu próximo hogar", al buscar una ciudad). */
   barrio?: BarrioHogar | null
-  origen: 'conoce_tu_hogar' | 'ficha'
+  origen: 'conoce_tu_hogar' | 'ficha' | 'buscador'
 }
 
 export function esEmail(v: string): boolean {
@@ -589,7 +589,7 @@ export function parsearCriteriosWeb(raw: unknown): CriteriosBusqueda | null {
     topeUsd: Number.isFinite(tope) && tope >= 10_000 && tope <= 20_000_000 ? Math.round(tope) : null,
     dormMin: tipo === 'lot' ? null : dormMinValido(r.dormMin),
     barrio: barrioHogarValido(r.barrio),
-    origen: r.origen === 'ficha' ? 'ficha' : 'conoce_tu_hogar',
+    origen: r.origen === 'ficha' || r.origen === 'buscador' ? r.origen : 'conoce_tu_hogar',
   }
 }
 

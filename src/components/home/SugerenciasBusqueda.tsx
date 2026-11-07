@@ -17,7 +17,7 @@
 // 3. Teclado de búsqueda: type="search" + enterKeyHint="search" (el iPhone
 //    muestra "Buscar" en vez de "intro") y una × para borrar de un toque.
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { History, Search, X } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
@@ -175,9 +175,11 @@ type BuscadorProps = {
   /** Clases del contenedor (p. ej. la entrada animada de la portada del celu). */
   className?: string
   style?: React.CSSProperties
+  /** Ids de las zonas con propiedades: solo esas se sugieren (34 de 78 llevaban a "No encontramos"). */
+  vivas?: string[]
 }
 
-export function BuscadorHero({ variante, className = '', style }: BuscadorProps) {
+export function BuscadorHero({ variante, className = '', style, vivas }: BuscadorProps) {
   const celu = variante === 'celu'
   const [query, setQuery] = useState('')
   const [abierto, setAbierto] = useState(false)
@@ -187,7 +189,8 @@ export function BuscadorHero({ variante, className = '', style }: BuscadorProps)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  const zonas = buscarZonas(query, MAX_ZONAS)
+  const vivasSet = useMemo(() => (vivas ? new Set(vivas) : undefined), [vivas])
+  const zonas = buscarZonas(query, MAX_ZONAS, vivasSet)
 
   // La búsqueda reciente se lee al montar (no en el render: la home es ISR y
   // el HTML del servidor no puede depender del navegador).

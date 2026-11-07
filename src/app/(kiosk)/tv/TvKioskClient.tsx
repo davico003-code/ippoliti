@@ -1,24 +1,32 @@
 'use client'
 
-// Kiosco de TV (rediseño 22-oct-2026): pantalla partida. La foto a sangre va
-// pasando por hasta 4 fotos de la misma casa (Ken Burns + crossfade) y un panel
-// verde oscuro lleva los datos en letra grande para leer a 3-4 m, sin texto
-// encima de la foto. Las miniaturas del panel marcan qué foto se ve. Reloj/fecha
-// y logo oficial (kit de marca). Pensado para dejar corriendo todo el día.
+// Kiosco de TV: cada casa pasa hasta 4 fotos (Ken Burns + crossfade) con su
+// ficha al lado, sin texto encima de la foto. Pensado para dejar corriendo todo
+// el día.
 //
-// Acostada (/tv): foto a la izquierda, panel a la derecha. Parada
-// (/tv-vertical, o /tv en una pantalla vertical): foto arriba, panel abajo. Un
-// televisor parado sigue mandando la imagen acostada, así que /tv-vertical gira
-// la página 90° (con el botón "Girar", para el otro lado). Las medidas van en
-// vmin (el lado corto de la pantalla), que sirven igual en las tres posiciones.
+// Parada (/tv-vertical, o /tv en una pantalla vertical): foto arriba, ficha
+// abajo. Acostada (/tv): foto a la izquierda, ficha a la derecha. Un televisor
+// parado sigue mandando la imagen acostada, así que /tv-vertical gira la página
+// 90° (con el botón "Girar", para el otro lado). Las medidas van en vmin (el
+// lado corto de la pantalla), que sirven igual en las tres posiciones.
 //
 // OJO: el televisor de la oficina (Dalton) tiene un navegador VIEJO. Sin `inset`
 // la foto medía cero (quedaba negra) y el panel cambiaba de alto en cada
 // transición (23-oct-2026). Acá nada de inset, gap en flex, aspect-ratio ni dvh:
 // top/right/bottom/left, márgenes y padding-bottom.
+//
+// Las dos son una "lámina de galería" (David, 5-nov-2026 la parada: la vidriera
+// no se leía desde la vereda; 6-nov la acostada, "con el mismo estilo"). Fondo
+// papel crema (la acostada, blanco y crema intercalados), la foto como un cuadro
+// con margen y una ficha que se lee de lejos: barrio, QUÉ es ("Casa con
+// pileta"), el precio enorme y una línea de datos con los m² totales, y las 4
+// miniaturas. Cada renglón se achica solo para entrar (el titular de la
+// acostada, a veces en dos líneas). Emprendimientos y tasar siguen a pantalla
+// completa encima.
 
 import { useEffect, useRef, useState } from 'react'
-import type { RespaldosJpg, Slide, SlideEmprendimiento, SlideTasar } from '../tvData'
+import { useRouter } from 'next/navigation'
+import type { RespaldosJpg, Slide, SlideEmprendimiento, SlidePropiedad, SlideTasar } from '../tvData'
 
 const FOTO_MS = 4000
 const FUNDIDO_MS = 1600 // cruce entre fotos; el movimiento dura la foto + su salida
@@ -28,20 +36,6 @@ const RELOAD_MS = 40 * 60 * 1000 // recargar (stock nuevo) pasados 40 min, al te
 const REINTENTO_MS = 60 * 1000 // sin respuesta de la web, se vuelve a probar al minuto
 // Con tantas fotos de R2 que no abren, este televisor no abre R2: todas en JPG.
 const FALLAS_PARA_JPG = 3
-const ZONA_AR = 'America/Argentina/Buenos_Aires'
-
-// Hora argentina aunque la tele tenga otra zona configurada; si el navegador no
-// conoce la zona, la de la tele (un RangeError tiraría abajo toda la página).
-const enArgentina = (o: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions => {
-  try {
-    new Date().toLocaleTimeString('es-AR', { timeZone: ZONA_AR })
-    return { ...o, timeZone: ZONA_AR }
-  } catch {
-    return o
-  }
-}
-const HORA = enArgentina({ hour: '2-digit', minute: '2-digit', hour12: false })
-const FECHA = enArgentina({ weekday: 'long', day: 'numeric', month: 'long' })
 
 const mod = (n: number, m: number) => ((n % m) + m) % m
 
@@ -53,6 +47,9 @@ type ElFs = HTMLElement & { webkitRequestFullscreen?: () => void }
 const sinError = (p: Promise<void> | void) => {
   if (p && typeof p.catch === 'function') p.catch(() => {})
 }
+// Keyboard Lock (solo donde exista): con Escape bloqueado, un toque suelto no
+// saca de pantalla completa (hay que mantenerlo apretado).
+type NavegadorConTeclado = Navigator & { keyboard?: { lock?: (teclas: string[]) => Promise<void> } }
 const enPantallaCompleta = () => {
   const d = document as DocFs
   return !!(d.fullscreenElement ?? d.webkitFullscreenElement)
@@ -71,23 +68,13 @@ function enPaso(slides: Slide[], p: number) {
   return { idx, visible, kb: (visible + vuelta) % 2 ? 'tv-kb-b' : 'tv-kb-a' }
 }
 
-// Reglas de la tele parada (1080 × 1920): se aplican con /tv-vertical y en
-// cualquier pantalla vertical. Foto arriba (46 %) y panel abajo (54 %), datos en
-// una fila de 4 y título y descripción en 2 líneas para que todo entre.
+// Reglas de la tele parada (1080 × 1920) para lo que va a pantalla completa
+// (emprendimientos y tasar) y el botón "Girar": con /tv-vertical y en cualquier
+// pantalla vertical.
 const reglasParada = (pre: string) => `
-  ${pre} .tv-stage { grid-template-columns: 1fr; grid-template-rows: 46% 54%; }
-  ${pre} .tv-panel { padding: 4vmin 5vmin 0; border-left: 0; border-top: .4vmin solid #17613C; }
-  ${pre} .tv-badges { left: 5vmin; }
-  ${pre} .tv-badge { padding: 1vmin 2.6vmin; }
   ${pre} .tv-full { left: 5vmin; padding: 1.6vmin 3.4vmin; }
   ${pre} .tv-full svg { margin-right: 1.6vmin; }
   ${pre} .tv-girar { left: auto; right: 5vmin; }
-  ${pre} .tv-clock { margin-left: 3vmin; }
-  ${pre} .tv-datos { padding-top: 3vmin; }
-  ${pre} .tv-titulo { -webkit-line-clamp: 2; }
-  ${pre} .tv-specs { grid-template-columns: repeat(4, 1fr); grid-gap: 2vmin; gap: 2vmin; }
-  ${pre} .tv-tira { grid-gap: 1.6vmin; gap: 1.6vmin; }
-  ${pre} .tv-emp-desc { -webkit-line-clamp: 2; }
   ${pre} .tv-show-velo { background: linear-gradient(0deg, rgba(5,16,10,.95) 0%, rgba(5,16,10,.75) 42%, rgba(5,16,10,0) 70%); }
   ${pre} .tv-show-contenido { left: 7vmin; right: 7vmin; bottom: 9vmin; max-width: none; }
   ${pre} .tv-show-unidades { left: 7vmin; right: 7vmin; }
@@ -96,6 +83,74 @@ const reglasParada = (pre: string) => `
 `
 
 const GIRO_KEY = 'si.tv-vertical.girada-al-reves'
+
+// "USD 455.000" → moneda chica arriba y el número grande.
+const partirPrecio = (t: string) => {
+  const m = /^([^\d]+?)\s*(\d.*)$/.exec(t)
+  return m ? { mon: m[1], num: m[2] } : { mon: '', num: t }
+}
+
+// Galería: cada renglón de la ficha se achica hasta entrar en una línea, sin
+// bajar de su mínimo (proporción del tamaño de diseño). El titular de la
+// acostada puede ir en dos: primero prueba en una (hasta UNA_LINEA_HASTA) y,
+// si no entra, en dos.
+const MINIMOS_FICHA: [string, string, number][] = [
+  ['.gal-lugar', '.gal-lugar', 0.68],
+  ['.gal-titular', '.gal-titular', 0.66],
+  ['.gal-precio', '.gal-num', 0.66],
+  ['.gal-datos', '.gal-datos', 0.7],
+]
+const UNA_LINEA_HASTA = 0.85
+function encogerFicha(caja: HTMLElement) {
+  for (const [linea, texto, minimo] of MINIMOS_FICHA) {
+    const l = caja.querySelector<HTMLElement>(linea)
+    const t = caja.querySelector<HTMLElement>(texto)
+    if (!l || !t) continue
+    l.style.whiteSpace = ''
+    t.style.fontSize = ''
+    const diseno = parseFloat(window.getComputedStyle(t).fontSize)
+    const achicar = (hasta: number, sobra: () => boolean) => {
+      let z = diseno
+      t.style.fontSize = ''
+      while (sobra() && z > diseno * hasta) {
+        z -= 1
+        t.style.fontSize = `${z}px`
+      }
+    }
+    const ancho = () => l.scrollWidth > l.clientWidth
+    if (window.getComputedStyle(l).whiteSpace === 'nowrap') {
+      achicar(minimo, ancho)
+      continue
+    }
+    l.style.whiteSpace = 'nowrap'
+    achicar(UNA_LINEA_HASTA, ancho)
+    if (!ancho()) continue
+    l.style.whiteSpace = ''
+    t.style.fontSize = ''
+    // Una línea de más suma un renglón entero; lo que asoman las letras, unos px.
+    const renglon = parseFloat(window.getComputedStyle(l).lineHeight)
+    achicar(minimo, () => ancho() || l.scrollHeight > l.clientHeight + renglon / 2)
+  }
+}
+
+// Acostada (David, 6-nov-2026, "el A está bien"): la ficha y las miniaturas van
+// juntas al medio de la columna, entre el borde de arriba de la foto y el pie,
+// así no queda un hueco entre los datos y las fotos. Parada (o /tv en una
+// pantalla parada): mandan las medidas del CSS.
+const MARGEN = 5.93 // vmin, el de la foto
+const ANTES_DE_LA_TIRA = 4.4 // vmin
+const ANTES_DEL_PIE = 3 // vmin
+function centrarEnLaColumna(ficha: HTMLElement, tira: HTMLElement | null, pie: HTMLElement | null) {
+  ficha.style.top = ''
+  if (tira) tira.style.top = ''
+  if (!pie || !window.matchMedia('(orientation: landscape)').matches) return
+  const vmin = Math.min(window.innerWidth, window.innerHeight) / 100
+  const arriba = MARGEN * vmin
+  const alto = ficha.offsetHeight + (tira ? ANTES_DE_LA_TIRA * vmin + tira.offsetHeight : 0)
+  const top = Math.max(arriba, arriba + (pie.offsetTop - ANTES_DEL_PIE * vmin - arriba - alto) / 2)
+  ficha.style.top = `${top}px`
+  if (tira) tira.style.top = `${top + ficha.offsetHeight + ANTES_DE_LA_TIRA * vmin}px`
+}
 
 export default function TvKioskClient({
   slides,
@@ -108,6 +163,8 @@ export default function TvKioskClient({
 }) {
   // Un paso cada FOTO_MS: FOTOS_POR_CASA pasos por casa.
   const [paso, setPaso] = useState(0)
+  // En una ref, como el resto de la recarga (no cambia entre renders).
+  const router = useRef(useRouter())
   // Fotos: primero la copia de R2; la que no abre pasa a su JPG de la web, y con
   // FALLAS_PARA_JPG fallidas pasan todas (así no queda en negro ni una).
   const [fallidas, setFallidas] = useState<string[]>([])
@@ -120,9 +177,7 @@ export default function TvKioskClient({
   const vigilar = (src: string) => (el: HTMLImageElement | null) => {
     if (el && el.complete && el.naturalWidth === 0) fallo(src)
   }
-  const [clock, setClock] = useState<{ h: string; d: string } | null>(null)
   const [completa, setCompleta] = useState(false)
-  const botonFull = useRef<HTMLButtonElement>(null)
   // Tele parada al revés de lo previsto: el giro va para el otro lado.
   const [alReves, setAlReves] = useState(false)
 
@@ -147,22 +202,12 @@ export default function TvKioskClient({
     return () => clearInterval(t)
   }, [])
 
-  // Reloj (solo cliente → sin mismatch de hidratación)
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date()
-      const h = now.toLocaleTimeString('es-AR', HORA)
-      const d = now.toLocaleDateString('es-AR', FECHA)
-      setClock({ h, d: d.charAt(0).toUpperCase() + d.slice(1) })
-    }
-    tick()
-    const t = setInterval(tick, 15000)
-    return () => clearInterval(t)
-  }, [])
-
-  // Recarga para traer stock nuevo: pasados RELOAD_MS, recién al terminar la
-  // vuelta, así ninguna casa se queda sin salir aunque la vuelta dure más (con
-  // ~130 casas son ~35 min). Sin casas (feed caído) recarga a los RELOAD_MS.
+  // Stock nuevo: pasados RELOAD_MS, recién al terminar la vuelta, así ninguna
+  // casa se queda sin salir aunque la vuelta dure más (con ~130 casas son
+  // ~35 min). Sin casas (feed caído) a los RELOAD_MS. SIN recargar la página
+  // (David, 29-oct: "que no se minimice"): un reload saca de pantalla completa
+  // y sin un toque no vuelve; router.refresh trae la lista nueva del servidor
+  // y la tele sigue en pantalla completa.
   // Solo si la web contesta: sin internet, reload() deja la pantalla de "sin
   // conexión" del navegador hasta que alguien la toque. Mientras no contesta,
   // sigue pasando lo que tiene y prueba de nuevo cada REINTENTO_MS.
@@ -176,7 +221,9 @@ export default function TvKioskClient({
       fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`)
-          window.location.reload()
+          router.current.refresh()
+          recargando.current = false
+          inicio.current = Date.now()
         })
         .catch(() => setTimeout(probar, REINTENTO_MS))
     }
@@ -191,13 +238,24 @@ export default function TvKioskClient({
   useEffect(() => {
     if (paso > 0 && vuelta > 0 && paso % vuelta === 0 && Date.now() - inicio.current >= RELOAD_MS) recargar()
   }, [paso, vuelta])
-
-  // El botón "Pantalla completa" se ve solo mientras la página no lo está.
+  // Llegó la lista nueva: la vuelta arranca de nuevo con ella.
+  const primeraLista = useRef(true)
   useEffect(() => {
-    const cambio = () => setCompleta(enPantallaCompleta())
+    if (primeraLista.current) {
+      primeraLista.current = false
+      return
+    }
+    setPaso(0)
+  }, [slides])
+
+  // El botón "Girar" (tele parada) se ve solo mientras la página no está en pantalla completa.
+  useEffect(() => {
+    const cambio = () => {
+      const completaAhora = enPantallaCompleta()
+      setCompleta(completaAhora)
+      if (completaAhora) sinError((navigator as NavegadorConTeclado).keyboard?.lock?.(['Escape']))
+    }
     cambio()
-    // Con el control remoto alcanza con apretar OK (autoFocus no corre al hidratar).
-    botonFull.current?.focus()
     document.addEventListener('fullscreenchange', cambio)
     document.addEventListener('webkitfullscreenchange', cambio)
     return () => {
@@ -206,16 +264,61 @@ export default function TvKioskClient({
     }
   }, [])
 
-  // Tocar/clickear la pantalla (o el botón) → pantalla completa; el TV no maximiza solo.
-  const toggleFullscreen = () => {
-    const d = document as DocFs
+  const entrarPantallaCompleta = () => {
+    if (enPantallaCompleta()) return
     const el = document.documentElement as ElFs
-    if (!enPantallaCompleta()) {
-      if (el.requestFullscreen) sinError(el.requestFullscreen())
-      else el.webkitRequestFullscreen?.()
-    } else if (d.exitFullscreen) sinError(d.exitFullscreen())
-    else d.webkitExitFullscreen?.()
+    if (el.requestFullscreen) sinError(el.requestFullscreen())
+    else el.webkitRequestFullscreen?.()
   }
+
+  // Pantalla completa sin cartel (David, 29-oct-2026): la página la pide sola a
+  // los 15 s y con CUALQUIER tecla del control remoto. Los navegadores solo la
+  // dan después de una tecla o un toque: si el de la tele no deja la de los
+  // 15 s, alcanza con apretar un botón del control una vez.
+  useEffect(() => {
+    const t = setTimeout(entrarPantallaCompleta, 15_000)
+    document.addEventListener('keydown', entrarPantallaCompleta)
+    return () => {
+      clearTimeout(t)
+      document.removeEventListener('keydown', entrarPantallaCompleta)
+    }
+  }, [])
+
+  // Tocar la pantalla (o el OK del control, que muchas teles mandan como toque)
+  // solo ENTRA en pantalla completa: nunca la saca.
+
+  // Galería: la ficha se vuelve a medir cuando cargan las letras (antes miden
+  // con la de reemplazo) y si cambia el tamaño de la pantalla.
+  const ficha = useRef<HTMLDivElement>(null)
+  const tira = useRef<HTMLDivElement>(null)
+  const pie = useRef<HTMLElement>(null)
+  const [medida, setMedida] = useState(0)
+  useEffect(() => {
+    const otra = () => setMedida((n) => n + 1)
+    const letras = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts?.ready
+    if (letras) letras.then(otra, () => {})
+    window.addEventListener('resize', otra)
+    return () => window.removeEventListener('resize', otra)
+  }, [])
+
+  // La ficha muestra la última propiedad: mientras pasa un emprendimiento o
+  // tasar (que la tapan), queda la de antes y no hay un hueco en el fundido.
+  const idxActual = slides.length ? enPaso(slides, paso).idx : 0
+  let iFicha: number | null = null
+  for (let k = 0; k < slides.length && iFicha === null; k++) {
+    const i = mod(idxActual - k, slides.length)
+    if (slides[i].kind === 'propiedad') iFicha = i
+  }
+  const fichaS = iFicha !== null ? (slides[iFicha] as SlidePropiedad) : null
+  // Acostada: fondo blanco, y una casa sí y otra no papel crema (David, 6-nov-2026:
+  // "fondo blanco no cremita... igual podés ir intercalando"; la parada sigue en crema).
+  const crema =
+    !vertical && iFicha !== null && slides.slice(0, iFicha).filter((x) => x.kind === 'propiedad').length % 2 === 1
+  useEffect(() => {
+    if (!ficha.current) return
+    encogerFicha(ficha.current)
+    if (!vertical) centrarEnLaColumna(ficha.current, tira.current, pie.current)
+  }, [fichaS, medida, vertical])
 
   if (slides.length === 0) {
     return (
@@ -268,150 +371,82 @@ export default function TvKioskClient({
         </div>
       )
     })
-  const fotos = fotosDe(s)
-  const precioLargo = s.kind === 'propiedad' && s.precio.length > 11
+  const botonGirar = vertical && !completa && (
+    <button
+      type="button"
+      className="tv-full tv-girar"
+      onClick={(e) => {
+        e.stopPropagation()
+        girar()
+      }}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4.5h-4.5" />
+      </svg>
+      Girar
+    </button>
+  )
+  const precioFicha = fichaS ? partirPrecio(fichaS.precio) : null
 
   return (
     <main
-      className={`tv-root${vertical ? ' tv-modo-vertical' : ''}${alReves ? ' tv-al-reves' : ''}`}
-      onClick={toggleFullscreen}
-      title="Tocar para pantalla completa"
+      className={`tv-root${vertical ? ' tv-modo-vertical' : ''}${alReves ? ' tv-al-reves' : ''}${crema ? ' tv-crema' : ''}`}
+      onClick={entrarPantallaCompleta}
     >
       <div className="tv-stage">
-      {/* Foto a sangre (izquierda, o arriba en la tele parada) */}
-      <section className="tv-foto">
+      {/* La foto como un cuadro con margen; sus fotos pasan como siempre. */}
+      <section className="gal-foto">
         {slides.map((sl, i) => (montadas.has(i) ? capas(sl, i) : null))}
-        <div key={`b-${idx}`} className="tv-badges tv-in">
-          {s.kind === 'emprendimiento' && <span className="tv-badge tv-badge-emp">Emprendimiento</span>}
-          {s.kind === 'propiedad' && s.rebaja && (
-            <span className="tv-badge tv-badge-rebaja">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" />
-              </svg>
-              Bajó {s.rebaja.diferencia}
-            </span>
-          )}
-          {s.kind === 'propiedad' && s.destacada && <span className="tv-badge">Selección SI</span>}
-        </div>
-        {!completa && (
-          <button
-            ref={botonFull}
-            type="button"
-            className="tv-full"
-            onClick={(e) => {
-              e.stopPropagation()
-              toggleFullscreen()
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
-            </svg>
-            Pantalla completa
-          </button>
-        )}
-        {vertical && !completa && (
-          <button
-            type="button"
-            className="tv-full tv-girar"
-            onClick={(e) => {
-              e.stopPropagation()
-              girar()
-            }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4.5h-4.5" />
-            </svg>
-            Girar
-          </button>
-        )}
+        {botonGirar}
       </section>
 
-      {/* Panel de datos (derecha, o abajo en la tele parada) */}
-      <aside className="tv-panel">
-        <header className="tv-top">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/si-inmobiliaria-blanco.svg" alt="SI INMOBILIARIA" className="tv-logo" />
-          {clock && (
-            <div className="tv-clock">
-              <div className="tv-clock-h">{clock.h}</div>
-              <div className="tv-clock-d">{clock.d}</div>
+      {fichaS && precioFicha && iFicha !== null && (
+        <>
+          <div key={`f-${iFicha}`} ref={ficha} className="gal-ficha tv-in">
+            <div className="gal-lugar">{fichaS.lugar}</div>
+            <h2 className="gal-titular">{fichaS.titular}</h2>
+            <div className="gal-raya" />
+            <div className="gal-precio">
+              {precioFicha.mon && <span className="gal-mon">{precioFicha.mon}</span>}
+              <span className="gal-num">{precioFicha.num}</span>
+              {fichaS.rebaja && (
+                <span className="gal-antes">
+                  <small>Bajó de</small>
+                  <s>{partirPrecio(fichaS.rebaja.anterior).num}</s>
+                </span>
+              )}
+            </div>
+            {fichaS.datos.length > 0 && (
+              <div className="gal-datos">
+                {fichaS.datos.map((d, k) => (
+                  <span key={k}>
+                    {k > 0 && <b>·</b>}
+                    {d}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Miniaturas (en la parada, en el tercio de abajo); la raya verde marca la que se ve. */}
+          {fotosDe(fichaS).length > 1 && (
+            <div key={`g-${iFicha}`} ref={tira} className="gal-tira tv-in">
+              {fotosDe(fichaS).map((src, k) => (
+                <div key={k} className={`gal-mini gal-m${k}${iFicha === idx && k === visible ? ' gal-mini-on' : ''}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={fuente(src)} ref={vigilar(src)} onError={() => fallo(src)} alt="" />
+                </div>
+              ))}
             </div>
           )}
-        </header>
+        </>
+      )}
 
-        {s.kind === 'tasar' ? (
-          <div key={idx} className="tv-datos" />
-        ) : s.kind === 'emprendimiento' ? (
-          // Presentación especial: nombre grande, quién lo desarrolla y el gancho.
-          <div key={idx} className="tv-datos tv-in">
-            <div className="tv-emp-sello">Emprendimiento</div>
-            <h2 className="tv-emp-nombre" style={{ fontSize: s.nombre.length > 26 ? '4.6vmin' : s.nombre.length > 16 ? '5.4vmin' : '6.2vmin' }}>
-              {s.nombre}
-            </h2>
-            {s.bajada && <div className="tv-emp-bajada">{s.bajada}</div>}
-            {s.ubicacion && <div className="tv-emp-ubic">{s.ubicacion}</div>}
-            {s.descripcion && <p className="tv-emp-desc">{s.descripcion}</p>}
-            {s.chips.length > 0 && (
-              <div className="tv-emp-chips">
-                {s.chips.map((c) => (
-                  <span key={c}>{c}</span>
-                ))}
-              </div>
-            )}
-            {s.marcas.length > 0 && (
-              <div className="tv-emp-marcas">
-                {s.marcas.map((m) => (
-                  <div key={m.nombre} className="tv-emp-marca">
-                    <span className="tv-emp-rol">{m.rol}</span>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {m.logo && <img src={m.logo} alt={m.mostrarNombre ? '' : m.nombre} />}
-                    {(!m.logo || m.mostrarNombre) && <strong>{m.nombre}</strong>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div key={idx} className="tv-datos tv-in">
-            <div className="tv-tipo">{s.tipo}</div>
-            {s.ubicacion && <div className="tv-ubicacion">{s.ubicacion}</div>}
-            {s.titulo && <h2 className="tv-titulo">{s.titulo}</h2>}
-            {s.rebaja && (
-              <div className="tv-antes">
-                <s>{s.rebaja.anterior}</s>
-              </div>
-            )}
-            <div className="tv-precio" style={{ fontSize: precioLargo ? '6vmin' : '7.4vmin' }}>{s.precio}</div>
-            {s.specs.length > 0 && (
-              <div className="tv-specs">
-                {s.specs.map((sp, k) => (
-                  <div key={k} className="tv-spec">
-                    <span className="tv-spec-v">{sp.v}</span>
-                    <span className="tv-spec-l">{sp.l}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {fotos.length > 1 && (
-          <div key={`t-${idx}`} className="tv-tira tv-in">
-            {fotos.map((src, k) => (
-              <div key={`${idx}-${k}`} className={`tv-mini ${k === visible ? 'tv-mini-on' : ''}`}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={fuente(src)} ref={vigilar(src)} onError={() => fallo(src)} alt="" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        <footer className="tv-pie">
-          <span>siinmobiliaria.com</span>
-          <span className="tv-contador">{idx + 1} / {slides.length}</span>
-        </footer>
-        <div key={`p-${idx}`} className="tv-progress" style={{ animationDuration: `${SLIDE_MS}ms` }} />
-      </aside>
+      <footer ref={pie} className="gal-pie">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-si-inmobiliaria.svg" alt="SI INMOBILIARIA" />
+        <span>siinmobiliaria.com</span>
+      </footer>
 
       {/* Emprendimiento: un momento aparte, a pantalla completa (David, 22-oct-2026:
           "debería ser más distinta la sección de cada emprendimiento"). */}
@@ -521,10 +556,12 @@ export default function TvKioskClient({
           servidor (dentro de <style> el navegador no lo des-escapa) y el estilo no
           coincide al hidratar: errores 418/425 y reglas que se caen. */}
       <style dangerouslySetInnerHTML={{ __html: `
-        .tv-root { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; background: #0A1F14; }
-        .tv-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: 1fr 34vw; }
+        .tv-root { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; background: #F6F4EF; }
+        .tv-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: #F6F4EF; }
+        .tv-root:not(.tv-modo-vertical), .tv-root:not(.tv-modo-vertical) .tv-stage { background: #fff; }
+        .tv-root:not(.tv-modo-vertical) .tv-stage { transition: background-color ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1); }
+        .tv-root.tv-crema .tv-stage { background: #F6F4EF; }
 
-        .tv-foto { position: relative; overflow: hidden; background: #08100B; }
         .tv-layer { position: absolute; top: 0; right: 0; bottom: 0; left: 0; transition: opacity ${FUNDIDO_MS}ms cubic-bezier(.4,0,.2,1);
           will-change: opacity; }
         .tv-img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
@@ -534,58 +571,12 @@ export default function TvKioskClient({
         .tv-kb-b { animation: tvKbB ${FOTO_MS + FUNDIDO_MS}ms linear forwards; }
         @keyframes tvKbA { from { transform: scale(1.02); } to { transform: scale(1.09) translate3d(-1%, -1%, 0); } }
         @keyframes tvKbB { from { transform: scale(1.09) translate3d(-1%, 0, 0); } to { transform: scale(1.02) translate3d(1%, -1%, 0); } }
-        .tv-badges { position: absolute; top: 4vmin; left: 3vw; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; }
-        .tv-badges > * { margin: 0 1.2vmin 1.2vmin 0; }
-        .tv-badge { display: inline-flex; align-items: center; background: #17613C; color: #fff;
-          font-weight: 700; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase;
-          padding: 1vmin 1.6vw; border-radius: 999px; box-shadow: 0 .8vmin 2.4vmin rgba(0,0,0,.35); }
-
-        .tv-badge-emp { background: #C9A84C; color: #0A2418; }
-        /* Bajó de precio: coral, más grande y con un latido suave para que se vea de lejos. */
-        .tv-badge-rebaja { background: #E2552B; font-size: 2.4vmin; letter-spacing: .06em; padding: 1.1vmin 2.2vmin;
-          animation: tvLatido 1800ms ease-in-out infinite; }
-        .tv-badge-rebaja svg { margin-right: .8vmin; width: 2.6vmin; height: 2.6vmin; fill: none; stroke: currentColor; stroke-width: 3;
-          stroke-linecap: round; stroke-linejoin: round; }
-        @keyframes tvLatido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-        .tv-antes { margin-top: 3vmin; font-size: 3vmin; font-weight: 600; color: rgba(255,255,255,.62);
-          font-variant-numeric: tabular-nums; }
-        .tv-antes s { text-decoration-color: #E2552B; text-decoration-thickness: .35vmin; }
-        .tv-antes + .tv-precio { margin-top: .8vmin; }
-
         .tv-full { position: absolute; left: 3vw; bottom: 4vmin; z-index: 3; display: inline-flex; align-items: center;
           padding: 1.6vmin 2vw; border: 0; border-radius: 999px; background: #fff; color: #0A2418;
           font: 700 2.4vmin/1 var(--font-poppins), sans-serif; cursor: pointer; box-shadow: 0 1vmin 3vmin rgba(0,0,0,.4); }
         .tv-full svg { margin-right: 1vw; width: 3vmin; height: 3vmin; fill: none; stroke: currentColor; stroke-width: 2.4;
           stroke-linecap: round; stroke-linejoin: round; }
         .tv-full:focus-visible { outline: .5vmin solid #8FE3B0; outline-offset: .5vmin; }
-
-        .tv-panel { position: relative; display: flex; flex-direction: column; padding: 5vmin 3vw 0;
-          background: linear-gradient(170deg, #12432B 0%, #0A2418 55%, #071A11 100%);
-          border-left: .4vmin solid #17613C; }
-
-        .tv-top { display: flex; align-items: flex-start; justify-content: space-between; }
-        .tv-logo { height: 3.4vmin; width: auto; margin-top: .6vmin; }
-        .tv-clock { text-align: right; margin-left: 2vw; }
-        .tv-clock-h { font-weight: 700; font-size: 3.6vmin; line-height: 1; letter-spacing: -.01em;
-          font-variant-numeric: tabular-nums; }
-        .tv-clock-d { font-size: 1.7vmin; color: rgba(255,255,255,.7); margin-top: .6vmin; }
-
-        .tv-datos { margin-top: auto; }
-        .tv-tipo { font-size: 2vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
-          color: rgba(255,255,255,.65); }
-        .tv-ubicacion { font-size: 3vmin; font-weight: 600; line-height: 1.15; color: #8FE3B0; margin-top: 1vmin;
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-titulo { font-family: var(--font-raleway), sans-serif; font-weight: 400; font-size: 2.9vmin; line-height: 1.2;
-          margin: 2vmin 0 0; color: rgba(255,255,255,.92);
-          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-precio { font-weight: 700; line-height: 1; letter-spacing: -.02em; margin-top: 3.2vmin;
-          font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-        .tv-specs { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 2.4vmin 2vw; gap: 2.4vmin 2vw; margin-top: 4vmin;
-          padding-top: 3.4vmin; border-top: 1px solid rgba(255,255,255,.18); }
-        .tv-spec { display: flex; flex-direction: column; }
-        .tv-spec-v { font-weight: 700; font-size: 4.4vmin; line-height: 1; font-variant-numeric: tabular-nums; }
-        .tv-spec-l { font-size: 1.9vmin; color: rgba(255,255,255,.7); margin-top: .8vmin; }
 
         /* Emprendimiento a pantalla completa: foto de punta a punta, marco y acentos
            dorados, nombre enorme. Tapa todo y entra/sale con el mismo fundido. */
@@ -657,42 +648,6 @@ export default function TvKioskClient({
         .tv-tasar-texto strong { margin-bottom: 1.4vmin; font-size: 3.2vmin; font-weight: 700; }
         .tv-tasar-texto span { font-size: 2.2vmin; color: rgba(255,255,255,.8); }
 
-        /* Presentación especial de emprendimiento: dorado de acento, nombre grande. */
-        .tv-emp-sello { display: inline-block; padding: .8vmin 1.8vmin; border: .25vmin solid #C9A84C; border-radius: 999px;
-          color: #E6C77A; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
-        .tv-emp-nombre { font-family: var(--font-raleway), sans-serif; font-weight: 800; font-size: 6.2vmin; line-height: 1.04;
-          letter-spacing: -.01em; margin: 2.4vmin 0 0;
-          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-emp-bajada { font-size: 2.7vmin; font-weight: 600; line-height: 1.2; color: #8FE3B0; margin-top: 1.6vmin;
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-emp-ubic { font-size: 2vmin; color: rgba(255,255,255,.7); margin-top: 1.2vmin; }
-        .tv-emp-desc { font-family: var(--font-raleway), sans-serif; font-size: 2.4vmin; line-height: 1.35;
-          color: rgba(255,255,255,.88); margin: 2.4vmin 0 0;
-          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .tv-emp-chips { display: flex; flex-wrap: wrap; margin-top: 2.6vmin; }
-        .tv-emp-chips span { margin: 0 1vmin 1vmin 0; }
-        .tv-emp-chips span { padding: .7vmin 1.6vmin; border: 1px solid rgba(255,255,255,.35); border-radius: 999px;
-          font-size: 1.7vmin; font-weight: 600; }
-        .tv-emp-marcas { display: flex; flex-wrap: wrap; align-items: center; margin-top: 3vmin;
-          padding-top: 2.6vmin; border-top: 1px solid rgba(255,255,255,.18); }
-        .tv-emp-marca { display: flex; align-items: center; margin: 0 3vmin 1.6vmin 0; }
-        .tv-emp-marca > * + * { margin-left: 1.2vmin; }
-        .tv-emp-rol { font-size: 1.6vmin; color: rgba(255,255,255,.7); }
-        /* Cualquier logo en blanco sobre el verde (regla de las portadas). */
-        .tv-emp-marca img { height: 3.6vmin; width: auto; filter: brightness(0) invert(1); }
-        .tv-emp-marca strong { font-size: 2vmin; font-weight: 700; }
-
-        .tv-tira { display: grid; grid-template-columns: repeat(4, 1fr); grid-gap: .8vw; gap: .8vw; margin-top: 4.4vmin; }
-        .tv-mini { position: relative; height: 0; padding-bottom: 75%; border-radius: 1vmin; overflow: hidden; opacity: .45;
-          outline: .35vmin solid transparent; outline-offset: .3vmin; transition: opacity ${FUNDIDO_MS}ms, outline-color ${FUNDIDO_MS}ms; }
-        .tv-mini img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-        .tv-mini-on { opacity: 1; outline-color: #8FE3B0; }
-
-        .tv-pie { display: flex; justify-content: space-between; align-items: center; margin-top: 3.6vmin;
-          padding: 2.4vmin 0 3vmin; border-top: 1px solid rgba(255,255,255,.12);
-          font-size: 1.7vmin; color: rgba(255,255,255,.6); letter-spacing: .04em; }
-        .tv-contador { font-variant-numeric: tabular-nums; }
-
         .tv-progress { position: absolute; left: 0; bottom: 0; height: .5vmin; min-height: 4px;
           background: linear-gradient(90deg, #17613C, #8FE3B0); width: 0; animation-name: tvProgress;
           animation-timing-function: linear; animation-fill-mode: forwards; }
@@ -704,7 +659,7 @@ export default function TvKioskClient({
         .tv-in { animation: tvIn ${FUNDIDO_MS}ms cubic-bezier(.22,.61,.36,1) both; }
         @keyframes tvIn { from { opacity: .3; transform: translateY(1.2vmin); } to { opacity: 1; transform: none; } }
 
-        /* Tele parada: foto arriba, panel abajo. */
+        /* Tele parada: emprendimientos, tasar y el botón "Girar". */
         ${reglasParada('.tv-modo-vertical')}
         @media (orientation: portrait) { ${reglasParada('')} }
         /* El televisor parado sigue mandando la imagen acostada: se gira la página. */
@@ -715,8 +670,72 @@ export default function TvKioskClient({
         }
         @media (orientation: portrait) { .tv-girar { display: none; } }
 
+        /* Lámina de galería. Parada (lo de base): diseñada sobre 1080 × 1920 (1 px = 1/10,8 vmin).
+           Todo lo que hay que leer termina antes del 70 % del alto (abajo tapan las plantas). */
+        .gal-foto { position: absolute; left: 5.93vmin; right: 5.93vmin; top: 5.93vmin; height: 70vmin; overflow: hidden;
+          background: #E7E3DA; }
+        .gal-ficha, .gal-pie { font-family: var(--font-montserrat), var(--font-poppins), sans-serif; color: #141413; }
+        .gal-ficha { position: absolute; left: 5.93vmin; right: 5.93vmin; top: 78.89vmin; }
+        .gal-lugar, .gal-titular, .gal-datos { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gal-lugar { font-weight: 700; font-size: 3.52vmin; line-height: 1.2; letter-spacing: .14em; text-transform: uppercase; color: #17613C; }
+        .gal-titular { margin: 1.3vmin 0 0; font-weight: 700; font-size: 10vmin; line-height: 1.04; letter-spacing: -.025em; }
+        .gal-raya { width: 8.15vmin; height: .56vmin; margin-top: 2.78vmin; background: #17613C; }
+        .gal-precio { margin-top: 2.59vmin; white-space: nowrap; overflow: hidden; line-height: 1; }
+        .gal-mon { display: inline-block; vertical-align: top; margin: 1.48vmin 1.48vmin 0 0; font-weight: 700; font-size: 4.07vmin;
+          letter-spacing: .08em; color: #6E6A60; }
+        .gal-num { font-weight: 800; font-size: 14.44vmin; letter-spacing: -.035em; }
+        .gal-antes { display: inline-block; vertical-align: top; margin: 1.3vmin 0 0 2.78vmin; padding-left: 2.59vmin;
+          border-left: 2px solid #CFCAC0; }
+        .gal-antes small { display: block; font-weight: 700; font-size: 2.59vmin; letter-spacing: .14em; text-transform: uppercase; color: #17613C; }
+        .gal-antes s { display: block; margin-top: .93vmin; font-weight: 700; font-size: 4.63vmin; color: #8F8A7F; }
+        .gal-datos { margin-top: 2.78vmin; font-weight: 600; font-size: 4.44vmin; line-height: 1.2; color: #3D3A34; }
+        .gal-datos b { margin: 0 1.67vmin; font-weight: 600; color: #ABA69A; }
+        .gal-tira { position: absolute; left: 5.93vmin; top: 134.44vmin; width: 88.15vmin; height: 19.26vmin; }
+        .gal-mini { position: absolute; top: 0; width: 20.93vmin; height: 19.26vmin; }
+        .gal-mini img { position: absolute; top: 0; left: 0; width: 100%; height: 17.41vmin; object-fit: cover; display: block;
+          background: #E7E3DA; }
+        .gal-mini:after { content: ''; position: absolute; left: 0; right: 0; top: 18.52vmin; height: .74vmin; background: #17613C;
+          opacity: 0; transition: opacity ${FUNDIDO_MS}ms; }
+        .gal-mini-on:after { opacity: 1; }
+        .gal-m1 { left: 22.41vmin; }
+        .gal-m2 { left: 44.82vmin; }
+        .gal-m3 { left: 67.23vmin; }
+        .gal-pie { position: absolute; left: 5.93vmin; right: 5.93vmin; bottom: 5.93vmin; height: 5.93vmin; border-top: 2px solid #DDD8CD; }
+        .gal-pie img { position: absolute; left: 0; bottom: 0; height: 4.26vmin; width: auto; }
+        .gal-pie span { position: absolute; right: 0; bottom: .56vmin; font-weight: 600; font-size: 2.78vmin; letter-spacing: .04em; color: #6E6A60; }
+
+        /* Acostada (/tv en una pantalla acostada), sobre 1920 × 1080: la foto a la izquierda
+           de punta a punta del alto y la ficha en una columna de 60 vmin a la derecha, con
+           el titular a veces en dos líneas y la rebaja abajo del precio. La ficha y las
+           miniaturas van juntas al medio de la columna (centrarEnLaColumna; estos top son
+           los de una ficha corta, hasta que mide) y el pie al fondo. */
+        @media (orientation: landscape) {
+          .tv-root:not(.tv-modo-vertical) .gal-foto { right: 71.86vmin; bottom: 5.93vmin; height: auto; }
+          .tv-root:not(.tv-modo-vertical) .gal-ficha { left: auto; right: 5.93vmin; width: 60vmin; top: 18.5vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-lugar { font-size: 3.24vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-titular { font-size: 8.15vmin; white-space: normal;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+          .tv-root:not(.tv-modo-vertical) .gal-raya { margin-top: 2.6vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-mon { margin: 1.1vmin 1.1vmin 0 0; font-size: 3.15vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-num { font-size: 11.11vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-antes { display: block; margin: 1.85vmin 0 0; padding-left: 0; border-left: 0; }
+          .tv-root:not(.tv-modo-vertical) .gal-antes small { display: inline; font-size: 2.2vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-antes s { display: inline; margin: 0 0 0 1.3vmin; font-size: 3.7vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-datos { margin-top: 2.6vmin; font-size: 3.7vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-datos b { margin: 0 1.3vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-tira { left: auto; right: 5.93vmin; top: 59.6vmin; width: 60vmin; height: 12.6vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-mini { width: 13.61vmin; height: 12.6vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-mini img { height: 11.3vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-mini:after { top: 11.96vmin; height: .64vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-m1 { left: 15.46vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-m2 { left: 30.93vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-m3 { left: 46.39vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-pie { left: auto; width: 60vmin; }
+          .tv-root:not(.tv-modo-vertical) .gal-pie span { font-size: 2.41vmin; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .tv-mini, .tv-badge-rebaja { animation: none !important; transition: none !important; }
+          .tv-kb-a, .tv-kb-b, .tv-in, .tv-layer, .gal-mini:after { animation: none !important; transition: none !important; }
         }
       ` }} />
     </main>

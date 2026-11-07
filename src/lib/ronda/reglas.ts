@@ -6,8 +6,11 @@
 // oportunidades reales con su motivo por escrito, hasta 3 por inmobiliaria, y todos
 // cargan su WhatsApp la primera vez.
 
-export const CIUDADES_RONDA = ['Funes', 'Roldán'] as const
+// Rosario solo existe en las salas (sala.ts): la Ronda de siempre ofrece Funes y Roldán.
+export const CIUDADES_RONDA = ['Funes', 'Roldán', 'Rosario'] as const
 export type CiudadRonda = (typeof CIUDADES_RONDA)[number]
+/** Las de la Ronda de siempre: el valor por defecto de todo lo que valida una ciudad. */
+export const CIUDADES_DE_SIEMPRE: readonly CiudadRonda[] = ['Funes', 'Roldán']
 
 /** Los tres botones de la grilla; lo demás (locales, galpones…) sale en "Todas". */
 export type GrupoTipo = 'Casa' | 'Lote' | 'Departamento' | 'Otro'
@@ -129,12 +132,12 @@ export function detectarCiudad(...textos: Array<string | null | undefined>): Ciu
   const t = sinTildes(textos.filter(Boolean).join(' · '))
   const funes = /\bfunes\b/.test(t)
   const roldan = /\broldan\b/.test(t)
-  if (funes === roldan) return null
+  if (funes === roldan) return !funes && /\brosario\b/.test(t) ? 'Rosario' : null
   return funes ? 'Funes' : 'Roldán'
 }
 
-export function esCiudadRonda(v: unknown): v is CiudadRonda {
-  return v === 'Funes' || v === 'Roldán'
+export function esCiudadRonda(v: unknown, permitidas: readonly CiudadRonda[] = CIUDADES_DE_SIEMPRE): v is CiudadRonda {
+  return permitidas.some((c) => c === v)
 }
 
 const ETIQUETA_TIPO: Record<string, string> = {
@@ -266,6 +269,8 @@ export function chequeoAlPublicar(
   quien: { agenteId: string; inmobiliariaId: string },
   { url, reemplaza }: { url: string; reemplaza?: string | null },
   ahora = Date.now(),
+  /** En una sala (sala.ts) el tope es por AGENTE, no por inmobiliaria. */
+  porAgente: number | null = null,
 ): { error: string; status: number; limite?: boolean } | null {
   const vigentes = activas(grilla, ahora)
   if (reemplaza) {
@@ -274,7 +279,15 @@ export function chequeoAlPublicar(
     if (vieja.agente.id !== quien.agenteId) return { error: 'Solo podés reemplazar una oportunidad que publicaste vos.', status: 403 }
   }
   const otras = vigentes.filter((p) => p.id !== reemplaza)
-  if (ocupadas(otras, quien.inmobiliariaId, ahora) >= MAX_POR_INMOBILIARIA) {
+  if (porAgente !== null) {
+    if (otras.filter((p) => p.agente.id === quien.agenteId).length >= porAgente) {
+      return {
+        error: `Ya presentaste ${porAgente} captaciones, que es el máximo de esta ronda. Para presentar otra, reemplazá o dá de baja una.`,
+        status: 409,
+        limite: true,
+      }
+    }
+  } else if (ocupadas(otras, quien.inmobiliariaId, ahora) >= MAX_POR_INMOBILIARIA) {
     return {
       error: `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} oportunidades en la ronda, que es el máximo. Para publicar otra, reemplazá o dá de baja una.`,
       status: 409,
@@ -463,6 +476,13 @@ export const BARRIOS_RONDA: Record<CiudadRonda, string[]> = {
     'Don Quijote', 'El Cielo', 'El Molino', 'Las Tardes', 'Los Raigales', 'Puerto Roldán', 'Punta Chacra',
     'Tierra de Sueños', 'Villa Flores',
   ],
+  // Para las salas que suman Rosario (27-oct-2026): los barrios del árbol de Hilo que más se piden.
+  Rosario: [
+    'Centro', 'Macrocentro', 'Microcentro', 'Abasto', 'Pichincha', 'Puerto Norte', 'Echesortu', 'Lourdes', 'Alberdi',
+    'Arroyito', 'Fisherton', 'República de la Sexta', 'Martin', 'Barrio Parque',
+    'Bella Vista', 'Belgrano', 'Refinería', 'Cinco Esquinas', 'Luis Agote', 'Azcuénaga', 'Sarmiento', 'Saladillo',
+    'Las Delicias', 'La Florida', 'Tiro Suizo', 'Lisandro de la Torre', 'Godoy', 'Ludueña', 'Hospitales', 'Parque Casas',
+  ],
 }
 
 export interface Pedido {
@@ -488,7 +508,7 @@ export interface Pedido {
 export type DatosPedido = Omit<Pedido, 'id' | 'agente' | 'inmobiliaria' | 'creada' | 'vence'>
 
 /** Valida lo que manda la pantalla. Pide qué, dónde y el presupuesto o cómo cierra. */
-export function leerPedido(crudo: unknown): { pedido: DatosPedido } | { error: string } {
+export function leerPedido(crudo: unknown, permitidas: readonly CiudadRonda[] = CIUDADES_DE_SIEMPRE): { pedido: DatosPedido } | { error: string } {
   const c = (crudo && typeof crudo === 'object' ? crudo : {}) as Record<string, unknown>
   const lista = (v: unknown) => (Array.isArray(v) ? v.map((x) => String(x ?? '').trim()) : [])
   const operacion = c.operacion === 'Alquiler' ? 'Alquiler' : c.operacion === 'Compra' ? 'Compra' : null
@@ -499,7 +519,7 @@ export function leerPedido(crudo: unknown): { pedido: DatosPedido } | { error: s
   const barrios = (Array.isArray(c.barrios) ? c.barrios : [])
     .map((b) => {
       const o = (b && typeof b === 'object' ? b : {}) as Record<string, unknown>
-      const ciudad = CIUDADES_RONDA.find((x) => x === o.ciudad)
+      const ciudad = permitidas.find((x) => x === o.ciudad)
       const nombre = String(o.nombre ?? '').replace(/\s+/g, ' ').trim().slice(0, 60)
       return ciudad && nombre.length >= 2 ? { ciudad, nombre } : null
     })
@@ -511,7 +531,7 @@ export function leerPedido(crudo: unknown): { pedido: DatosPedido } | { error: s
       return true
     })
     .slice(0, 15)
-  const ciudades = CIUDADES_RONDA.filter((x) => lista(c.ciudades).includes(x) || barrios.some((b) => b.ciudad === x))
+  const ciudades = permitidas.filter((x) => lista(c.ciudades).includes(x) || barrios.some((b) => b.ciudad === x))
   if (ciudades.length === 0) return { error: 'Elegí la ciudad y, si querés, los barrios.' }
   let hasta = numeroEntre(c.hasta, 2_000_000_000)
   let desde = numeroEntre(c.desde, 2_000_000_000)
@@ -528,7 +548,7 @@ export function leerPedido(crudo: unknown): { pedido: DatosPedido } | { error: s
 
 /** Las palabras que identifican un barrio ("San Marino (Funes Hills)" → san, marino). */
 function palabrasDeBarrio(nombre: string): string[] {
-  const comunes = new Set(['funes', 'hills', 'roldan', 'barrio', 'privado', 'abierto', 'club', 'country', 'del', 'las', 'los'])
+  const comunes = new Set(['funes', 'hills', 'roldan', 'barrio', 'privado', 'abierto', 'club', 'country', 'del', 'las', 'los', 'rosario'])
   return sinTildes(nombre).replace(/[^a-z0-9 ]+/g, ' ').split(/\s+/).filter((w) => w.length > 2 && !comunes.has(w))
 }
 

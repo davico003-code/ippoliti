@@ -2,7 +2,6 @@ import { condicionesTemporario, type PrecioTemporario, type TemporadaFeed } from
 import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
-import { resolverUbicacion } from './ubicacion'
 import { conFotosFijas, esFotoR2 } from './fotos-fijas';
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
@@ -150,6 +149,9 @@ export interface TokkoProperty {
   agente?: { name: string; picture: string } | null;
   /** Barrio cerrado según HILO (0230; null = no se sabe). Tokko no lo manda. */
   barrio_cerrado?: boolean | null;
+  /** Comodidades tildadas en HILO ("pool", "pileta comun", "parrilla"…);
+   *  undefined = el feed no las trajo. El buscador filtra "con pileta" con esto. */
+  comodidades?: string[];
 }
 
 export interface TokkoMeta {
@@ -283,6 +285,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     // undefined = el feed no lo trajo (Tokko / HILO viejo) → la tarjeta lo pide aparte.
     ...(p.agente !== undefined ? { agente: p.agente } : {}),
     ...(p.barrio_cerrado != null ? { barrio_cerrado: p.barrio_cerrado } : {}),
+    ...(Array.isArray(p.comodidades) ? { comodidades: p.comodidades } : {}),
     ...(p.portada_viva ? { portada_viva: p.portada_viva } : {}),
     ...(p.rebaja ? { rebaja: p.rebaja } : {}),
   });
@@ -343,12 +346,12 @@ export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string):
   return urlConsultaWhatsapp(property, (name) => `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`)
 }
 
-// Pedido de visita ("Solicitar visita" del mobile): los alquileres de Roldán van
-// a la línea de la ficha — el feed de HILO ya pone ahí al agente de alquileres
-// (Leticia), pedido de David 11-sep. El resto sigue al número general (undefined).
-export function numeroVisitaWhatsapp(property: TokkoProperty): string | undefined {
-  const alquila = (property.operations ?? []).some((op) => String(op.operation_type) !== 'Sale')
-  if (!alquila || resolverUbicacion(property).ciudad !== 'Roldán') return undefined
+// Pedido de visita ("Agendar visita" de la ficha): el chat se abre con el agente
+// que Hilo le asignó al lead (agendar-visita devuelve `agente`). Este número es
+// el RESPALDO si Hilo no contesta: la línea de la ficha (el captador; las de
+// David y las sin captador, la central). Antes iba SIEMPRE a la central salvo
+// alquileres de Roldán, y le llegaban a David hasta las de otros agentes.
+export function numeroVisitaWhatsapp(property: TokkoProperty): string {
   return getProducerWhatsappNumber(property)
 }
 

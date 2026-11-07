@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
 import { anotarActividad, pedidoPorId, publicacionPorId, type TipoActividad } from '@/lib/ronda/almacen'
+import { salaDe } from '@/lib/ronda/sala'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -39,7 +40,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    if (await rateLimit(sesion.aid, 'ronda-actividad', 120, 3600)) {
+    // Las salas no llevan el contador del mes: es el de la Ronda de todos.
+    if (!salaDe(req) && (await rateLimit(sesion.aid, 'ronda-actividad', 120, 3600))) {
       // Una oportunidad, o un pedido de búsqueda ("Tengo algo para ofrecerle").
       const p = (await publicacionPorId(id)) ?? (await pedidoPorId(id))
       if (p && p.vence > Date.now() && p.inmobiliaria.id !== sesion.iid) await anotarActividad(tipo as TipoActividad, sesion.aid, id)

@@ -5,6 +5,9 @@ import { Moon, Sun } from 'lucide-react'
 import { aplicarColorBarra } from '@/lib/color-barra-navegador'
 import { haptico } from '@/lib/haptico'
 
+// El tema lo decide la HORA ARGENTINA (oscuro de 22 a 7; script del layout),
+// no el modo del celular (David, 2-nov-2026). Lo que se elige acá vale solo
+// para esta visita (sessionStorage): la próxima vuelve a mandar el horario.
 const STORAGE_KEY = 'si-color-theme'
 const CLASE_CAMBIANDO = 'si-tema-cambiando'
 
@@ -66,20 +69,14 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
     aplicarColorBarra(document.documentElement.dataset.theme === 'dark')
     const observer = new MutationObserver(sync)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) return
-      const next = event.newValue === 'dark' || (!event.newValue && matchMedia('(prefers-color-scheme: dark)').matches)
-      fijarTema(next)
-    }
-    window.addEventListener('storage', onStorage)
-    return () => { observer.disconnect(); window.removeEventListener('storage', onStorage) }
+    return () => observer.disconnect()
   }, [])
 
   function toggle() {
     const next = document.documentElement.dataset.theme !== 'dark'
     haptico()
     cambiarTema(next)
-    try { localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light') } catch { /* Preferencia de esta sesión. */ }
+    try { sessionStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light') } catch { /* Preferencia de esta sesión. */ }
     setDark(next)
   }
 

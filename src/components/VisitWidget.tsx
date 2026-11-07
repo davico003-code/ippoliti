@@ -6,6 +6,7 @@ import { events, idEventoMeta, trackFbEvent } from '@/lib/analytics'
 import { urlConUtmDePauta } from '@/lib/pauta-visita'
 import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
 import { haptico } from '@/lib/haptico'
+import { abrirWhatsapp } from '@/lib/whatsapp-con-datos'
 import {
   abrirWhatsApp,
   compartirNativo,
@@ -26,7 +27,7 @@ interface Props {
   source?: 'mobile-sticky' | 'desktop-sidebar' | 'emprendimiento' | 'otro'
   /** Si se pasa, muestra la X de cerrar (ej. bottom-sheet mobile). */
   onClose?: () => void
-  /** WhatsApp (formato wa.me) al que va el pedido; sin esto, el número general. */
+  /** WhatsApp (formato wa.me) de respaldo si Hilo no devuelve al agente asignado; sin esto, el número general. */
   whatsappNumber?: string
   /** Operación de la propiedad, para etiquetar el lead (default venta). */
   tipo?: 'venta' | 'alquiler'
@@ -39,6 +40,8 @@ interface Props {
 }
 
 const WHATSAPP_GENERAL = '5493413340916'
+// Lo que se espera a Hilo antes de abrir igual el chat de respaldo (como el WhatsApp con datos).
+const TOPE_MS = 6000
 
 function getNextBusinessDays(count: number): Date[] {
   const days: Date[] = []
@@ -104,7 +107,9 @@ const ESTILOS = `
 // Diseño: header con ícono, días y horarios como tiras que se deslizan con el
 // pulgar (en la compu, grilla: se ven todos sin flechas) y el verde solo en el
 // botón. Antes eran ventanas de 3 con flechas: llegar a las 17:00 eran 14 toques.
-// Al pedir, abre WhatsApp al agente y registra el lead en segundo plano.
+// Al pedir, registra el lead y abre WhatsApp con el agente que Hilo le asignó
+// (2-nov-2026: antes abría siempre el de David aunque el lead rotara a otro, y
+// la persona le escribía a quien no la tenía).
 // Pide nombre + WhatsApp (17-oct-2026): sin el celular, Hilo rechazaba el pedido
 // ("Falta correo o teléfono") y NINGUNA visita pedida desde la web entraba al
 // CRM. Es un solo campo más, prellenado si ya lo dejó en este navegador.
@@ -135,7 +140,10 @@ export default function VisitWidget({
   const [selectedHour, setSelectedHour] = useState('')
   const [nombre, setNombre] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [waHref, setWaHref] = useState('')
+  const [waAbierto, setWaAbierto] = useState(true)
 
   useEffect(() => {
     setDays(getNextBusinessDays(7))
@@ -166,42 +174,37 @@ export default function VisitWidget({
         ? 'Falta tu WhatsApp'
         : 'Pedir visita por WhatsApp'
 
-  // Link de WhatsApp con el pedido pre-cargado. Se reusa en el submit y en la
-  // confirmación (por si el popup se bloqueó o el cliente no llegó a enviarlo).
-  const waHref = selectedDate
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        [
-          `Hola! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
-          ``,
-          `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
-          nombre.trim() ? `\nSoy ${nombre.trim()}.` : '',
-        ].join('\n'),
-      )}`
-    : ''
+  // El wa.me con el pedido pre-cargado, saludando a quien atiende si se sabe.
+  function urlPedido(numero: string, agente: string) {
+    return `https://wa.me/${numero}?text=${encodeURIComponent(
+      [
+        `Hola${agente ? ` ${agente}` : ''}! Vengo de la propiedad "${propertyTitle}"${propertyUrl ? `:\n${propertyUrl}` : '.'}`,
+        ``,
+        `Me gustaría coordinar una visita el ${dateLabel} a las ${selectedHour} hs.`,
+        nombre.trim() ? `\nSoy ${nombre.trim()}.` : '',
+      ].join('\n'),
+    )}`
+  }
 
-  // Sin async: todo lo que necesita el gesto (vibrar, abrir WhatsApp) va en el
-  // acto, y la confirmación aparece al instante (optimista). El registro sigue
-  // en segundo plano con keepalive (iOS puede suspender la pestaña al saltar a
-  // WhatsApp); si falla, WhatsApp ya se abrió y el cliente igual llega al agente.
-  function handleSubmit() {
-    if (!canSubmit || !selectedDate) return
+  // Primero el pedido entra a Hilo (que elige al agente: captador, o el de turno
+  // si es de David) y recién ahí se abre WhatsApp con ESE agente. Por eso no se
+  // abre dentro del gesto: abrirWhatsapp navega en el celu, donde window.open
+  // después de un await quedaría bloqueado. Si Hilo tarda, va la línea de la ficha.
+  async function handleSubmit() {
+    if (!canSubmit || !selectedDate || loading) return
 
     haptico()
-    // Abrir WhatsApp SINCRÓNICO, dentro del gesto del click: si va después de
-    // un await, iOS Safari lo bloquea y el flujo principal de leads mobile no
-    // abre WhatsApp.
-    if (waHref) window.open(waHref, '_blank')
     if (propertyId) events.contactoPropiedad(propertyId, propertyTitle, 'visita')
     escribirContacto({ nombre: nombre.trim(), whatsapp: digitos })
-    setSent(true)
 
+    setLoading(true)
     const fechaStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
     // El mismo id va al píxel (Lead) y a Hilo (Conversions API): Meta cuenta
     // UNA visita aunque el navegador bloquee el píxel. El Contact de arriba se
     // mantiene: es la señal de la pauta de catálogo.
     const metaEventId = idEventoMeta()
 
-    void fetch('/api/agendar-visita', {
+    const envio = fetch('/api/agendar-visita', {
       method: 'POST',
       keepalive: true,
       headers: { 'Content-Type': 'application/json' },
@@ -220,25 +223,41 @@ export default function VisitWidget({
         metaEventId,
       }),
     })
-      .then(async (res) => {
-        if (res.ok) {
-          // Si Hilo ya tenía la consulta, el Lead por CAPI salió con SU id (lo
-          // devuelve la ruta): el píxel tiene que usar ese o Meta cuenta dos.
-          // Mismo patrón que ConsultaCalificadaForm.
-          const data = (await res.json().catch(() => ({}))) as { metaEventId?: string }
-          if (propertyId) {
-            trackFbEvent(
-              'Lead',
-              { content_ids: [String(propertyId)], content_name: propertyTitle, content_category: 'visita' },
-              data.metaEventId ?? metaEventId,
-            )
-          }
-          return
-        }
+      .then(async (r) => {
         // Solo se deja rastro para no volver a perder visitas sin enterarnos.
-        console.warn('[VisitWidget] agendar-visita respondió', res.status)
+        if (!r.ok) {
+          console.warn('[VisitWidget] agendar-visita respondió', r.status)
+          return null
+        }
+        const data = (await r.json().catch(() => null)) as
+          | { agente?: { nombre?: unknown; whatsapp?: unknown } | null; metaEventId?: string }
+          | null
+        // Si Hilo ya tenía la consulta, el Lead por CAPI salió con SU id (lo
+        // devuelve la ruta): el píxel tiene que usar ese o Meta cuenta dos.
+        if (propertyId) {
+          trackFbEvent(
+            'Lead',
+            { content_ids: [String(propertyId)], content_name: propertyTitle, content_category: 'visita' },
+            data?.metaEventId ?? metaEventId,
+          )
+        }
+        return data
       })
-      .catch((e) => console.warn('[VisitWidget] agendar-visita falló', e))
+      .catch((e) => {
+        console.warn('[VisitWidget] agendar-visita falló', e)
+        return null
+      })
+    const res = await Promise.race([envio, new Promise<null>((r) => window.setTimeout(() => r(null), TOPE_MS))])
+    const a = res?.agente
+    const url =
+      a && typeof a.whatsapp === 'string' && /^549\d{10}$/.test(a.whatsapp)
+        ? urlPedido(a.whatsapp, typeof a.nombre === 'string' ? a.nombre.slice(0, 40) : '')
+        : urlPedido(whatsappNumber, '')
+
+    setWaHref(url)
+    setWaAbierto(abrirWhatsapp(url))
+    setLoading(false)
+    setSent(true)
   }
 
   // La salida del éxito: quien pide una visita casi nunca va solo. Hoja nativa
@@ -308,7 +327,9 @@ export default function VisitWidget({
         </div>
         <p className="text-[17px] font-bold text-gray-900 mb-1.5">¡Casi listo!</p>
         <p className="text-sm text-gray-600 mb-4">
-          Mandá el mensaje que te abrimos en WhatsApp y te confirmamos la visita {cuandoTeConfirmamos()}.
+          {waAbierto
+            ? <>Te abrimos WhatsApp con tu pedido. Enviá el mensaje y te confirmamos la visita {cuandoTeConfirmamos()}.</>
+            : <>Tocá “Enviar por WhatsApp” para mandar tu pedido. Te confirmamos la visita {cuandoTeConfirmamos()}.</>}
         </p>
         <div className="rounded-xl p-3.5 text-left text-sm space-y-1 bg-gray-50 mb-4">
           <p><span className="text-gray-500">Día:</span> <span className="font-semibold text-gray-900">{dateLabel}</span></p>
@@ -488,12 +509,13 @@ export default function VisitWidget({
       >
         <button
           type="submit"
-          disabled={!canSubmit}
+          disabled={!canSubmit || loading}
+          aria-busy={loading || undefined}
           className="si-visita-cta w-full min-h-[52px] rounded-2xl font-bold text-[15px] text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: GREEN }}
         >
-          {canSubmit && <MessageCircle className="w-[18px] h-[18px]" aria-hidden />}
-          {textoBoton}
+          {canSubmit && !loading && <MessageCircle className="w-[18px] h-[18px]" aria-hidden />}
+          {loading ? 'Avisando al agente…' : textoBoton}
         </button>
       </div>
     </form>

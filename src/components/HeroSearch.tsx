@@ -6,6 +6,7 @@
 // sola. Lo que cambia entre los dos es solo el aire (padding y ancho).
 import { BuscadorHero } from './home/SugerenciasBusqueda'
 
-export default function HeroSearch() {
-  return <BuscadorHero variante="compu" />
+/** `vivas`: ids de las zonas con propiedades (las arma la home en el servidor). */
+export default function HeroSearch({ vivas }: { vivas?: string[] }) {
+  return <BuscadorHero variante="compu" vivas={vivas} />
 }

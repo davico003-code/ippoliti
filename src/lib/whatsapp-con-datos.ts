@@ -10,6 +10,48 @@ import { visitante } from '@/lib/tinder-contador'
 /** La llave: prendido salvo NEXT_PUBLIC_WHATSAPP_CON_DATOS=off (se apaga sin revertir el merge). */
 export const WHATSAPP_CON_DATOS_ACTIVO = process.env.NEXT_PUBLIC_WHATSAPP_CON_DATOS !== 'off'
 
+// WHATSAPP DIRECTO en las casas caras (David, 1-nov-2026): el comprador de
+// USD 400K+ mira la ficha pero no deja nombre y celular (Alta Gama: 973 vistas,
+// 3 datos, 0 visitas). Desde ese precio el botón abre el chat con el captador
+// sin la hoja; el toque igual cuenta en Hilo y en el píxel (Contact).
+export const PRECIO_SIN_HOJA_USD = 400_000
+
+/** true si el precio de la ficha ("USD 450.000") llega al tope en que se saltea la hoja. */
+export function sinHojaPorPrecio(precio?: string): boolean {
+  if (!precio || !/^\s*(USD|U\$S|US\$)/i.test(precio)) return false
+  const numero = Number(precio.replace(/\D/g, ''))
+  return numero >= PRECIO_SIN_HOJA_USD
+}
+
+/**
+ * El botón de la ficha cuando la visita vino de un anuncio (David, 1-nov-2026:
+ * "que guarde de dónde viene y por lo que consulta"): pasa SIEMPRE por Hilo
+ * (/w/ficha/<id>) con el ref del anuncio, así el toque queda anotado con su
+ * anuncio. Una ficha con captador (wa.me directo) también: Hilo la manda a su
+ * captador igual (si Hilo no contesta, va al WhatsApp central, como las que
+ * rotan). El saludo pasa a {agente}: lo completa Hilo con quien atiende.
+ */
+export function hrefPorHilo(href: string, propertyId: number, utmContent: string | null): string {
+  if (!(propertyId > 0)) return href
+  const utm = (utmContent ?? '').trim().toLowerCase()
+  const conUtm = (u: URL) => {
+    if (/^[a-z0-9][a-z0-9_-]{1,79}$/.test(utm)) u.searchParams.set('utm', utm)
+    return `${u.pathname}${u.search}`
+  }
+  let url: URL
+  try {
+    url = new URL(href, 'https://siinmobiliaria.com')
+  } catch {
+    return href
+  }
+  if (url.pathname.startsWith('/w/ficha/')) return conUtm(url)
+  if (url.hostname !== 'wa.me') return href
+  const texto = (url.searchParams.get('text') ?? '').replace(/^Hola\b[^,!\n]*([,!])/, 'Hola {agente}$1')
+  const destino = new URL(`/w/ficha/${propertyId}`, 'https://siinmobiliaria.com')
+  if (texto) destino.searchParams.set('text', texto)
+  return conUtm(destino)
+}
+
 // 'turno' (17-oct-2026): eligió día + franja después de abrir WhatsApp (el "segundo filtro").
 export const EVENTOS_WCD = ['toque', 'datos', 'turno'] as const
 export type EventoWcd = (typeof EVENTOS_WCD)[number]
@@ -55,6 +97,22 @@ export function urlWhatsappConDatos(hrefFicha: string, nombre: string, agente: A
   const saludo = `Hola${agente?.nombre ? ` ${agente.nombre}` : ''}, soy ${nombre.trim()}.`
   const texto = resto ? `${saludo} ${resto.charAt(0).toUpperCase()}${resto.slice(1)}` : saludo
   return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`
+}
+
+/**
+ * Abre el chat después de un await: en el celu navegar abre la app (window.open
+ * quedaría bloqueado); en la compu, otra pestaña. false = el navegador bloqueó
+ * la pestaña (la pantalla tiene que pedir que toque el botón).
+ */
+export function abrirWhatsapp(url: string): boolean {
+  if (window.matchMedia?.('(pointer: coarse)').matches) {
+    window.location.href = url
+    return true
+  }
+  const w = window.open(url, '_blank')
+  if (!w) return false
+  w.opener = null
+  return true
 }
 
 /** Suma un paso de la prueba (sendBeacon: no frena nada). Nunca rompe el botón. */

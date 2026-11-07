@@ -435,7 +435,6 @@ export default function Tasador({ opciones, modelo, modo, tipoInicial = 'casa', 
                 ) : (
                   <Dato valor={`${usd(p.usdM2)}/m²`} texto={tipo === 'lote' ? 'de terreno en el barrio' : 'cubierto, en el barrio'} />
                 )}
-                {!zona.esCiudad && <Dato valor={n(p.n)} texto={`${t.plural} ${t.publicadas} en la cuenta`} />}
               </ul>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-1">

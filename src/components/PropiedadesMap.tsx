@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import 'leaflet/dist/leaflet.css'
@@ -22,6 +21,7 @@ import { DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES, DEFAULT_ZOOM, esEncuadreInicia
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
 import CapaCalles from './CapaCalles'
+import FotosVistaPrevia from './FotosVistaPrevia'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -340,15 +340,17 @@ const PinPropiedad = memo(function PinPropiedad({ property, isSelected, isHovere
       {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
         <div style={{ width: '270px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", position: 'relative' }}>
           {photo && (
-            <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
-              <img
-                src={photo}
-                alt={titulo}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
+            // Fotos que se pasan con las flechas sin abrir la ficha. Va de borde
+            // a borde del popup (por eso el ancho y el margen).
+            <FotosVistaPrevia
+              property={property}
+              alt={titulo}
+              className="aspect-[16/9]"
+              style={{ width: 'calc(100% + 40px)', margin: '-10px -20px 12px', borderRadius: 0 }}
+            >
               {typeName && (
                 <span style={{
-                  position: 'absolute', top: '8px', left: '8px',
+                  position: 'absolute', top: '8px', left: '8px', zIndex: 10, transform: 'translateZ(0)',
                   background: 'rgba(26,92,56,0.85)', color: '#fff',
                   fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
@@ -367,7 +369,7 @@ const PinPropiedad = memo(function PinPropiedad({ property, isSelected, isHovere
                 right={8}
                 size={32}
               />
-            </div>
+            </FotosVistaPrevia>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <span style={{

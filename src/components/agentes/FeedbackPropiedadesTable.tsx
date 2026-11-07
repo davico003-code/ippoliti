@@ -19,18 +19,20 @@ const GRIS = '#7C8488'
 const LINEA = '#E9E3DA'
 const CARBON = '#24292B'
 
+// Desde oct-2026 la ficha pregunta "¿La comprarías?": encanta = Sí, duda = Tal
+// vez, no = No. 'cara' solo junta votos viejos de la carita 💸.
 const REACT_META: { key: 'encanta' | 'duda' | 'cara' | 'no'; emoji: string }[] = [
-  { key: 'encanta', emoji: '😍' },
+  { key: 'encanta', emoji: '👍' },
   { key: 'duda', emoji: '🤔' },
   { key: 'cara', emoji: '💸' },
-  { key: 'no', emoji: '🙈' },
+  { key: 'no', emoji: '👎' },
 ]
 
 const OBJ_LABEL: Record<string, string> = {
   estado: 'Estado',
   ubicacion: 'Ubicación',
   tamano: 'Tamaño',
-  metro: 'Metro caro',
+  metro: 'Precio',
   expensas: 'Expensas',
 }
 

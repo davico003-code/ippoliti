@@ -159,33 +159,9 @@ export async function POST(request: NextRequest) {
     console.error('[agendar-visita] Error persistiendo en Redis:', e)
   }
 
-  // Empujar al inbox de Hilo: lead caliente con propiedad + fecha.
-  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna al captador.
-  // meta: identidad de Meta de la consulta (como /api/leads) → Hilo manda el
-  // Lead por CAPI, deduplicado con el píxel si el widget manda `metaEventId`.
-  const hilo = await enviarLeadAHilo({
-    name: nombre,
-    phone: telefono || null,
-    email: email || null,
-    origen: `visita-${source}`,
-    tokkoPropertyId: propiedad_id,
-    message: `Agendó visita a "${propiedad_titulo}" para ${fecha_preferida} ${horario}.${
-      propiedad_url ? ` ${propiedad_url}` : ''
-    }`,
-    sourceUrl: pageUrl || propiedad_url || null,
-    attribution: attributionDeUrl(pageUrl),
-    meta: metaDeLaConsulta(request, body, pageUrl || null),
-  })
-
-  if (!visitaId && !hilo.ok) {
-    console.error('[agendar-visita] VISITA PERDIDA: falló Redis y Hilo', { propiedad_id, source })
-    return NextResponse.json(
-      { error: 'No pudimos registrar tu pedido de visita. Reintentá en unos segundos o escribinos por WhatsApp.' },
-      { status: 502 },
-    )
-  }
-
-  // Notificar al admin por WhatsApp (best-effort, no bloquea respuesta)
+  // Notificar al admin por WhatsApp (best-effort). Corre EN PARALELO con Hilo:
+  // el widget espera la respuesta para abrir el chat del agente (tope 6 s) y
+  // Twilio no puede comerse ese tiempo y mandarlo al número de respaldo.
   const mensaje = [
     `🔔 *Nueva consulta de ${tipo}*`,
     '',
@@ -205,11 +181,40 @@ export async function POST(request: NextRequest) {
     .filter(Boolean)
     .join('\n')
 
-  try {
-    await enviarWhatsAppAdmin(mensaje)
-  } catch (err) {
+  const avisoAdmin = enviarWhatsAppAdmin(mensaje).catch((err) => {
     console.error('[agendar-visita] Error enviando WhatsApp admin:', err)
     // No rompemos la respuesta al cliente por un fallo de notificación
+  })
+
+  // Empujar al inbox de Hilo: lead caliente con propiedad + fecha.
+  // tokkoPropertyId → Hilo resuelve la ficha y lo asigna (captador, o turno si
+  // es de David). Hilo devuelve el WhatsApp de ESE agente y el widget abre el
+  // chat con él: la persona escribe a quien tiene el lead (2-nov-2026).
+  // meta: identidad de Meta de la consulta (como /api/leads) → Hilo manda el
+  // Lead por CAPI, deduplicado con el píxel si el widget manda `metaEventId`.
+  const hilo = await enviarLeadAHilo({
+    name: nombre,
+    phone: telefono || null,
+    email: email || null,
+    origen: `visita-${source}`,
+    tokkoPropertyId: propiedad_id,
+    message: `Agendó visita a "${propiedad_titulo}" para ${fecha_preferida} ${horario}.${
+      propiedad_url ? ` ${propiedad_url}` : ''
+    }`,
+    sourceUrl: pageUrl || propiedad_url || null,
+    attribution: attributionDeUrl(pageUrl),
+    meta: metaDeLaConsulta(request, body, pageUrl || null),
+  })
+
+  // Le damos un margen corto al aviso si sigue en vuelo, sin frenar al cliente.
+  await Promise.race([avisoAdmin, new Promise((r) => setTimeout(r, 1500))])
+
+  if (!visitaId && !hilo.ok) {
+    console.error('[agendar-visita] VISITA PERDIDA: falló Redis y Hilo', { propiedad_id, source })
+    return NextResponse.json(
+      { error: 'No pudimos registrar tu pedido de visita. Reintentá en unos segundos o escribinos por WhatsApp.' },
+      { status: 502 },
+    )
   }
 
   // metaEventId: el id con el que Hilo mandó el Lead por CAPI; el widget dispara
@@ -217,6 +222,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     id: visitaId,
+    agente: hilo.agente,
     ...(hilo.metaEventId ? { metaEventId: hilo.metaEventId } : {}),
   })
 }

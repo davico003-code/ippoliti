@@ -29,6 +29,7 @@ import {
   operacionPrincipal,
   tituloVisible,
   getProducerName,
+  propertyTypeLabelById,
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import ContactoSecundario from './ContactoSecundario'
@@ -600,15 +601,12 @@ export default function PropertyDetailBody({
         </SectionBoundary>
       )}
 
-      {/* FEEDBACK ANÓNIMO — caritas + valuación (+ "avisame si baja" solo donde
-          no está el de arriba). Aditivo y detrás de NEXT_PUBLIC_FEEDBACK_ENABLED
-          (se auto-oculta si el flag está off). publishedPrice=0 cuando no hay
-          precio visible (oculta el slider y el aviso: no hay precio que baje).
-          Un solo "Avisame si baja" por ficha: si va el del precio (Hilo + emBlue,
-          venta en USD), el de la tarjeta de opinión no se repite. */}
+      {/* FEEDBACK ANÓNIMO — "¿Comprarías esta casa?" + cuánto pagarías / qué
+          te frena. Aditivo y detrás de NEXT_PUBLIC_FEEDBACK_ENABLED (se
+          auto-oculta si el flag está off). publishedPrice=0 cuando no hay
+          precio visible (sin slider). El "Avisame si baja" va solo bajo el precio. */}
       <FeedbackDetalle
         key={property.id}
-        ocultarAvisame={avisarSiBaja}
         propertyId={property.id}
         publishedPrice={
           property.web_price !== false && typeof price0?.price === 'number' && price0.price > 0
@@ -616,6 +614,8 @@ export default function PropertyDetailBody({
             : 0
         }
         currency={price0?.currency ?? 'USD'}
+        tipo={propertyTypeLabelById(property.type?.id)}
+        alquiler={op0?.operation_type === 'Rent' || op0?.operation_type === 'Temporary rent'}
       />
 
       {/* "Otras opciones para vos" ya no va acá — el parent lo renderiza full-width

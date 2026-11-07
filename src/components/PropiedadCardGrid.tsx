@@ -8,16 +8,14 @@ import CardMediaButtons from '@/components/CardMediaButtons'
 import FotosDeslizables from '@/components/FotosDeslizables'
 import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
 import { useAgentePropiedad } from '@/components/AgentesPropiedadContext'
-import { useFotosExtra } from '@/components/FotosExtraCards'
+import { SIZES_FOTO_LISTADO, useFotosDeLaPropiedad } from '@/components/FotosExtraCards'
 import {
   type TokkoProperty,
-  getAllPhotos,
-  getMainPhoto,
   formatPrice,
   getOperationType,
   operationBadgeColor,
   preciosPorOperacion,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -63,13 +61,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const agenteFeed = property.agente
   const agentePedido = useAgentePropiedad(property.id)
   const agente = agenteFeed === undefined ? agentePedido : agenteFeed ?? undefined
-  const photos = getAllPhotos(property)
-  const fallback = getMainPhoto(property)
-  const base = photos.length > 0 ? photos : fallback ? [fallback] : []
   // En /propiedades la card llega con la portada sola y las fotos 2-5 las suma
   // FotosExtraProvider cuando la página terminó de cargar.
-  const extra = useFotosExtra(property.id)
-  const images = extra && base.length === 1 ? [base[0], ...extra.filter(u => u !== base[0])] : base
+  const images = useFotosDeLaPropiedad(property)
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
@@ -78,7 +72,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const precios = preciosPorOperacion(property)
   const otrosPrecios = precios.slice(1)
   const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
-  const roofed = getRoofedArea(property)
+  // Superficie TOTAL (cubierta + semicubierta), como en toda pieza pública.
+  const total = getTotalSurface(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
   const mono = isMonoambiente(property)
@@ -106,8 +101,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   if (!land && mono) specs.push({ num: '', label: 'Monoambiente' })
   else if (!land && beds > 0) specs.push({ num: String(beds), label: ' dorm' })
   if (!land && baths > 0) specs.push({ num: String(baths), label: ` baño${baths > 1 ? 's' : ''}` })
-  if (roofed != null && roofed > 0) specs.push({ num: roofed.toLocaleString('es-AR'), label: ' m²' })
-  if (lot != null && lot > 0 && lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
+  if (!land && total != null && total > 0) specs.push({ num: total.toLocaleString('es-AR'), label: ' m²' })
+  if (lot != null && lot > 0 && lot !== total) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
   if (land && lot != null && lot > 0 && specs.length === 0) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m²' })
 
 
@@ -188,7 +183,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         images={images}
         recorrerConMouse
         alt={address}
-        sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
+        sizes={SIZES_FOTO_LISTADO}
         priority={priority}
         diferir={diferirFoto}
         puntos={agente ? 'derecha' : 'centro'}

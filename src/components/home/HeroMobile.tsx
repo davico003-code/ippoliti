@@ -6,7 +6,8 @@ import CiudadRotativa from './CiudadRotativa'
 import { BuscadorHero } from './SugerenciasBusqueda'
 import { TINDER_ACTIVO } from '@/lib/tinder'
 
-export default function HeroMobile() {
+/** `vivas`: ids de las zonas con propiedades (las arma la home en el servidor). */
+export default function HeroMobile({ vivas }: { vivas?: string[] }) {
   return (
     // Sin overflow-hidden: recortaba el dropdown de sugerencias al borde del
     // hero. z-20 para que el dropdown quede por encima de las secciones de abajo.
@@ -44,6 +45,7 @@ export default function HeroMobile() {
             de sugerencias. */}
         <BuscadorHero
           variante="celu"
+          vivas={vivas}
           className="portada-in mt-4 z-20"
           style={{ ['--d' as string]: '600ms' }}
         />

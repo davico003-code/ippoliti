@@ -7,6 +7,23 @@
 
   const DIA = 86_400_000
   const MAX_POR_INMOBILIARIA = 3
+  /**
+   * Salas: una ronda aparte para una reunión con una inmobiliaria (27-oct-2026), en
+   * /ronda/<sala>. Las mismas que src/lib/ronda/sala.ts: el servidor las valida.
+   */
+  // Ejemplo: perez: { id: 'perez', nombre: 'Ronda con Pérez', marca: 'con Pérez', ciudades: ['Funes', 'Rosario'],
+  //                   maxCaptaciones: 3, maxPedidos: 2, inmobiliarias: ['SI INMOBILIARIA', 'Pérez'] },
+  const SALAS = {}
+  const idSala = (location.pathname.split('/')[2] || '').toLowerCase()
+  const SALA = SALAS[idSala] || null
+  // Una sala que no existe (o ya se dio de baja) lleva a la Ronda de siempre.
+  if (idSala && !SALA) location.replace('/ronda')
+  const CIUDADES = SALA ? SALA.ciudades : ['Funes', 'Roldán']
+  const NOMBRE_RONDA = SALA ? `la ${SALA.nombre}` : 'la Ronda Funes Roldán'
+  const CIUDADES_TEXTO = CIUDADES.join(' o en ')
+  /** En una sala: el nombre oficial de la inmobiliaria si es una de las suyas (como inmobiliariaDeSala del servidor). */
+  const deLaSala = (nombre) =>
+    SALA ? SALA.inmobiliarias.find((i) => sinTildes(nombre) === sinTildes(i) || sinTildes(nombre).includes(sinTildes(i))) || null : nombre
   const CLAVES = { acceso: 'ronda.acceso.v1', sesion: 'ronda.sesion.v1', guia: 'ronda.guia.v1', notas: 'ronda.notas.v1' }
 
   const $ = (sel, raiz = document) => raiz.querySelector(sel)
@@ -36,6 +53,8 @@
   if (typeof acceso !== 'string') acceso = null
   let sesion = leerLocal(CLAVES.sesion, null)
   if (!sesion?.token || !sesion?.agente?.id || !sesion?.inmobiliaria?.id) sesion = null
+  // En una sala, quien entró a la Ronda con otra inmobiliaria se vuelve a registrar.
+  if (sesion && !deLaSala(sesion.inmobiliaria.nombre)) sesion = null
   /** null = cargando · 'error' = no se pudo · [] = la grilla */
   let publicaciones = null
   let inmobiliarias = []
@@ -57,10 +76,10 @@
     const orden = q.get('orden')
     return {
       tipo: ['Casa', 'Lote', 'Departamento'].includes(tipo) ? tipo : '',
-      ciudad: ciudad === 'Funes' ? 'Funes' : sinTildes(ciudad) === 'roldan' ? 'Roldán' : '',
+      ciudad: CIUDADES.find((c) => sinTildes(c) === sinTildes(ciudad)) || '',
       orden: ['precio-asc', 'precio-desc'].includes(orden) ? orden : '',
       texto: (q.get('q') || '').slice(0, 80),
-      vista: q.get('ver') === 'pedidos' ? 'pedidos' : 'oportunidades',
+      vista: q.get('ver') === 'pedidos' ? 'pedidos' : SALA && q.get('ver') === 'cruces' ? 'cruces' : 'oportunidades',
       /** Las que encajan con un pedido (o los pedidos que encajan con una): un juego de ids. */
       ids: null,
       idsTexto: '',
@@ -73,7 +92,7 @@
     if (filtro.ciudad) q.set('ciudad', filtro.ciudad)
     if (filtro.orden) q.set('orden', filtro.orden)
     if (filtro.texto) q.set('q', filtro.texto)
-    if (filtro.vista === 'pedidos') q.set('ver', 'pedidos')
+    if (filtro.vista !== 'oportunidades') q.set('ver', filtro.vista)
     const s = q.toString()
     history.replaceState(null, '', s ? `${location.pathname}?${s}` : location.pathname)
   }
@@ -83,6 +102,7 @@
     const headers = {}
     if (cuerpo) headers['content-type'] = 'application/json'
     if (acceso) headers['x-ronda-acceso'] = acceso
+    if (SALA) headers['x-ronda-sala'] = SALA.id
     if (metodo !== 'GET' && sesion?.token) headers.authorization = `Bearer ${sesion.token}`
     let res
     try {
@@ -102,7 +122,7 @@
    * del mes. Sale aunque la página se vaya a WhatsApp (keepalive) y nunca frena nada.
    */
   function anotar(tipo, id) {
-    if (!sesion?.token || !id) return
+    if (!sesion?.token || !id || SALA) return
     fetch('/api/ronda/actividad', {
       method: 'POST',
       keepalive: true,
@@ -162,7 +182,7 @@
   function enlaceWhatsappPedido(q) {
     const primerNombre = String(q.agente.nombre).trim().split(/\s+/)[0]
     const quien = sesion ? ` Soy ${sesion.agente.nombre}, de ${sesion.inmobiliaria.nombre}.` : ''
-    const texto = `Hola ${primerNombre}.${quien} Vi tu pedido en la Ronda Funes Roldán (${tiposPedido(q)} en ${textoDonde(q)}, ${presupuestoPedido(q).replace(/^Hasta/, 'hasta')}). Tengo algo que te puede servir:`
+    const texto = `Hola ${primerNombre}.${quien} Vi tu pedido en ${NOMBRE_RONDA} (${tiposPedido(q)} en ${textoDonde(q)}, ${presupuestoPedido(q).replace(/^Hasta/, 'hasta')}). Tengo algo que te puede servir:`
     return `https://wa.me/549${q.agente.whatsapp}?text=${encodeURIComponent(texto)}`
   }
 
@@ -258,7 +278,7 @@
   function enlaceWhatsapp(p) {
     const primerNombre = String(p.agente.nombre).trim().split(/\s+/)[0]
     const quien = sesion ? ` Soy ${sesion.agente.nombre}, de ${sesion.inmobiliaria.nombre}.` : ''
-    const texto = `Hola ${primerNombre}.${quien} Vi tu propiedad en la Ronda Funes Roldán: ${p.titulo} (${precio(p)}). ¿Sigue disponible?`
+    const texto = `Hola ${primerNombre}.${quien} Vi tu propiedad en ${NOMBRE_RONDA}: ${p.titulo} (${precio(p)}). ¿Sigue disponible?`
     return `https://wa.me/549${p.agente.whatsapp}?text=${encodeURIComponent(texto)}`
   }
 
@@ -398,12 +418,13 @@
     for (const b of $$('#filtroTipo button')) b.setAttribute('aria-pressed', String(b.dataset.tipo === filtro.tipo))
     for (const b of $$('#filtroCiudad button')) b.setAttribute('aria-pressed', String(b.dataset.ciudad === filtro.ciudad))
     for (const b of $$('[data-vista]')) b.setAttribute('aria-pressed', String(b.dataset.vista === filtro.vista))
+    if (SALA) $('#cuentaCruces').textContent = Array.isArray(publicaciones) ? cruces().length : ''
     $('#cuentaOportunidades').textContent = Array.isArray(publicaciones) ? vigentes().length : ''
     $('#cuentaPedidos').textContent = Array.isArray(publicaciones) ? pedidosVigentes().length : ''
     $('#filtroIds').hidden = !filtro.ids
     $('#filtroIdsTexto').textContent = filtro.idsTexto
-    $('.orden').hidden = filtro.vista === 'pedidos'
-    grilla.classList.toggle('de-pedidos', filtro.vista === 'pedidos')
+    $('.orden').hidden = filtro.vista !== 'oportunidades'
+    grilla.classList.toggle('de-pedidos', filtro.vista !== 'oportunidades')
 
     if (publicaciones === null) {
       conteo.textContent = 'Cargando…'
@@ -417,6 +438,7 @@
       return
     }
     if (filtro.vista === 'pedidos') return pintarPedidos(grilla, conteo)
+    if (filtro.vista === 'cruces') return pintarCruces(grilla, conteo)
     const todas = vigentes()
     const lista = filtradas()
     conteo.textContent = todas.length === 0 ? '' : lista.length === 1 ? '1 oportunidad' : `${lista.length} oportunidades`
@@ -425,7 +447,9 @@
       marcarMotivosLargos()
     } else if (todas.length === 0) {
       grilla.innerHTML =
-        '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Publicar oportunidad</button></div>'
+        SALA
+          ? '<div class="vacio"><strong>Todavía no hay captaciones</strong><p>Presentá la tuya: pegás el enlace del aviso y contás lo bueno y lo malo.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Presentar captación</button></div>'
+          : '<div class="vacio"><strong>Todavía no hay oportunidades este mes</strong><p>Publicá la primera: pegás el enlace del aviso, contás por qué es una oportunidad y queda 30 días a la vista de los colegas.</p><button type="button" class="boton primario" data-publicar-oportunidad>+ Publicar oportunidad</button></div>'
     } else {
       grilla.innerHTML =
         '<div class="vacio"><strong>No hay oportunidades con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
@@ -488,11 +512,58 @@
       marcarMotivosLargos()
     } else if (todos.length === 0) {
       grilla.innerHTML =
-        '<div class="vacio"><strong>Todavía no hay pedidos este mes</strong><p>¿Tenés un cliente buscando? Publicá qué busca, en qué barrios y con qué presupuesto: te mostramos qué oportunidades encajan y los colegas que tienen algo te escriben.</p><button type="button" class="boton primario" data-publicar-pedido>+ Publicar pedido</button></div>'
+        SALA
+          ? '<div class="vacio"><strong>Todavía no hay búsquedas</strong><p>Cargá qué busca tu cliente: tipo, zona, presupuesto y operación. Si encaja con una captación de la otra inmobiliaria, aparece en Cruces.</p><button type="button" class="boton primario" data-publicar-pedido>+ Presentar búsqueda</button></div>'
+          : '<div class="vacio"><strong>Todavía no hay pedidos este mes</strong><p>¿Tenés un cliente buscando? Publicá qué busca, en qué barrios y con qué presupuesto: te mostramos qué oportunidades encajan y los colegas que tienen algo te escriben.</p><button type="button" class="boton primario" data-publicar-pedido>+ Publicar pedido</button></div>'
     } else {
       grilla.innerHTML =
         '<div class="vacio"><strong>No hay pedidos con esos filtros</strong><p>Probá con otra ciudad u otro tipo.</p><button type="button" class="boton suave" data-quitar-filtros>Quitar filtros</button></div>'
     }
+  }
+
+  // ── Cruces (solo en las salas): cada búsqueda con cada captación que le encaja,
+  // de OTRA inmobiliaria — lo que se repasa al final de la reunión (propiedad + cliente + los dos agentes).
+  function cruces() {
+    const lista = []
+    for (const q of pedidosVigentes()) {
+      for (const id of q.encajan || []) {
+        const p = vigentes().find((x) => x.id === id)
+        if (p && p.inmobiliaria.id !== q.inmobiliaria.id) lista.push({ p, q })
+      }
+    }
+    return lista
+  }
+
+  function tarjetaCruce({ p, q }) {
+    const donde = dondePedido(q)
+      .map(({ ciudad, barrios }) => (barrios.length ? `${barrios.join(', ')} (${ciudad})` : `toda ${ciudad}`))
+      .join(' · ')
+    return `<article class="cruce" data-id="${esc(p.id)}">
+      <p class="cruce-insignia">Encaja</p>
+      <div class="cruce-lado">
+        <small class="rotulo-publica">La propiedad</small>
+        <div class="cruce-propiedad">
+          ${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" width="96" height="72">` : ''}
+          <div><strong>${esc(p.titulo)}</strong><span class="cruce-precio">${precio(p)}</span></div>
+        </div>
+        <p class="cruce-agente">Presenta <b>${esc(p.agente.nombre)}</b> · ${esc(p.inmobiliaria.nombre)}</p>
+      </div>
+      <div class="cruce-lado">
+        <small class="rotulo-publica">El cliente</small>
+        <strong>${esc(tiposPedido(q))}${q.dormitorios ? ` · ${q.dormitorios}+ dorm.` : ''} para ${q.operacion === 'Alquiler' ? 'alquilar' : 'comprar'}</strong>
+        <p>${esc(presupuestoPedido(q))} · ${esc(donde)}${q.cierre.length ? ` · ${esc(q.cierre.join(', '))}` : ''}</p>
+        <p class="cruce-agente">Lo pide <b>${esc(q.agente.nombre)}</b> · ${esc(q.inmobiliaria.nombre)}</p>
+      </div>
+      <div class="acciones"><button type="button" class="boton suave" data-accion="detalle">Ver la propiedad</button></div>
+    </article>`
+  }
+
+  function pintarCruces(grilla, conteo) {
+    const lista = cruces()
+    conteo.textContent = lista.length === 0 ? '' : lista.length === 1 ? '1 cruce' : `${lista.length} cruces`
+    grilla.innerHTML = lista.length
+      ? lista.map(tarjetaCruce).join('')
+      : '<div class="vacio"><strong>Todavía no hay cruces</strong><p>Apenas una búsqueda encaje con una captación de la otra inmobiliaria (operación, tipo, zona, presupuesto y dormitorios), aparece acá con los dos agentes.</p></div>'
   }
 
   /** Oportunidades ↔ pedidos. `ids`: solo esas (las que encajan), con un cartel para ver todas. */
@@ -581,7 +652,11 @@
   function elegirInmobiliaria(inmo) {
     elegida = inmo
     const caja = $('#inmoElegida')
-    $('#inmoNombre').hidden = Boolean(inmo)
+    $('#inmoNombre').hidden = Boolean(inmo) || Boolean(SALA)
+    if (SALA) {
+      $('#inmoOpciones').hidden = Boolean(inmo)
+      if (!inmo) for (const b of $$('#inmoOpciones button')) b.setAttribute('aria-pressed', 'false')
+    }
     caja.hidden = !inmo
     $('#inmoLista').hidden = true
     $('#inmoNombre').setAttribute('aria-expanded', 'false')
@@ -594,6 +669,7 @@
   }
 
   function sugerir() {
+    if (SALA) return
     const campo = $('#inmoNombre')
     const lista = $('#inmoLista')
     const texto = campo.value.trim()
@@ -651,6 +727,36 @@
       $('#nombre').focus()
     }
   })
+  // En la sala no se busca: se elige una de las dos con un toque.
+  if (SALA) {
+    const campo = $('#inmoNombre')
+    campo.insertAdjacentHTML(
+      'afterend',
+      `<div id="inmoOpciones" class="inmo-opciones" role="group" aria-label="Tu inmobiliaria">${SALA.inmobiliarias
+        .map((n) => `<button type="button" class="inmo-boton" data-inmo="${esc(n)}" aria-pressed="false">${esc(n)}</button>`)
+        .join('')}</div>`,
+    )
+    campo.hidden = true
+    $('label[for="inmoNombre"]').textContent = '¿De qué inmobiliaria sos?'
+    $('#inmoOpciones').addEventListener('click', (e) => {
+      const boton = e.target.closest('[data-inmo]')
+      if (!boton) return
+      error('inmoError', '')
+      const nombre = boton.dataset.inmo
+      const inmo = inmobiliarias.find((i) => deLaSala(i.nombre) === nombre)
+      if (inmo) {
+        elegirInmobiliaria(inmo)
+        $('#nombre').focus()
+        return
+      }
+      // Todavía no está dada de alta (la primera persona de esa inmobiliaria): pide el matriculado.
+      for (const b of $$('#inmoOpciones button')) b.setAttribute('aria-pressed', String(b === boton))
+      campo.value = nombre
+      registrarNueva()
+      $('#matriculado').focus()
+    })
+  }
+
   $('#inmoCambiar').addEventListener('click', () => {
     elegirInmobiliaria(null)
     const campo = $('#inmoNombre')
@@ -711,7 +817,7 @@
     }
 
     const errores = [
-      ['inmoError', 'inmoNombre', nueva && nombreInmo.length < 2 ? 'Escribí el nombre de tu inmobiliaria y elegila de la lista.' : ''],
+      ['inmoError', SALA ? 'inmoOpciones' : 'inmoNombre', nueva && nombreInmo.length < 2 ? (SALA ? `Elegí ${SALA.inmobiliarias.join(' o ')}.` : 'Escribí el nombre de tu inmobiliaria y elegila de la lista.') : ''],
       ['matriculadoError', 'matriculado', nueva && nombreInmo.length >= 2 && $('#matriculado').value.trim().length < 3 ? 'Escribí el nombre del matriculado a cargo.' : ''],
       ['matriculaError', 'matricula', nueva && nombreInmo.length >= 2 && !$('#matricula').value.trim() ? 'Escribí el número de matrícula.' : ''],
       ['nombreError', 'nombre', nombre.length < 3 ? 'Escribí tu nombre y apellido.' : ''],
@@ -857,14 +963,19 @@
   const deMiInmobiliaria = () => (sesion ? vigentes().filter((p) => p.inmobiliaria.id === sesion.inmobiliaria.id) : [])
 
   function pintarCupo() {
-    const usadas = deMiInmobiliaria().filter((p) => p.id !== reemplazando?.id)
-    const lleno = usadas.length >= MAX_POR_INMOBILIARIA
+    const tope = SALA ? SALA.maxCaptaciones : MAX_POR_INMOBILIARIA
+    const usadas = (SALA ? vigentes().filter(esMia) : deMiInmobiliaria()).filter((p) => p.id !== reemplazando?.id)
+    const lleno = usadas.length >= tope
     const nota = $('#reemplazoNota')
     nota.hidden = !reemplazando
     nota.textContent = reemplazando ? `Vas a reemplazar «${reemplazando.titulo}». La nueva arranca con 30 días y la anterior sale de la ronda.` : ''
-    $('#cupo').textContent = `${sesion.inmobiliaria.nombre} usa ${usadas.length} de ${MAX_POR_INMOBILIARIA} lugares en la ronda.`
+    $('#cupo').textContent = SALA
+      ? `Presentaste ${usadas.length} de ${tope} captaciones.`
+      : `${sesion.inmobiliaria.nombre} usa ${usadas.length} de ${tope} lugares en la ronda.`
     $('#pasoLleno').hidden = !lleno
-    $('#llenoNota').textContent = `Tu inmobiliaria ya tiene ${MAX_POR_INMOBILIARIA} oportunidades en la ronda, que es el máximo. Para publicar otra, reemplazá una (la nueva arranca de cero) o dala de baja.`
+    $('#llenoNota').textContent = SALA
+      ? `Ya presentaste ${tope} captaciones, que es el máximo de esta ronda. Para presentar otra, reemplazá una o dala de baja.`
+      : `Tu inmobiliaria ya tiene ${tope} oportunidades en la ronda, que es el máximo. Para publicar otra, reemplazá una (la nueva arranca de cero) o dala de baja.`
     if (lleno) {
       pasoEnlace.hidden = true
       pasoConfirmar.hidden = true
@@ -930,7 +1041,7 @@
     publicar.close()
     if (detalle.open) detalle.close()
     pintar()
-    avisar(reemplazada ? 'Listo. La reemplazaste: la nueva queda 30 días en la ronda.' : 'Listo. Tu oportunidad queda en la ronda por 30 días.')
+    avisar(SALA ? (reemplazada ? 'Listo. La reemplazaste.' : 'Listo. Tu captación ya está en la ronda.') : reemplazada ? 'Listo. La reemplazaste: la nueva queda 30 días en la ronda.' : 'Listo. Tu oportunidad queda en la ronda por 30 días.')
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
 
@@ -1014,7 +1125,7 @@
     if (!revisado) return
     const ciudad = $('input[name="ciudad"]:checked', pasoConfirmar)?.value
     if (!ciudad) {
-      error('ciudadError', 'Elegí si está en Funes o en Roldán.')
+      error('ciudadError', `Elegí si está en ${CIUDADES_TEXTO}.`)
       $('input[name="ciudad"]', pasoConfirmar).focus()
       return
     }
@@ -1167,6 +1278,12 @@
       'Don Quijote', 'El Cielo', 'El Molino', 'Las Tardes', 'Los Raigales', 'Puerto Roldán', 'Punta Chacra',
       'Tierra de Sueños', 'Villa Flores',
     ],
+    Rosario: [
+      'Centro', 'Macrocentro', 'Microcentro', 'Abasto', 'Pichincha', 'Puerto Norte', 'Echesortu', 'Lourdes', 'Alberdi',
+      'Arroyito', 'Fisherton', 'República de la Sexta', 'Martin', 'Barrio Parque',
+      'Bella Vista', 'Belgrano', 'Refinería', 'Cinco Esquinas', 'Luis Agote', 'Azcuénaga', 'Sarmiento', 'Saladillo',
+      'Las Delicias', 'La Florida', 'Tiro Suizo', 'Lisandro de la Torre', 'Godoy', 'Ludueña', 'Hospitales', 'Parque Casas',
+    ],
   }
 
   function abrirElegir() {
@@ -1181,8 +1298,10 @@
     barriosElegidos = []
     pintarBarriosElegidos()
     cerrarSugerencias()
-    const usados = pedidosVigentes().filter((q) => q.inmobiliaria.id === sesion.inmobiliaria.id).length
-    $('#cupoPedidos').textContent = `${sesion.inmobiliaria.nombre} usa ${usados} de ${MAX_PEDIDOS} pedidos en la ronda.`
+    const usados = pedidosVigentes().filter((q) => (SALA ? esMioPedido(q) : q.inmobiliaria.id === sesion.inmobiliaria.id)).length
+    $('#cupoPedidos').textContent = SALA
+      ? `Presentaste ${usados} de ${SALA.maxPedidos} búsquedas.`
+      : `${sesion.inmobiliaria.nombre} usa ${usados} de ${MAX_PEDIDOS} pedidos en la ronda.`
     abrir(dialogoPedido)
   }
 
@@ -1231,7 +1350,7 @@
     if (q.length === 0) return cerrarSugerencias()
     // Busca en las dos ciudades; primero las marcadas. Elegir un barrio marca su ciudad.
     const marcadas = ciudadesMarcadas()
-    const ciudades = [...marcadas, ...Object.keys(BARRIOS).filter((c) => !marcadas.includes(c))]
+    const ciudades = [...marcadas, ...CIUDADES.filter((c) => !marcadas.includes(c))]
     opciones = ciudades
       .flatMap((ciudad) => BARRIOS[ciudad].map((nombre) => ({ ciudad, nombre })))
       .filter((b) => !barriosElegidos.some((x) => mismoBarrio(x, b)) && q.every((w) => sinTildes(b.nombre).includes(w)))
@@ -1334,7 +1453,7 @@
     const hasta = String(f.get('hasta') || '').replace(/\D/g, '')
     const faltas = [
       ['tiposError', tipos.length ? '' : 'Marcá qué busca.'],
-      ['dondeError', ciudades.length ? '' : 'Marcá Funes, Roldán o las dos.'],
+      ['dondeError', ciudades.length ? '' : `Marcá ${CIUDADES.join(', ')} o las dos.`],
       ['cierreError', hasta || cierre.length ? '' : 'Poné el presupuesto o marcá cómo puede cerrar.'],
     ]
     for (const [id, texto] of faltas) error(id, texto)
@@ -1367,7 +1486,7 @@
       // Vuelve a pedir la grilla: el cruce con las oportunidades lo arma el servidor.
       await cargar({ fresco: true })
       cambiarVista('pedidos')
-      avisar('Listo, tu pedido quedó publicado por 30 días.')
+      avisar(SALA ? 'Listo, tu búsqueda ya está en la ronda.' : 'Listo, tu pedido quedó publicado por 30 días.')
     } catch (err) {
       if (err.status === 401) return err.datos?.acceso ? undefined : sesionVencida()
       error('pedidoError', err.message)
@@ -1576,11 +1695,85 @@
   })
 
   // ── Arranque ──────────────────────────────────────────────────────────
+  /** En una sala: sus ciudades en lugar de Roldán, sus textos y la pestaña de Cruces. */
+  function aplicarSala() {
+    if (!SALA) return
+    const otra = CIUDADES[1]
+    for (const el of $$('[data-ciudad="Roldán"]')) {
+      el.dataset.ciudad = otra
+      el.textContent = otra
+    }
+    for (const input of $$('input[value="Roldán"]')) {
+      input.value = otra
+      const rotulo = input.nextElementSibling
+      if (rotulo) rotulo.textContent = otra
+    }
+    document.title = `${SALA.nombre} · Captaciones y búsquedas`
+    const marca = $('.marca-texto > span')
+    if (marca) marca.textContent = SALA.marca
+    $('.marca')?.setAttribute('href', location.pathname)
+    const portada = $('#semana')?.parentElement
+    if (portada) {
+      $('h1', portada).textContent = 'Captaciones y búsquedas'
+      const bajada = $('h1 + p', portada)
+      if (bajada) bajada.textContent = `Cada agente presenta hasta ${SALA.maxCaptaciones} captaciones y ${SALA.maxPedidos} búsquedas de ${CIUDADES.join(' o ')}. Lo que encaja queda en Cruces con los dos agentes.`
+    }
+    // Las palabras del instructivo de la reunión: captaciones y búsquedas.
+    const titulo = (vista, texto, bajada) => {
+      const boton = $(`[data-vista="${vista}"]`)
+      const cuenta = boton && $('.vista-titulo b', boton)
+      if (!cuenta) return
+      $('.vista-titulo', boton).replaceChildren(`${texto} `, cuenta)
+      $('small', boton).textContent = bajada
+    }
+    titulo('oportunidades', 'Captaciones', 'Lo que presenta cada uno')
+    // Los textos fijos de la página que hablan de la Ronda de los colegas.
+    const textos = [
+      ['.antetitulo[translate="no"]', SALA.nombre.toUpperCase()],
+      ['footer [translate="no"]', `↗ ${SALA.nombre.toUpperCase()}`],
+      ['#guiaTitulo', 'Así funciona esta ronda'],
+      ['#guia [data-cerrar].boton', 'Ver las captaciones'],
+      ['[data-publicar-oportunidad].opcion-grande strong', 'Presento una captación'],
+      ['[data-publicar-oportunidad].opcion-grande span', 'Una propiedad tuya para la reunión. Pegás el link del aviso.'],
+      ['#publicarTitulo', 'Presentar una captación'],
+      ['#pasoConfirmar button[type="submit"]', 'Presentar captación'],
+      ['#pedidoForm button[type="submit"]', 'Presentar búsqueda'],
+    ]
+    for (const [sel, texto] of textos) for (const el of $$(sel)) el.textContent = texto
+    const ayudaClave = $('#clave .ayuda')
+    if (ayudaClave) ayudaClave.textContent = `Esta ronda es para la reunión de ${SALA.inmobiliarias.join(' con ')}.`
+    const rotuloMotivo = $('label[for="oportunidad"]')
+    if (rotuloMotivo) rotuloMotivo.firstChild.textContent = '¿Por qué la traés? Lo bueno y lo malo '
+    $('#oportunidad')?.setAttribute('placeholder', 'Ej.: precio real, lo bueno (ubicación, estado) y lo malo (expensas, papeles)…')
+    const pasos = $('#guia .pasos')
+    if (pasos) {
+      pasos.innerHTML = [
+        ['1', 'Presentá tus captaciones', `Hasta ${SALA.maxCaptaciones} de ${CIUDADES.join(' o ')}. Pegás el link del aviso (Zonaprop o ficha de Tokko) y contás lo bueno y lo malo, con el precio real.`],
+        ['2', 'Cargá tus búsquedas', `Hasta ${SALA.maxPedidos}. En 1 minuto: qué busca tu cliente, en qué zona, con qué presupuesto y cómo puede cerrar.`],
+        ['3', 'Mirá los Cruces', 'Si una búsqueda encaja con una captación de la otra inmobiliaria, aparece en Cruces con la propiedad, el cliente y los dos agentes.'],
+        ['4', 'Mandale la ficha a tu cliente', '«Copiar ficha para mi cliente» te da el enlace listo para mandar.'],
+      ]
+        .map(([n, t, p]) => `<li><span aria-hidden="true">${n}</span><div><strong>${t}</strong><p>${p}</p></div></li>`)
+        .join('')
+    }
+    titulo('pedidos', 'Búsquedas', 'Lo que buscan los clientes')
+    const pedidosBoton = $('[data-vista="pedidos"]')
+    if (pedidosBoton) {
+      pedidosBoton.insertAdjacentHTML(
+        'afterend',
+        '<button type="button" class="vista-boton" data-vista="cruces" aria-pressed="false"><span class="vista-titulo">Cruces <b id="cuentaCruces"></b></span><small>Lo que encaja entre las dos</small></button>',
+      )
+      pedidosBoton.closest('.vistas')?.classList.add('tres')
+    }
+  }
+
   function semana() {
+    if (SALA) return `${SALA.nombre} · ${new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}`
     const mes = new Intl.DateTimeFormat('es-AR', { month: 'long' }).format(new Date())
     return `Ronda mensual · ${mes}`
   }
 
+  aplicarSala()
   $('#semana').textContent = semana()
   $('#buscar').value = filtro.texto
   $('#orden').value = filtro.orden

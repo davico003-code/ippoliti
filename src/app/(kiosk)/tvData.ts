@@ -8,15 +8,16 @@ import {
   getProperties,
   getMainPhoto,
   getAllPhotos,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   formatPrice,
   translatePropertyType,
   type TokkoProperty,
 } from '@/lib/tokko'
-import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion'
+import { resolverUbicacion } from '@/lib/ubicacion'
 import { fotoJpgDeLaWeb } from '@/lib/fotos-fijas'
 import { getTarjetasEmprendimientos } from '@/lib/emprendimientos-tarjetas'
+import { rasgosVerificables } from '@/lib/busqueda-propiedades'
 
 interface SlideBase {
   photo: string          // foto de portada
@@ -26,13 +27,14 @@ interface SlideBase {
 export interface SlidePropiedad extends SlideBase {
   kind: 'propiedad'
   precio: string
-  tipo: string
-  ubicacion: string
-  titulo: string
-  destacada: boolean
-  specs: { v: string; l: string }[]
-  // "Bajó de precio" (David, 22-oct-2026): el precio de antes y cuánto bajó.
-  rebaja: { anterior: string; diferencia: string } | null
+  tipo: string // "Casa": la placa de tasar va sobre una casa
+  // "Bajó de precio" (David, 22-oct-2026): el precio de antes.
+  rebaja: { anterior: string } | null
+  // Ficha de galería: "Vida Crystal Lagoon · Funes", "Casa con pileta"
+  // y "4 dormitorios · 260 m² · lote 606 m²".
+  lugar: string
+  titular: string
+  datos: string[]
 }
 
 // Presentación especial de un emprendimiento (David, 22-oct-2026: "mechar con
@@ -81,6 +83,10 @@ function conRespaldo(respaldos: RespaldosJpg, id: number, url: string): string {
 }
 
 const PROPIEDADES_POR_EMPRENDIMIENTO = 6
+// Emprendimientos que NO pasan por la tele (David, 6-nov-2026: "finca azul no lo
+// pongas, sacá fisherton work y aurea, dejá distrito, dockgarden y tierra nueva").
+// Por la `key` de la tarjeta de /emprendimientos.
+const EMPRENDIMIENTOS_FUERA = new Set(['fincazul', 'fisherton-work', 'aurea'])
 // La placa de tasar va cada 12 propiedades, corrida 3 para no pegarse a un emprendimiento.
 const PROPIEDADES_POR_TASAR = 12
 const URL_TASAR = 'https://siinmobiliaria.com/tasar?utm_source=tele&utm_medium=vidriera&utm_campaign=tasar'
@@ -89,11 +95,16 @@ const URL_TASAR = 'https://siinmobiliaria.com/tasar?utm_source=tele&utm_medium=v
 // primeras (destacadas y más nuevas) y el emprendimiento tiene su presentación.
 const MAX_UNIDADES_POR_EMPRENDIMIENTO = 2
 
-// Qué pasa por la tele (David, 22-oct-2026): casas desde USD 250.000,
-// departamentos desde USD 125.000 y lotes desde USD 70.000. Nada más: ni PH,
-// ni locales, ni galpones, ni las de precio a consultar. Por id de tipo de
-// Tokko (3 casa, 2 departamento, 1 lote): por nombre, "Warehouse" contiene "house".
-const PISO_USD: Partial<Record<number, number>> = { 3: 250000, 2: 125000, 1: 70000 }
+// Qué pasa por la tele (David, 5-nov-2026: "mostrá la mercadería de Funes, de
+// 200.000 para arriba y lotes en barrios privados"): solo Funes; casas,
+// departamentos y lotes desde USD 200.000, y los lotes en barrio cerrado (el
+// dato de Hilo, `barrio_cerrado`) a cualquier precio. Nada más: ni PH, ni
+// locales, ni galpones, ni las de precio a consultar. Por id de tipo de Tokko
+// (3 casa, 2 departamento, 1 lote): por nombre, "Warehouse" contiene "house".
+const CIUDAD_TELE = 'funes'
+const PISO_USD = 200000
+const TIPO_LOTE = 1
+const TIPOS_TELE = new Set([TIPO_LOTE, 2, 3])
 
 function usdVenta(p: TokkoProperty): number {
   const venta = p.operations?.find((op) => op.operation_type === 'Sale')
@@ -109,13 +120,15 @@ function rebajaDe(p: TokkoProperty): SlidePropiedad['rebaja'] {
   const actual = usdVenta(p)
   if (!r || r.moneda !== 'USD' || !conPrecio(p) || r.anterior <= actual) return null
   const usd = (n: number) => `USD ${Math.round(n).toLocaleString('es-AR')}`
-  return { anterior: usd(r.anterior), diferencia: usd(r.anterior - actual) }
+  return { anterior: usd(r.anterior) }
 }
 
 function entraEnLaTele(p: TokkoProperty): boolean {
-  const piso = p.type?.id != null ? PISO_USD[p.type.id] : undefined
-  if (!piso || !conPrecio(p)) return false
-  return usdVenta(p) >= piso
+  const tipo = p.type?.id
+  if (tipo == null || !TIPOS_TELE.has(tipo) || !conPrecio(p)) return false
+  if (normalizar(resolverUbicacion(p).ciudad ?? '') !== CIUDAD_TELE) return false
+  if (tipo === TIPO_LOTE && p.barrio_cerrado === true) return true
+  return usdVenta(p) >= PISO_USD
 }
 
 // Traducción de tipología: usa el mapa canónico de tokko.ts (única fuente de
@@ -126,23 +139,47 @@ function tipoEs(p: TokkoProperty): string {
   return translatePropertyType(p.type?.name)
 }
 
-function buildSpecs(p: TokkoProperty): { v: string; l: string }[] {
-  const specs: { v: string; l: string }[] = []
-  const dorm = p.suite_amount || 0
-  const amb = p.room_amount || 0
-  if (dorm > 0) specs.push({ v: String(dorm), l: dorm === 1 ? 'Dormitorio' : 'Dormitorios' })
-  else if (amb > 0) specs.push({ v: String(amb), l: amb === 1 ? 'Ambiente' : 'Ambientes' })
-  if (p.bathroom_amount > 0) specs.push({ v: String(p.bathroom_amount), l: p.bathroom_amount === 1 ? 'Baño' : 'Baños' })
-  const cub = getRoofedArea(p)
-  if (cub) specs.push({ v: cub.toLocaleString('es-AR'), l: 'm² cubiertos' })
+// Ficha de galería (David, 5-nov-2026; la acostada, 6-nov): un titular que diga
+// QUÉ es ("Casa con pileta", "Lote de 930 m²") y una línea de datos, siempre con
+// los m² TOTALES. Pileta: las comodidades de HILO o lo dice el título (la misma
+// regla del buscador). Si el titular ya nombra los dormitorios, los datos
+// llevan los baños.
+const conPileta = (p: TokkoProperty) =>
+  rasgosVerificables(p.comodidades ?? []).length > 0 || /\b(pileta|piscina)\b/i.test(p.publication_title ?? '')
+
+const cuantos = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`
+
+function fichaGaleria(p: TokkoProperty): { titular: string; datos: string[] } {
   const lote = getLotSurface(p)
-  if (lote) specs.push({ v: lote.toLocaleString('es-AR'), l: 'm² de lote' })
-  return specs.slice(0, 4)
+  if (p.type?.id === TIPO_LOTE) {
+    return { titular: lote ? `Lote de ${m2(lote)} m²` : 'Lote', datos: p.barrio_cerrado ? ['Barrio cerrado'] : [] }
+  }
+  const casa = p.type?.id === 3
+  const dorm = p.suite_amount || 0
+  const banos = p.bathroom_amount || 0
+  const total = getTotalSurface(p)
+  const pileta = conPileta(p)
+  const dormEnTitular = casa && !pileta && dorm > 0
+  const titular = pileta
+    ? `${casa ? 'Casa' : 'Depto.'} con pileta`
+    : dormEnTitular ? `Casa de ${cuantos(dorm, 'dormitorio', 'dormitorios')}` : casa ? 'Casa' : 'Departamento'
+  const datos = [
+    !dormEnTitular && dorm > 0 ? cuantos(dorm, 'dormitorio', 'dormitorios') : null,
+    dormEnTitular && banos > 0 ? cuantos(banos, 'baño', 'baños') : null,
+    total ? `${m2(total)} m²` : null,
+    casa && lote && (!total || lote > total) ? `lote ${m2(lote)} m²` : null,
+  ].filter((x): x is string => !!x)
+  return { titular, datos }
 }
 
-// Reordena para no repetir ciudad en slides consecutivos (variedad de zonas).
-// Por ciudad y no por "barrio, ciudad": si no, "Funes" → "Funes Lakes, Funes"
-// contaban como zonas distintas y la TV encadenaba Funes tras Funes.
+// Sin repetir la ciudad: "Zona 7 - Funes" → "Zona 7 · Funes"; "Funes Lakes" ya la dice.
+function lugarDe(p: TokkoProperty): string {
+  const { barrio, ciudad } = resolverUbicacion(p)
+  const b = barrio && ciudad ? barrio.replace(new RegExp(`\\s+-\\s+${ciudad}$`, 'i'), '') : barrio
+  if (b && ciudad && normalizar(b).includes(normalizar(ciudad))) return b
+  return [b, ciudad].filter(Boolean).join(' · ')
+}
+
 // De qué emprendimiento es una unidad: el del feed, o Tierra Nueva (los Condos
 // 22-24 no traen emprendimiento en el feed; los delata el barrio).
 const normalizar = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -181,11 +218,9 @@ type Tarjeta = Awaited<ReturnType<typeof getTarjetasEmprendimientos>>[number]
 
 // Unidades de cada emprendimiento en el feed: las de su development en Hilo, o
 // por nombre para las landings propias (los Condos de Tierra Nueva no traen
-// development). Fincazul y Hausing no tienen unidades cargadas: van sin segundo momento.
+// development). Hausing no tiene unidades cargadas: va sin segundo momento.
 const UNIDADES_DE_LANDING: Record<string, (p: TokkoProperty) => boolean> = {
   'tierra-nueva': (p) => emprendimientoDe(p) === 'tierra-nueva',
-  aurea: (p) => normalizar(`${p.publication_title ?? ''} ${p.location?.name ?? ''}`).includes('aurea'),
-  'fisherton-work': (p) => normalizar(p.publication_title ?? '').includes('fisherton work'),
 }
 
 function unidadesDe(t: Tarjeta, objects: TokkoProperty[]): TokkoProperty[] {
@@ -203,10 +238,10 @@ function datoUnidad(p: TokkoProperty): string {
     return lote ? `Lote de ${m2(lote)} m²` : 'Lote'
   }
   const dorm = p.suite_amount || 0
-  const cub = getRoofedArea(p)
+  const total = getTotalSurface(p)
   return [
     dorm > 0 ? `${dorm} dorm.` : tipoEs(p),
-    cub ? `${m2(cub)} m²` : null,
+    total ? `${m2(total)} m²` : null,
     (p.parking_lot_amount ?? 0) > 0 ? 'cochera' : null,
   ].filter(Boolean).join(' · ')
 }
@@ -249,6 +284,7 @@ function resumenUnidades(us: TokkoProperty[], respaldos: RespaldosJpg): SlideEmp
 
 function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[], respaldos: RespaldosJpg): SlideEmprendimiento[] {
   return tarjetas.flatMap((t): SlideEmprendimiento[] => {
+    if (EMPRENDIMIENTOS_FUERA.has(t.key)) return []
     const photos = (t.fotos?.length ? t.fotos : [t.image]).filter((x): x is string => !!x).slice(0, 4)
     if (!photos.length) return []
     return [{
@@ -266,17 +302,23 @@ function armarEmprendimientos(tarjetas: Tarjeta[], objects: TokkoProperty[], res
   })
 }
 
+// Reordena para no repetir barrio en slides consecutivos (variedad de zonas).
+// Desde que la tele pasa solo Funes (5-nov-2026) la ciudad ya no separa nada:
+// se reparte por barrio, y las que no traen barrio cuentan como la ciudad.
 function spreadByZone(list: TokkoProperty[]): TokkoProperty[] {
   const out: TokkoProperty[] = []
   const pool = [...list]
-  const ciudad = (p: TokkoProperty) => resolverUbicacion(p).ciudad ?? ''
+  const zona = (p: TokkoProperty) => {
+    const u = resolverUbicacion(p)
+    return normalizar(u.barrio ?? u.ciudad ?? '')
+  }
   let lastZone = ''
   while (pool.length) {
-    let pick = pool.findIndex((p) => ciudad(p) !== lastZone)
+    let pick = pool.findIndex((p) => zona(p) !== lastZone)
     if (pick === -1) pick = 0
     const [p] = pool.splice(pick, 1)
     out.push(p)
-    lastZone = ciudad(p)
+    lastZone = zona(p)
   }
   return out
 }
@@ -293,10 +335,12 @@ async function placasTasar(propiedades: SlidePropiedad[]): Promise<SlideTasar[]>
   return (casas.length ? casas : propiedades).map((p) => ({ kind: 'tasar', photo: p.photo, photos: [p.photo], qr, url: 'siinmobiliaria.com/tasar' }))
 }
 
-export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {}): Promise<{ slides: Slide[]; respaldos: RespaldosJpg }> {
+// Los emprendimientos van solo en la parada (David, 6-nov-2026, de la acostada:
+// "sacá los emprendimientos, porque se ven mal, dejá solo placas").
+export async function getSlides({ conTasar = false, conEmprendimientos = false }: { conTasar?: boolean; conEmprendimientos?: boolean } = {}): Promise<{ slides: Slide[]; respaldos: RespaldosJpg }> {
   let objects: TokkoProperty[] = []
   const respaldos: RespaldosJpg = {}
-  const tarjetas = getTarjetasEmprendimientos().catch((): Tarjeta[] => [])
+  const tarjetas = conEmprendimientos ? getTarjetasEmprendimientos().catch((): Tarjeta[] => []) : Promise.resolve<Tarjeta[]>([])
   try {
     const resp = await getProperties({ operation: 'Sale', limit: 500 })
     objects = resp.objects ?? []
@@ -328,11 +372,9 @@ export async function getSlides({ conTasar = false }: { conTasar?: boolean } = {
       photos,
       precio: formatPrice(p),
       tipo: tipoEs(p),
-      ubicacion: formatUbicacion(p),
-      titulo: p.publication_title ?? '',
-      destacada: !!p.is_starred_on_web,
-      specs: buildSpecs(p),
       rebaja: rebajaDe(p),
+      lugar: lugarDe(p),
+      ...fichaGaleria(p),
     }
   })
 

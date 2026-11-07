@@ -1,4 +1,5 @@
-// Página /tv — modo KIOSCO horizontal para televisor. Trae el mix de slides y
+// Página /tv — modo KIOSCO horizontal para televisor. Trae solo propiedades (los
+// emprendimientos van en la parada, /tv-vertical) y
 // deja que el cliente los cicle con animaciones en loop infinito.
 
 import { getSlides } from '../tvData'

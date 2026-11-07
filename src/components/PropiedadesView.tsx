@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect, useDeferredValue, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   Search,
@@ -36,6 +35,7 @@ import {
   limpiarPerfilDeUrl,
 } from '@/lib/smart-profile-url'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import FotosVistaPrevia from '@/components/FotosVistaPrevia'
 import { AgentesPropiedadProvider } from '@/components/AgentesPropiedadContext'
 import { GripVertical } from 'lucide-react'
 import { formatDireccionCompleta, formatUbicacion } from '@/lib/ubicacion'
@@ -52,18 +52,20 @@ import { resumenBusqueda } from '@/lib/resumen-busqueda'
 import { showToast } from '@/components/Toast'
 import { mesAnioAR } from '@/lib/listado-alquileres'
 import { buscarZonas } from '@/lib/zonas'
+import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 import { highlightMatch } from '@/lib/highlight'
 import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
 import { ZONAS, type Zona } from '@/lib/zonas'
+import { criteriosDelBuscador } from '@/lib/avisame-nuevas'
+import { SuscripcionMail } from '@/components/mazo/SuscripcionMail'
 import {
   type TokkoProperty,
-  getMainPhoto,
   formatPrice,
   getOperationType,
   operacionPrincipal,
   priorizarOperacion,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -1295,6 +1297,19 @@ export default function PropiedadesView({
     [visibleProperties, tandas],
   )
   const hayMas = renderedProperties.length < visibleProperties.length
+  // "Avisame cuando entre algo así" (6-nov): con zona elegida, deja el mail y
+  // Hilo le manda las nuevas en venta que calcen (ver lib/avisame-nuevas.ts).
+  const criteriosAviso = useMemo(
+    () => criteriosDelBuscador({ operation: filters.operation, type: filters.type, location: filters.location, search: filters.search }),
+    [filters.operation, filters.type, filters.location, filters.search],
+  )
+  // Al final de la lista, en el celu, la lista ya deja 100 px para la barra de
+  // abajo: la caja se mete en ese hueco (y deja el suyo debajo).
+  const cajaAviso = (alFinal: boolean) => criteriosAviso ? (
+    <div className={`px-4 pb-[100px] md:pb-6 ${alFinal ? '-mt-[84px] md:mt-0' : 'pt-2'}`}>
+      <SuscripcionMail key={`${criteriosAviso.zona}-${criteriosAviso.tipo}`} criterios={criteriosAviso} donde="buscador" />
+    </div>
+  ) : null
 
   // Ids de las tarjetas pintadas: el provider pide sus agentes por tandas.
   // Solo las que el listado no trajo con agente (feed viejo o Tokko).
@@ -1545,7 +1560,8 @@ export default function PropiedadesView({
     : filters.operation === 'alquiler' ? 'en alquiler'
     : filters.operation === 'temporario' ? 'en alquiler temporario' : 'disponibles'
 
-  const searchZonas = useMemo(() => buscarZonas(filters.search, 6), [filters.search])
+  const zonasVivas = useMemo(() => new Set(idsDeZonasVivas(indiceBusqueda)), [indiceBusqueda])
+  const searchZonas = useMemo(() => buscarZonas(filters.search, 6, zonasVivas), [filters.search, zonasVivas])
 
   // Count non-operation active filters for mobile badge
   const mobileActiveCount = [
@@ -2238,6 +2254,7 @@ export default function PropiedadesView({
             ) : visibleProperties.length === 0 ? (
               // Textos guía en gray-600 (AA): eran gray-400 (2,5:1) y es justo
               // lo que la persona trabada necesita leer.
+              <>
               <div className="flex flex-col items-center justify-center min-h-[16rem] text-center px-6 py-12">
                 <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" aria-hidden="true" />
                 {mapBounds && propertiesSinZona.length > 0 ? (
@@ -2350,6 +2367,8 @@ export default function PropiedadesView({
                   {smartActivo ? 'Empezar de nuevo' : 'Borrar filtros'}
                 </button>
               </div>
+              {cajaAviso(false)}
+              </>
             ) : (
               <>
                 {/* Desktop grid — lazy + gate por viewport.
@@ -2408,6 +2427,7 @@ export default function PropiedadesView({
                     </button>
                   </div>
                 )}
+                {!hayMas && cajaAviso(true)}
               </>
             )}
           </div>
@@ -2609,24 +2629,20 @@ export default function PropiedadesView({
             className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
             style={{ border: '1px solid var(--theme-border, #e5e7eb)' }}
           >
-            {/* Photo — 16:9 (más bajo y compacto) */}
-            <div className="relative w-full aspect-[16/9] bg-gray-100">
-              {(() => {
-                const photo = getMainPhoto(selectedProperty)
-                return photo ? (
-                  <Image src={photo} alt={tituloVisible(selectedProperty) || selectedProperty.address}
-                    fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <MapPin className="w-8 h-8 text-gray-300" />
-                  </div>
-                )
-              })()}
+            {/* Fotos 16:9 (más bajo y compacto): se pasan con las flechas o
+                con swipe sin abrir la ficha. */}
+            <FotosVistaPrevia
+              key={selectedProperty.id}
+              property={selectedProperty}
+              alt={tituloVisible(selectedProperty) || selectedProperty.address}
+              className="aspect-[16/9]"
+              style={{ borderRadius: 0 }}
+            >
               {/* Operation badge */}
               {(() => {
                 const op = getOperationType(selectedProperty)
                 return op ? (
-                  <span className="absolute top-2.5 left-2.5"
+                  <span className="absolute top-2.5 left-2.5 z-10"
                     style={{
                       background: operationBadgeColor(op),
                       color: '#fff', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
@@ -2662,7 +2678,7 @@ export default function PropiedadesView({
                 right={56}
                 size={36}
               />
-            </div>
+            </FotosVistaPrevia>
 
             {/* Body — tap en cualquier parte abre la ficha completa */}
             <div style={{ padding: 14 }}>
@@ -2672,7 +2688,7 @@ export default function PropiedadesView({
               <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, color: 'var(--theme-subtle, #6b7280)', margin: '0 0 6px' }}>
                 {(() => {
                   const specs: string[] = []
-                  const r = getRoofedArea(selectedProperty)
+                  const r = getTotalSurface(selectedProperty)
                   const land2 = isLand(selectedProperty)
                   const lot = getLotSurface(selectedProperty)
                   if (!land2 && isMonoambiente(selectedProperty))
@@ -2681,7 +2697,7 @@ export default function PropiedadesView({
                     specs.push(`${selectedProperty.suite_amount || selectedProperty.room_amount} dorm`)
                   if (!land2 && selectedProperty.bathroom_amount > 0)
                     specs.push(`${selectedProperty.bathroom_amount} baño${selectedProperty.bathroom_amount > 1 ? 's' : ''}`)
-                  if (r != null && r > 0) specs.push(`${r} m² cub`)
+                  if (!land2 && r != null && r > 0) specs.push(`${r.toLocaleString('es-AR')} m²`)
                   if (lot != null && lot > 0 && lot !== r) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
                   if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
                   return specs.join(' · ')
