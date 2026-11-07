@@ -119,6 +119,19 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
   })
 
   cards.push({
+    key: 'nordica-1',
+    href: '/emprendimientos/nordica-1',
+    image: '/emprendimientos/nordica-1/foto-05.jpg',
+    eyebrow: 'Complejo de 5 casas equipadas · Vaca Muerta',
+    title: 'Nórdica 1',
+    location: 'La Forestada · Añelo, Neuquén',
+    description:
+      'Cinco casas terminadas de 53 m² con 2 dormitorios en suite, totalmente equipadas, en el único sector forestado de Añelo. Régimen PH, renta en marcha. USD 650.000 por el conjunto.',
+    chips: ['Casas equipadas', 'Terminado'],
+    accent: GREEN,
+  })
+
+  cards.push({
     key: 'hausing',
     href: '/hausing',
     image: '/hausing-portada.jpg',

@@ -11,14 +11,14 @@ export const revalidate = 21600
 export const metadata: Metadata = {
   title: 'Emprendimientos | SI INMOBILIARIA',
   description:
-    'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados. SI INMOBILIARIA — desde 1983.',
+    'Emprendimientos inmobiliarios en Roldán, Funes, Rosario y Añelo (Vaca Muerta). Condominios, barrios abiertos y cerrados. SI INMOBILIARIA — desde 1983.',
   alternates: { canonical: 'https://siinmobiliaria.com/emprendimientos' },
   // Sin este bloque, la página hereda el openGraph del root layout y publica
   // og:url = https://siinmobiliaria.com (el home) en vez de su propia URL.
   openGraph: {
     title: 'Emprendimientos | SI INMOBILIARIA',
     description:
-      'Emprendimientos inmobiliarios en Roldán, Funes y Rosario. Condominios, barrios abiertos y cerrados.',
+      'Emprendimientos inmobiliarios en Roldán, Funes, Rosario y Añelo (Vaca Muerta). Condominios, barrios abiertos y cerrados.',
     url: 'https://siinmobiliaria.com/emprendimientos',
     images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'SI INMOBILIARIA' }],
   },
@@ -47,10 +47,10 @@ export default async function EmprendimientosPage() {
 
           <div className="mt-5 flex flex-wrap items-end justify-between gap-x-10 gap-y-4 border-t border-gray-200 pt-5 md:mt-7 md:pt-6">
             <p className="max-w-md text-base leading-relaxed text-gray-600 md:text-lg">
-              Los desarrollos que comercializamos en Roldán, Funes y Rosario.
+              Los desarrollos que comercializamos en Roldán, Funes, Rosario y Añelo (Vaca Muerta).
             </p>
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--brand)] md:text-xs">
-              <span className="font-numeric">{cards.length}</span> desarrollos · <span className="font-numeric">3</span> zonas
+              <span className="font-numeric">{cards.length}</span> desarrollos · <span className="font-numeric">4</span> zonas
             </p>
           </div>
 

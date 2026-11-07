@@ -68,6 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fincazul es ruta estática (no viene en el feed de Tokko, así que el mapeo
     // de getDevelopments() de abajo nunca la incluye).
     fija('/emprendimientos/fincazul', 'weekly', 0.8),
+    fija('/emprendimientos/nordica-1', 'weekly', 0.8),
     // Fisherton Work: mismo caso que Fincazul (ruta estática, no está en HILO).
     fija('/emprendimientos/fisherton-work', 'weekly', 0.8),
     fija('/emprendimientos/tierra-nueva', 'weekly', 0.8),
