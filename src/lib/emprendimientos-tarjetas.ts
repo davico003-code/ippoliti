@@ -121,7 +121,7 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
   cards.push({
     key: 'nordica-1',
     href: '/emprendimientos/nordica-1',
-    image: '/emprendimientos/nordica-1/hero-aerea.jpg',
+    image: '/emprendimientos/nordica-1/foto-05.jpg',
     eyebrow: 'Complejo de 5 casas equipadas · Vaca Muerta',
     title: 'Nórdica 1',
     location: 'La Forestada · Añelo, Neuquén',
