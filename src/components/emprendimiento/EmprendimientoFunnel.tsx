@@ -506,9 +506,20 @@ export default function EmprendimientoFunnel({
           <div className="lg:col-start-1">
             <BurbujaDavid />
 
-            {/* Sin placaHref: la placa de emprendimientos necesita su propio adapter. */}
+            {/* Sin placaHref: la placa de emprendimientos necesita su propio adapter.
+                La ruta va entera: con slug={`emprendimientos/${slug}`} ShareButtons
+                armaba /propiedades/emprendimientos/<slug>, un 404 en cada link
+                compartido desde la landing (con pauta). */}
             <div className="max-w-sm">
-              <ShareButtons slug={`emprendimientos/${slug}`} title={displayName} />
+              <ShareButtons
+                ruta={`/emprendimientos/${slug}`}
+                title={displayName}
+                precio={desde ? `Desde ${desde}` : null}
+                ubicacion={locationName}
+                contexto="emprendimiento"
+                etiqueta="Compartir emprendimiento"
+                intro="Mirá este emprendimiento:"
+              />
             </div>
           </div>
         </div>

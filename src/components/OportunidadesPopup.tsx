@@ -14,10 +14,11 @@ import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
+import { haptico } from '@/lib/haptico'
 
 const GREEN = '#1A5C38'
-const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
+const POPPINS = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
+const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 
 // Cierre definitivo: una vez cerrado no vuelve (clave nueva, sin vencimiento).
 const DISMISS_KEY = 'si_oportunidades_cerrado'
@@ -39,13 +40,17 @@ const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min)
 // /hausing: landing de casas premium — experiencia limpia, sin tarjetas encima.
 // /emprendimientos/: en las landings la pastilla tapaba el selector de piso de Dock Garden
 // (el listado /emprendimientos la sigue mostrando).
-const HIDE_PREFIXES = ['/conoce-tu-hogar', '/tasar', '/vender', '/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos/si-school', '/hausing', '/como-trabajamos', '/emprendimientos/']
+// /consulta/: landing de la pauta con UNA sola acción (el formulario); a los
+// segundos le mostraba OTRAS casas al que venía del anuncio y lo sacaba de ahí.
+const HIDE_PREFIXES = ['/conoce-tu-hogar', '/tasar', '/vender', '/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos/si-school', '/hausing', '/como-trabajamos', '/emprendimientos/', '/consulta/']
 
+// Todos los ganchos en verde de marca: el naranja, el azul y el magenta de
+// antes rompían la paleta (blanco + verde). Los distingue la palabra, no el color.
 const HOOK_META: Record<string, { badge: string; cta: string; color: string; bg: string }> = {
-  motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: '#B5562F', bg: '#FCEBE3' },
-  permuta: { badge: 'Acepta permuta', cta: 'Pasá a conocerla', color: '#2B5C9B', bg: '#E7F0FB' },
-  negociable: { badge: 'Margen para negociar', cta: 'Hacé tu oferta', color: '#1A5C38', bg: '#E8F4EC' },
-  'bajo-precio': { badge: 'Bajó el precio', cta: 'Miralá ahora', color: '#A83C66', bg: '#FBE9F0' },
+  motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: GREEN, bg: '#E8F4EC' },
+  permuta: { badge: 'Acepta permuta', cta: 'Pasá a conocerla', color: GREEN, bg: '#E8F4EC' },
+  negociable: { badge: 'Margen para negociar', cta: 'Hacé tu oferta', color: GREEN, bg: '#E8F4EC' },
+  'bajo-precio': { badge: 'Bajó el precio', cta: 'Miralá ahora', color: GREEN, bg: '#E8F4EC' },
 }
 
 interface Item {
@@ -65,7 +70,16 @@ export default function OportunidadesPopup() {
   const [visible, setVisible] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState(false)
   const [idx, setIdx] = useState(0)
-  const timerRef = useRef<number | null>(null)
+  // La rotación se frena mientras la persona la está usando (mouse o foco
+  // encima en la compu, ficha abierta en el celu), con la pestaña oculta y con
+  // "reducir movimiento": si no, la casa cambiaba justo al ir a tocarla y
+  // terminaba abriendo otra. `ciclo` reinicia la cuenta al elegir una a mano.
+  const [enUso, setEnUso] = useState(false)
+  const [pestanaOculta, setPestanaOculta] = useState(false)
+  const [menosMovimiento, setMenosMovimiento] = useState(false)
+  const [ciclo, setCiclo] = useState(0)
+  // Tamaño del viewport para ubicar la pastilla con transform (ver abajo).
+  const [vp, setVp] = useState({ w: 0, h: 0 })
   const [peekPos, setPeekPos] = useState<PeekPos>(DEFAULT_POS)
   const [dragXY, setDragXY] = useState<{ x: number; y: number } | null>(null)
   const dragRef = useRef<{ startX: number; startY: number; offX: number; offY: number; w: number; moved: boolean } | null>(null)
@@ -133,12 +147,35 @@ export default function OportunidadesPopup() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Pestaña oculta, preferencia de movimiento y tamaño del viewport.
+  useEffect(() => {
+    const onVis = () => setPestanaOculta(document.hidden)
+    onVis()
+    document.addEventListener('visibilitychange', onVis)
+    const medir = () => setVp({ w: window.innerWidth, h: window.innerHeight })
+    medir()
+    window.addEventListener('resize', medir)
+    let mq: MediaQueryList | null = null
+    const onMq = () => setMenosMovimiento(!!mq?.matches)
+    try {
+      mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      onMq()
+      mq.addEventListener('change', onMq)
+    } catch {}
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('resize', medir)
+      try { mq?.removeEventListener('change', onMq) } catch {}
+    }
+  }, [])
+
   // Rotación automática entre oportunidades.
   useEffect(() => {
     if (!visible || items.length <= 1) return
-    timerRef.current = window.setInterval(() => setIdx((i) => (i + 1) % items.length), ROTATE_MS)
-    return () => { if (timerRef.current) window.clearInterval(timerRef.current) }
-  }, [visible, items.length])
+    if (enUso || mobileExpanded || pestanaOculta || menosMovimiento) return
+    const t = window.setInterval(() => setIdx((i) => (i + 1) % items.length), ROTATE_MS)
+    return () => window.clearInterval(t)
+  }, [visible, items.length, enUso, mobileExpanded, pestanaOculta, menosMovimiento, ciclo])
 
   // Ficha abierta: tocar afuera la vuelve a achicar a pastilla (no la cierra).
   useEffect(() => {
@@ -203,6 +240,8 @@ export default function OportunidadesPopup() {
     }
     setPeekPos(next)
     setDragXY(null)
+    // Golpecito al acomodarse contra el borde: confirma que quedó ahí.
+    haptico()
     try { window.localStorage.setItem(POS_KEY, JSON.stringify(next)) } catch {}
   }
 
@@ -218,17 +257,29 @@ export default function OportunidadesPopup() {
 
   const goTo = (i: number) => {
     setIdx(i)
-    if (timerRef.current) window.clearInterval(timerRef.current)
-    timerRef.current = window.setInterval(() => setIdx((x) => (x + 1) % items.length), ROTATE_MS)
+    setCiclo((c) => c + 1)
   }
+
+  // La pastilla se ubica con transform (no con left/top, que son propiedades
+  // de layout y animarlas cuesta cuadros en el celu). Mismas posiciones que
+  // antes: pegada a un costado y al yPct del alto visible.
+  const peekX = dragXY
+    ? dragXY.x
+    : peekPos.side === 'left'
+      ? PEEK_MARGIN
+      : vp.w - peekW - PEEK_MARGIN
+  const peekY = dragXY ? dragXY.y : (peekPos.yPct / 100) * vp.h
+  const activo = idx % items.length
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes si-oport-in { from { opacity: 0; transform: translateY(18px) scale(.97) } to { opacity: 1; transform: none } }
         @keyframes si-oport-swap { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
-        @keyframes si-oport-peek-l { 0% { transform: translateX(-12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
-        @keyframes si-oport-peek-r { 0% { transform: translateX(12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
+        /* Entrada de la pastilla: un solo nombre (antes dependía del lado y, al
+           soltarla del otro costado, se repetía la entrada junto con el
+           desplazamiento). Usa scale y no transform: el transform la ubica. */
+        @keyframes si-oport-peek { from { opacity: 0; scale: .9 } to { opacity: 1; scale: 1 } }
         @keyframes si-oport-sheet { from { opacity: 0; transform: translateY(12px) scale(.98) } to { opacity: 1; transform: none } }
         .si-oport-desktop { display: block; }
         .si-oport-peek, .si-oport-sheet { display: none; }
@@ -237,17 +288,27 @@ export default function OportunidadesPopup() {
           .si-oport-peek { display: inline-flex; }
           .si-oport-sheet { display: block; }
         }
+        /* "Reducir movimiento": la rotación ya se frena (menosMovimiento); acá
+           se apagan también las entradas y el deslizamiento de la pastilla, que
+           van inline y por eso necesitan !important. */
+        @media (prefers-reduced-motion: reduce) {
+          .si-oport-desktop, .si-oport-desktop a, .si-oport-peek, .si-oport-sheet, .si-oport-sheet a { animation: none !important; transition: none !important; }
+        }
       ` }} />
 
       {/* ── Desktop: card compacta rotativa, foto enmarcada (casa entera) ── */}
       <aside
         className="si-oport-desktop"
         aria-label="Oportunidades"
+        onMouseEnter={() => setEnUso(true)}
+        onMouseLeave={() => setEnUso(false)}
+        onFocus={() => setEnUso(true)}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setEnUso(false) }}
         style={{
           position: 'fixed', right: 6, bottom: 176, zIndex: 45, width: 244,
           background: 'var(--theme-surface, #fff)', borderRadius: 16, border: '1px solid #ECECEE', padding: 6,
           boxShadow: '0 16px 44px rgba(9, 30, 20, 0.16)',
-          animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
+          animation: 'si-oport-in .25s cubic-bezier(.22,1,.36,1)',
         }}
       >
         <button
@@ -257,7 +318,7 @@ export default function OportunidadesPopup() {
           <X size={12} strokeWidth={2.4} />
         </button>
 
-        <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
+        <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .22s ease-out' }}>
           <div style={{ position: 'relative', height: 132, borderRadius: 11, overflow: 'hidden', background: '#EEF2F0' }}>
             {it.foto && (
               <Image src={it.foto} alt="" fill sizes="232px" style={{ objectFit: 'cover', objectPosition: 'center 60%' }} />
@@ -275,7 +336,7 @@ export default function OportunidadesPopup() {
                 <span style={{ fontFamily: POPPINS, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
                   <b style={{ color: 'var(--theme-ink, #111)', whiteSpace: 'nowrap' }}>{it.precio}</b>
                   {typeof it.pctBaja === 'number' ? (
-                    <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10, borderRadius: 5, padding: '1px 5px', whiteSpace: 'nowrap' }}>
+                    <span style={{ background: 'var(--theme-tint, #E8F4EC)', color: `var(--theme-accent, ${GREEN})`, fontWeight: 700, fontSize: 10, borderRadius: 5, padding: '1px 5px', whiteSpace: 'nowrap' }}>
                       −{String(Math.round(it.pctBaja))}%
                     </span>
                   ) : (
@@ -295,7 +356,7 @@ export default function OportunidadesPopup() {
             {items.map((x, i) => (
               <button
                 key={x.propertyId} type="button" onClick={() => goTo(i)} aria-label={`Oportunidad ${i + 1}`}
-                style={{ width: i === idx % items.length ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                style={{ width: i === activo ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === activo ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
               />
             ))}
           </div>
@@ -315,13 +376,10 @@ export default function OportunidadesPopup() {
           onPointerCancel={onPeekPointerCancel}
           style={{
             position: 'fixed',
-            left: dragXY
-              ? dragXY.x
-              : peekPos.side === 'left'
-                ? PEEK_MARGIN
-                : `calc(100% - ${peekW}px - ${PEEK_MARGIN}px)`,
-            top: dragXY ? dragXY.y : `${peekPos.yPct}%`,
-            transition: dragXY ? 'none' : 'left .28s cubic-bezier(.22,1,.36,1), top .28s cubic-bezier(.22,1,.36,1)',
+            left: 0,
+            top: 0,
+            transform: `translate3d(${peekX}px, ${peekY}px, 0)`,
+            transition: dragXY ? 'none' : 'transform .25s cubic-bezier(.22,1,.36,1)',
             zIndex: 44,
             width: peekW,
             height: PEEK_H,
@@ -333,7 +391,7 @@ export default function OportunidadesPopup() {
             boxShadow: '0 12px 30px rgba(9, 30, 20, 0.16)',
             padding: compactMobile ? 0 : peekPos.side === 'right' ? '5px 5px 5px 12px' : '5px 12px 5px 5px',
             cursor: dragXY ? 'grabbing' : 'grab',
-            animation: `si-oport-peek-${peekPos.side === 'right' ? 'r' : 'l'} .42s cubic-bezier(.22,1,.36,1)`,
+            animation: 'si-oport-peek .24s cubic-bezier(.22,1,.36,1)',
             alignItems: 'center',
             justifyContent: compactMobile ? 'center' : 'flex-start',
             gap: 8,
@@ -373,7 +431,10 @@ export default function OportunidadesPopup() {
             position: 'fixed',
             left: 10,
             right: 10,
-            zIndex: 46,
+            // 51, arriba de la burbuja de WhatsApp (z-50): con 46 la burbuja
+            // quedaba encima de la esquina de la ficha y un toque ahí abría
+            // WhatsApp en vez de la propiedad. La ficha la tapa entera.
+            zIndex: 51,
             bottom: compactMobile
               ? 'calc(env(safe-area-inset-bottom, 0px) + 86px)'
               : 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
@@ -382,19 +443,22 @@ export default function OportunidadesPopup() {
             border: '1px solid rgba(26,92,56,.12)',
             boxShadow: '0 18px 44px rgba(9, 30, 20, 0.18)',
             overflow: 'hidden',
-            animation: 'si-oport-sheet .3s cubic-bezier(.22,1,.36,1)',
+            animation: 'si-oport-sheet .22s cubic-bezier(.22,1,.36,1)',
           }}
         >
+          {/* Área de toque de 44 px (antes 32) con el mismo círculo visible. */}
           <button
             type="button"
             onClick={dismiss}
             aria-label="Cerrar oportunidades"
-            style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', background: 'var(--theme-overlay, rgba(255,255,255,.94))', border: '1px solid #ECECEE', cursor: 'pointer', color: 'var(--theme-muted, #71717A)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'absolute', top: 2, right: 2, zIndex: 2, width: 44, height: 44, padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <X size={15} strokeWidth={2.2} />
+            <span aria-hidden style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--theme-overlay, rgba(255,255,255,.94))', border: '1px solid #ECECEE', color: 'var(--theme-muted, #71717A)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={15} strokeWidth={2.2} />
+            </span>
           </button>
 
-          <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .28s ease' }}>
+          <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .22s ease-out' }}>
             {it.foto ? (
               <span style={{ position: 'relative', width: 96, height: 82, borderRadius: 12, overflow: 'hidden', background: '#EEF2F0' }}>
                 <Image src={it.foto} alt="" fill sizes="96px" style={{ objectFit: 'cover' }} />
@@ -402,7 +466,7 @@ export default function OportunidadesPopup() {
             ) : (
               <span style={{ width: 96, height: 82, borderRadius: 12, background: '#EEF2F0' }} />
             )}
-            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, paddingRight: 30 }}>
+            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, paddingRight: 38 }}>
               <span style={{ alignSelf: 'flex-start', fontFamily: POPPINS, fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, background: `var(--theme-tint, ${meta.bg})`, borderRadius: 999, padding: '3px 8px', whiteSpace: 'nowrap' }}>
                 {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · -${String(it.pctBaja).replace('.', ',')}%` : ''}
               </span>
@@ -416,18 +480,24 @@ export default function OportunidadesPopup() {
             </span>
           </Link>
 
+          {/* Puntitos de 7 px imposibles de tocar con el pulgar → un solo
+              control de 44 px de alto que pasa a la siguiente, como el
+              indicador de páginas del iPhone. */}
           {items.length > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '0 10px 10px' }}>
+            <button
+              type="button"
+              onClick={() => goTo((activo + 1) % items.length)}
+              aria-label={`Ver otra oportunidad (${activo + 1} de ${items.length})`}
+              style={{ display: 'flex', width: '100%', minHeight: 44, marginTop: -8, alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 10px', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            >
               {items.map((x, i) => (
-                <button
+                <span
                   key={x.propertyId}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={`Oportunidad ${i + 1}`}
-                  style={{ width: i === idx % items.length ? 18 : 7, height: 7, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                  aria-hidden
+                  style={{ width: i === activo ? 18 : 7, height: 7, borderRadius: 999, background: i === activo ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s' }}
                 />
               ))}
-            </div>
+            </button>
           )}
         </aside>
       )}

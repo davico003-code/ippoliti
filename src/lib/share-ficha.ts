@@ -1,7 +1,7 @@
 // Genera una ficha-link para colega vía POST /api/ficha/crear, copia la URL al
 // portapapeles y dispara un toast con el resultado.
-// Usado desde ShareMenu (desktop sidebar), MobileStickyBar (popup mobile) y
-// PropertyShareButton (popup del mapa de /propiedades + cards).
+// Usado desde MenuCompartirPropiedad (el menú de ShareMenu en el panel de la
+// compu y de PropertyShareButton en tarjetas y mapa) y MobileStickyBar.
 //
 // Safari iOS rechaza navigator.clipboard.writeText cuando entre el tap y la
 // llamada hay un `await fetch(...)`: pierde el contexto de user gesture y
@@ -15,6 +15,7 @@
 // Docs: https://developer.mozilla.org/en-US/docs/Web/API/ClipboardItem/ClipboardItem
 
 import { showToast } from '@/components/Toast'
+import { registrarCompartir, type ContextoCompartir } from '@/lib/compartir'
 
 async function fetchFichaBlob(propertyId: number): Promise<{ url: string; blob: Blob }> {
   const res = await fetch('/api/ficha/crear', {
@@ -46,6 +47,9 @@ export async function copiarTexto(text: string): Promise<boolean> {
     ta.style.opacity = '0'
     document.body.appendChild(ta)
     ta.select()
+    // iOS no selecciona un textarea readonly con select() solo: sin el rango,
+    // execCommand devolvía true y el portapapeles quedaba vacío.
+    ta.setSelectionRange(0, text.length)
     const ok = document.execCommand('copy')
     document.body.removeChild(ta)
     return ok
@@ -56,7 +60,21 @@ export async function copiarTexto(text: string): Promise<boolean> {
 
 // Devuelve true si terminó con link copiado, false si falló (el toast de
 // error ya se mostró acá — el caller NO debe mostrar otro toast propio).
-export async function generarYCopiarFichaLink(propertyId: number): Promise<boolean> {
+// `contexto` (desde qué pantalla) va al evento de GA4: antes el link para
+// colega era la única forma de compartir que no se medía.
+export async function generarYCopiarFichaLink(
+  propertyId: number,
+  contexto: ContextoCompartir = 'ficha',
+): Promise<boolean> {
+  const ok = await generarYCopiar(propertyId)
+  if (ok) registrarCompartir('colega', contexto, propertyId)
+  return ok
+}
+
+// generarYCopiar arranca en el mismo tick que el toque (el primer await es el
+// navigator.clipboard.write con la ClipboardItem): envolverla en
+// generarYCopiarFichaLink no mete ningún await antes del portapapeles.
+async function generarYCopiar(propertyId: number): Promise<boolean> {
   // Path A — Safari iOS y todos los navegadores modernos: ClipboardItem con
   // Promise. La reserva del clipboard se hace dentro del user gesture; el
   // contenido se escribe cuando la promise (fetch + parse) resuelve.

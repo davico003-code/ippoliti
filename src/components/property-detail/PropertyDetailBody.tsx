@@ -3,7 +3,7 @@
 // Shared desktop body: all content sections in identical order for
 // the modal (PropertyPanel) and the full page (/propiedades/[slug]).
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Navigation, Umbrella, Ruler, CalendarDays, Sparkles, Compass, Layers, DoorOpen } from 'lucide-react'
 import {
@@ -74,8 +74,8 @@ const PropertyMap = dynamic(() => import('../PropertyMap'), { ssr: false, loadin
 const BlueprintGallery = dynamic(() => import('../BlueprintGallery'), { ssr: false, loading: BlueprintSkeleton })
 const NearbyPlaces = dynamic(() => import('../NearbyPlaces'), { ssr: false, loading: NearbyPlacesSkeleton })
 
-const R = "'Raleway', system-ui, sans-serif"
-const P = "'Poppins', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const P = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 const CARD = 'bg-white rounded-2xl p-6 shadow-sm border border-gray-100'
 
 function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | null {
@@ -89,15 +89,20 @@ function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | nul
 // Los datos que eran de "Detalles" (22-oct-2026) también van en tarjeta: "5 años"
 // lleva la unidad chica como "m²", y una palabra ("Este", "Contrafrente") va más
 // chica y puede cortarse para no salirse de la tarjeta en el celu.
+// Poppins solo para cifras (regla de David): "Monoambiente", "A estrenar" o
+// "Contrafrente" son palabras y van en Raleway como el resto del texto.
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   const conUnidad = typeof value === 'string' ? value.match(/^([\d.,]+) (m²|años?)$/) : null
   const palabra = typeof value === 'string' && !conUnidad && !/^\d/.test(value)
+  // Palabra larga ("En construcción", "Contrafrente"): un punto más chica y con
+  // interlineado justo; a 27 px los dos renglones quedaban muy separados.
+  const larga = palabra && String(value).length > 10
   return (
     <div className="flex flex-col items-center text-center gap-1 py-3 px-1.5 bg-[#f9fafb] rounded-xl">
       <div style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</div>
       <span
         className={palabra ? 'max-w-full [overflow-wrap:anywhere] [hyphens:auto]' : 'whitespace-nowrap'}
-        style={{ fontFamily: P, fontWeight: 800, fontSize: palabra ? 15 : 18, lineHeight: palabra ? '27px' : undefined, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}
+        style={{ fontFamily: palabra ? R : P, fontWeight: 800, fontSize: palabra ? (larga ? 14 : 15) : 18, lineHeight: palabra ? (larga ? 1.25 : '27px') : undefined, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}
         lang={palabra ? 'es' : undefined}
       >
         {conUnidad ? <>{conUnidad[1]}<span style={{ fontSize: 13, fontWeight: 700 }}> {conUnidad[2]}</span></> : value}
@@ -242,6 +247,21 @@ export default function PropertyDetailBody({
   const disposicion = translateDisposition(property.disposition)
   if (disposicion) specs.push({ icon: <DoorOpen className="w-5 h-5" />, label: 'Disposición', value: disposicion })
 
+  // Resumen pegado al precio ("3 dorm · 2 baños · 150 m² cub. · 2.350 m² lote"): la
+  // pregunta del que mira es "¿cuánto sale y qué es?" y se contesta en un vistazo,
+  // sin bajar hasta las tarjetas (patrón Zillow). Las tarjetas de abajo siguen
+  // siendo el detalle completo. Sale de los mismos campos que `specs`; el número
+  // va en Poppins y la palabra en Raleway.
+  const resumen: { num: string | null; txt: string }[] = []
+  if (isMonoambiente(property)) resumen.push({ num: null, txt: 'Monoambiente' })
+  else if (property.suite_amount > 0) resumen.push({ num: String(property.suite_amount), txt: ' dorm' })
+  if (property.bathroom_amount > 0) resumen.push({ num: String(property.bathroom_amount), txt: property.bathroom_amount === 1 ? ' baño' : ' baños' })
+  // Lo construido: la cubierta; si no está cargada, la total (salvo que sea el terreno).
+  const construida = roofedArea ?? (area != null && area > 0 && area !== lotSurface ? area : null)
+  // "cub." cuando es la cubierta: la tarjeta de abajo puede decir otra "Sup. total".
+  if (construida) resumen.push({ num: construida.toLocaleString('es-AR'), txt: roofedArea ? ' m² cub.' : ' m²' })
+  if (lotSurface != null && lotSurface > 0 && lotSurface !== construida) resumen.push({ num: lotSurface.toLocaleString('es-AR'), txt: ' m² lote' })
+
   return (
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
@@ -255,10 +275,11 @@ export default function PropertyDetailBody({
         </h1>
         {/* Sin chips VENTA / CASA acá: ya están sobre la foto (PropertyGalleryHero,
             con las dos operaciones si es venta + alquiler) y repetidos confundían. */}
-        {/* Dirección a 15 px en el gris oscuro de lectura (estaba a 13 en gris claro: costaba leerla). */}
+        {/* Dirección a 15 px en el gris oscuro de lectura (estaba a 13 en gris claro: costaba leerla).
+            En Raleway: es texto, aunque lleve la altura de la calle. */}
         <div className="flex items-center gap-1.5 mb-4">
           <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
-          <span style={{ fontFamily: P, fontSize: 15, color: 'var(--tinta-soft)' }}>
+          <span style={{ fontFamily: R, fontSize: 15, color: 'var(--tinta-soft)' }}>
             {property.real_address || address}{location ? `, ${location}` : ''}
           </span>
         </div>
@@ -273,7 +294,7 @@ export default function PropertyDetailBody({
                     {precio}
                   </span>
                   {mes && (
-                    <span className="block mt-1 text-sm font-semibold text-gray-600" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                    <span className="block mt-1 text-sm font-semibold text-gray-600 font-numeric">
                       {mes.texto} / mes
                     </span>
                   )}
@@ -302,22 +323,37 @@ export default function PropertyDetailBody({
           ) : (
             <span className="inline-flex items-center gap-2.5 flex-wrap">
               {esOportunidad && (
-                <span className="font-bold text-[11px] uppercase tracking-wider text-gray-900 rounded-md px-2.5 py-1" style={{ fontFamily: P, background: '#fbce07', color: '#111' }}>
+                <span className="font-bold text-[11px] uppercase tracking-wider text-gray-900 rounded-md px-2.5 py-1" style={{ fontFamily: R, background: '#fbce07', color: '#111' }}>
                   Oportunidad
                 </span>
               )}
+              {/* Raleway como el resto de los botones de contacto (MobileStickyBar). */}
               <WhatsappConDatos
                 href={consultarPrecioUrl!}
                 propertyId={property.id}
                 propertyTitle={tituloContacto}
                 className="inline-flex items-center gap-2 bg-[#1A5C38] hover:bg-[#145030] text-white font-bold rounded-xl px-5 py-3 transition-colors"
-                style={{ fontFamily: P, fontSize: 17 }}
+                style={{ fontFamily: R, fontSize: 17 }}
               >
                 <MessageCircle className="w-5 h-5" /> {esOportunidad ? 'Consultanos' : 'Consultar precio'}
               </WhatsappConDatos>
             </span>
           )}
         </div>
+        )}
+        {resumen.length > 0 && (
+          <p className="mt-3" style={{ fontFamily: R, fontSize: 16, fontWeight: 600, color: 'var(--tinta-soft)', lineHeight: 1.4 }}>
+            {resumen.map((d, i) => (
+              <Fragment key={d.txt}>
+                {/* El punto no se lee en voz alta; los espacios de afuera separan los datos. */}
+                {i > 0 && <> <span aria-hidden="true">·</span> </>}
+                <span className="whitespace-nowrap">
+                  {d.num && <span className="font-numeric" style={{ color: 'var(--foreground)', fontWeight: 700 }}>{d.num}</span>}
+                  {d.txt}
+                </span>
+              </Fragment>
+            ))}
+          </p>
         )}
         {/* David 4-oct: "Avisame si baja" — solo venta con precio en dólares a la vista. */}
         {avisarSiBaja && <AvisameSiBaja propertyId={property.id} />}
@@ -383,12 +419,12 @@ export default function PropertyDetailBody({
                   picture={producer?.picture}
                   initials={initials}
                   bg={'#1A5C38'}
-                  fontFamily={"'Raleway', system-ui, sans-serif"}
+                  fontFamily={"var(--font-raleway, 'Raleway'), system-ui, sans-serif"}
                 />
                 <div className="flex-1 min-w-0">
                   <span
                     className="block"
-                    style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--foreground)' }}
+                    style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: 'var(--foreground)' }}
                   >
                     {name}
                   </span>
@@ -505,7 +541,7 @@ export default function PropertyDetailBody({
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <div className="flex items-center gap-2 min-w-0">
               <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-accent, #1A5C38)' }} />
-              <span style={{ fontFamily: P, fontSize: 15, color: 'var(--tinta-soft)' }}>
+              <span style={{ fontFamily: R, fontSize: 15, color: 'var(--tinta-soft)' }}>
                 {direccionCompleta}
               </span>
             </div>
@@ -538,7 +574,7 @@ export default function PropertyDetailBody({
         <SectionBoundary name="lugares-cercanos">
           <section className={CARD}>
             <TituloSeccion mb={4}>Lugares cercanos</TituloSeccion>
-            <p className="font-poppins text-gray-500 text-[13px] mb-4">Escuelas, hospitales, comercios y espacios verdes en la zona</p>
+            <p className="text-gray-500 text-[13px] mb-4" style={{ fontFamily: R }}>Escuelas, hospitales, comercios y espacios verdes en la zona</p>
             {hayCercanos(cercanos) ? <ListaCercanos lugares={cercanos!} /> : <NearbyPlaces lat={currentLat!} lng={currentLng!} />}
           </section>
         </SectionBoundary>

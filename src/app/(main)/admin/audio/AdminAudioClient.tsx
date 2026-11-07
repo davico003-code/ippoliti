@@ -16,7 +16,7 @@ import AudioPlayer from '@/components/audio/AudioPlayer'
 import type { AudioListItem } from '../../api/admin/audio/list/route'
 import type { CronStatus, LastRunSummary } from '@/lib/audio-batch'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = '#1A5C38'
 
 const STORAGE_KEY = 'si_team_access'

@@ -26,7 +26,7 @@ export default function FeedbackDetalle({
   alquiler,
 }: {
   propertyId: number
-  /** Precio publicado numérico. <= 0 → sin slider de valuación. */
+  /** Precio publicado numérico. <= 0 → sin slider de valuación ni aviso de baja. */
   publishedPrice: number
   currency: string
   /** Label en español del tipo ("Casa", "Terreno"…): arma "¿Comprarías esta casa?". */

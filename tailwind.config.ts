@@ -4,18 +4,12 @@ const config: Config = {
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  safelist: [
-    { pattern: /bg-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /text-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /border-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /ring-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /from-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /to-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /via-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    { pattern: /fill-(navy|gold|brand|accent)-(50|100|200|300|400|500|600|700|800|900)/ },
-    "bg-navy", "bg-gold", "text-navy", "text-gold",
-    "bg-brand", "bg-accent", "text-brand", "text-accent",
-  ],
+  // Sin safelist (25-oct-2026): los 8 patrones sin anclar generaban ~590 KB de
+  // variantes con opacidad (.from-gold-100/35…) que nadie usa, en el único CSS
+  // que bloquea el render de todo el sitio. El content glob ya ve las ~37 clases
+  // navy/gold/brand/accent que existen (todas literales, ninguna armada con
+  // template strings). Si algún día se arman clases dinámicas, listarlas acá
+  // como strings explícitos, nunca como patrones.
   theme: {
     extend: {
       colors: {
@@ -90,8 +84,8 @@ const config: Config = {
       },
       fontFamily: {
         serif: ["Georgia", "Cambria", "Times New Roman", "Times", "serif"],
-        sans: ["Raleway", "system-ui", "sans-serif"],
-        numeric: ["Poppins", "system-ui", "sans-serif"],
+        sans: ["var(--font-raleway)", "Raleway", "system-ui", "sans-serif"],
+        numeric: ["var(--font-poppins)", "Poppins", "system-ui", "sans-serif"],
         poppins: ["var(--font-poppins)", "Poppins", "system-ui", "sans-serif"],
         raleway: ["var(--font-raleway)", "Raleway", "system-ui", "sans-serif"],
         lora: ["Georgia", "Cambria", "Times New Roman", "Times", "serif"],

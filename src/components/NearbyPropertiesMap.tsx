@@ -23,7 +23,7 @@ function createPriceBubble(price: string) {
     html: `<div style="position:relative;display:inline-block" class="price-bubble">
       <div style="
         background:#1A5C38;color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:700;font-size:11px;
         padding:4px 8px;border-radius:6px;
         white-space:nowrap;line-height:1.2;
