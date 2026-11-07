@@ -78,12 +78,20 @@ const PILARES = [
   },
 ]
 
-// Fotos reales del complejo (el drone de noche abre la galería) + la aérea satelital
-// de La Forestada para mostrar el entorno.
+// Fotos reales del complejo (el drone de noche abre la galería), los interiores
+// equipados (pasados a 4:3 con outpaint, sin retoque de contenido) y la aérea
+// satelital de La Forestada para mostrar el entorno.
 const FOTOS = [
   'foto-05.jpg',
   'foto-03.jpg',
   'foto-01.jpg',
+  'interior-01-living.jpg',
+  'interior-02-living.jpg',
+  'interior-03-cocina.jpg',
+  'interior-04-dormitorio.jpg',
+  'interior-05-dormitorio.jpg',
+  'interior-06-banio.jpg',
+  'interior-07-ducha.jpg',
   'foto-04.jpg',
   'foto-06.jpg',
   'foto-07.jpg',
