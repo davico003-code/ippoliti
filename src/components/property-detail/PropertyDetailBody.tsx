@@ -94,12 +94,15 @@ function montoOperacion(op: ReturnType<typeof operacionPrincipal>): string | nul
 function SpecCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   const conUnidad = typeof value === 'string' ? value.match(/^([\d.,]+) (m²|años?)$/) : null
   const palabra = typeof value === 'string' && !conUnidad && !/^\d/.test(value)
+  // Palabra larga ("En construcción", "Contrafrente"): un punto más chica y con
+  // interlineado justo; a 27 px los dos renglones quedaban muy separados.
+  const larga = palabra && String(value).length > 10
   return (
     <div className="flex flex-col items-center text-center gap-1 py-3 px-1.5 bg-[#f9fafb] rounded-xl">
       <div style={{ color: 'var(--theme-accent, #1A5C38)' }}>{icon}</div>
       <span
         className={palabra ? 'max-w-full [overflow-wrap:anywhere] [hyphens:auto]' : 'whitespace-nowrap'}
-        style={{ fontFamily: palabra ? R : P, fontWeight: 800, fontSize: palabra ? 15 : 18, lineHeight: palabra ? '27px' : undefined, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}
+        style={{ fontFamily: palabra ? R : P, fontWeight: 800, fontSize: palabra ? (larga ? 14 : 15) : 18, lineHeight: palabra ? (larga ? 1.25 : '27px') : undefined, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)' }}
         lang={palabra ? 'es' : undefined}
       >
         {conUnidad ? <>{conUnidad[1]}<span style={{ fontSize: 13, fontWeight: 700 }}> {conUnidad[2]}</span></> : value}
