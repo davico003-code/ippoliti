@@ -71,6 +71,9 @@ const nextConfig = {
       // escribe en el script del streaming ("/$"===d) y Googlebot lo toma por una
       // URL relativa. No se puede sacar del HTML; al menos que no figure como 404.
       { source: '/\\$', destination: '/', statusCode: 301 },
+      // Fincazul se dio de baja de todos lados (David, 7-nov-2026): la landing se
+      // borró y la URL indexada cae en la sección, no en un 404.
+      { source: '/emprendimientos/fincazul', destination: '/emprendimientos', permanent: true },
       // Redirect vieja guía a la nueva
       {
         source: '/guia-comprador',

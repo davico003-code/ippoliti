@@ -1,7 +1,9 @@
 // Los emprendimientos que comercializamos, como tarjetas: los del feed de Hilo
 // (con su desarrollador) + las landings propias (Tierra Nueva, Fisherton Work,
-// Fincazul, Hausing, Aurea) + los clientes de Redis, en el orden comercial. Una
+// Nórdica 1, Hausing, Aurea) + los clientes de Redis, en el orden comercial. Una
 // sola lista para /emprendimientos y para la tele de la oficina (/tv).
+// Fincazul (MSR) se dio de baja de todos lados el 7-nov-2026 (David): ya no tiene
+// tarjeta ni landing; /emprendimientos/fincazul redirige a /emprendimientos.
 
 import {
   getDevelopments,
@@ -105,20 +107,6 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
   })
 
   cards.push({
-    key: 'fincazul',
-    href: '/emprendimientos/fincazul',
-    image: '/emprendimientos/fincazul/portada.jpg',
-    eyebrow: 'Tu casa en condominio en Funes',
-    title: 'Fincazul',
-    location: 'Paseo del Norte, Funes',
-    description:
-      'Conjuntos privados de doce casas dúplex con portón de acceso. 2 dormitorios y 2 baños, con jardín, piscina y parrillero propios. A pasos de Fisherton.',
-    chips: ['Casas en condominio', 'En construcción'],
-    accent: GREEN,
-    marcas: [{ rol: 'Desarrolla y construye', nombre: 'MSR', logo: LOGOS_CLARO.msr }],
-  })
-
-  cards.push({
     key: 'nordica-1',
     href: '/emprendimientos/nordica-1',
     image: '/emprendimientos/nordica-1/foto-05.jpg',
@@ -176,9 +164,9 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
   }
 
   // Orden comercial: primero los que empujamos (Distrito Roldán, Tierra Nueva,
-  // Hausing, Dockgarden); Aurea y Fincazul al final. El resto conserva su orden.
+  // Hausing, Dockgarden); Aurea al final. El resto conserva su orden.
   const PRIMEROS = ['distrito-roldan', 'tierra-nueva', 'hausing', 'dockgarden']
-  const ULTIMOS = ['aurea', 'fincazul']
+  const ULTIMOS = ['aurea']
   const rango = (c: Card) => {
     const id = c.href.split('/').pop() ?? ''
     const p = PRIMEROS.findIndex((k) => c.key === k || id.includes(k))
