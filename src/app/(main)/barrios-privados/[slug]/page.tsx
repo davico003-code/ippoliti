@@ -31,6 +31,8 @@ import DetalleGaleria from "./_components/DetalleGaleria";
 import DetalleAmenities from "./_components/DetalleAmenities";
 import DetallePlano from "./_components/DetallePlano";
 import DetalleMapaCercanias from "./_components/DetalleMapaCercanias";
+import DetalleCuentaLote from "./_components/DetalleCuentaLote";
+import { cuentaDeBarrio } from "@/lib/cuenta-lote/hilo";
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 import CompartirPagina from '@/components/CompartirPagina'
 
@@ -101,9 +103,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function BarrioPage({ params }: Props) {
+export default async function BarrioPage({ params }: Props) {
   const barrio = getBarrioBySlug(params.slug);
   if (!barrio) notFound();
+
+  // "La cuenta del lote" del barrio (de Hilo; null fuera del piloto o si no responde).
+  const cuenta = await cuentaDeBarrio(barrio.slug);
 
   // Assets procesados (build-time, fs)
   const fotos = getBarrioFotos(barrio.slug);
@@ -125,6 +130,7 @@ export default function BarrioPage({ params }: Props) {
     ...(barrio.amenities.length > 0 ? [{ id: "amenities", label: "Amenities" }] : []),
     { id: "plano", label: "Plano" },
     ...(lat != null && lng != null ? [{ id: "ubicacion", label: "Ubicación" }] : []),
+    ...(cuenta ? [{ id: "cuenta", label: "La cuenta" }] : []),
   ];
 
   // JSON-LD (Place + Breadcrumb + FAQ)
@@ -225,6 +231,10 @@ export default function BarrioPage({ params }: Props) {
       {lat != null && lng != null && (
         <DetalleMapaCercanias barrio={barrio} lat={lat} lng={lng} />
       )}
+
+      {/* 5b. LA CUENTA DEL LOTE — tenerlo parado, la tierra y construir vs comprar
+          (David, 8-nov-2026; solo barrios del piloto). */}
+      <DetalleCuentaLote cuenta={cuenta} nombre={barrio.nombre} />
 
       {/* 6. PROPIEDADES DISPONIBLES — stock vivo Tokko (sin cambios de lógica) */}
       <div className="mx-auto max-w-[1280px] space-y-12 px-6 py-14 md:px-10 md:py-20">

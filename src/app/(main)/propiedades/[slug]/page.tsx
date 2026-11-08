@@ -50,6 +50,7 @@ import {
 } from '@/lib/fotos-fijas';
 import { cercanosGuardados } from '@/lib/cercanos';
 import { tiemposGuardados } from '@/lib/tiempos-viaje';
+import { cuentaParaFicha } from '@/lib/cuenta-lote/hilo';
 import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
 import { videosPropios } from '@/lib/video-oficina';
 
@@ -353,6 +354,8 @@ export default async function PropertyPage({ params }: Props) {
   const [cercanos, tiempos] = hasCoords
     ? await Promise.all([cercanosGuardados(currentLat!, currentLng!), tiemposGuardados(currentLat!, currentLng!)])
     : [null, null];
+  // "La cuenta de este lote": solo lotes de barrios del piloto; null si Hilo no responde.
+  const cuentaLote = await cuentaParaFicha(property);
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
@@ -515,6 +518,7 @@ export default async function PropertyPage({ params }: Props) {
             showMobileContact
             cercanos={cercanos?.ficha ?? null}
             tiempos={tiempos}
+            cuentaLote={cuentaLote}
             // Audio narrado: debajo de los datos, no arriba del título (el precio
             // tiene que entrar en la primera pantalla). Se auto-oculta sin audio.
             despuesDeDatos={

@@ -30,6 +30,7 @@ import {
   tituloVisible,
   getProducerName,
   propertyTypeLabelById,
+  isLand,
 } from '@/lib/tokko'
 import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
 import ContactoSecundario from './ContactoSecundario'
@@ -55,6 +56,9 @@ import AvisameSiBaja from './AvisameSiBaja'
 import ListaCercanos, { hayCercanos } from '../ListaCercanos'
 import type { LugarFicha } from '@/lib/cercanos'
 import TiemposViaje from './TiemposViaje'
+import CuentaDelLote from './CuentaDelLote'
+import type { CuentaDeBarrio } from '@/lib/cuenta-lote/tipos'
+import { enPiloto } from '@/lib/cuenta-lote/calcular'
 import type { TiemposViaje as Tiempos } from '@/lib/tiempos-viaje'
 
 // Skeletons mientras se carga el chunk JS — evitan que la sección quede en
@@ -127,6 +131,7 @@ export default function PropertyDetailBody({
   showMobileContact = false,
   cercanos = null,
   tiempos = null,
+  cuentaLote = null,
   despuesDeDatos = null,
 }: {
   property: TokkoProperty
@@ -138,6 +143,8 @@ export default function PropertyDetailBody({
   /** "¿Cuánto tardás desde acá?" ya guardado (igual que `cercanos`). Sin él,
    *  TiemposViaje lo pide en el navegador. */
   tiempos?: Tiempos | null
+  /** "La cuenta de este lote" (solo lotes de barrios del piloto; la trae la página desde Hilo). */
+  cuentaLote?: CuentaDeBarrio | null
   /** If true, render a mobile-only contact card after the title (used inside the modal). */
   showMobileContact?: boolean
   /** Va justo después de las tarjetas de datos (la ficha del celu pone ahí el audio). */
@@ -194,6 +201,22 @@ export default function PropertyDetailBody({
       .catch(() => {})
     return () => { alive = false }
   }, [property])
+
+  // "La cuenta de este lote": la página del celu la manda ya leída de Hilo
+  // (SSR, Google la indexa). El panel de la compu arma la ficha en el cliente
+  // y no la tiene: se la pide a /api/cuenta-lote cuando el lote está en un
+  // barrio del piloto (misma gate que el servidor).
+  const [cuentaLoteCargada, setCuentaLoteCargada] = useState<CuentaDeBarrio | null>(null)
+  useEffect(() => {
+    if (cuentaLote || !barrio || !isLand(property) || !enPiloto(barrio.slug)) return
+    let alive = true
+    fetch(`/api/cuenta-lote?barrio=${encodeURIComponent(barrio.slug)}`)
+      .then((r) => (r.ok ? (r.json() as Promise<CuentaDeBarrio>) : null))
+      .then((d) => { if (alive && d?.barrio) setCuentaLoteCargada(d) })
+      .catch(() => { /* sin cuenta, sin sección: la ficha sigue igual */ })
+    return () => { alive = false }
+  }, [cuentaLote, barrio, property])
+  const cuenta = cuentaLote ?? cuentaLoteCargada
 
   // Costos iniciales — solo alquiler permanente (operation_type === 'Rent';
   // 'Sale' y 'Temporary rent' / 'Temporary' quedan fuera).
@@ -395,6 +418,15 @@ export default function PropertyDetailBody({
       {/* Celu: el audio y el contacto van DESPUÉS de los datos (21-oct-2026): primero
           se entiende qué es y cuánto sale; WhatsApp igual está siempre en la barra de abajo. */}
       {despuesDeDatos}
+
+      {/* LA CUENTA DE ESTE LOTE (David, 8-nov-2026): tenerlo parado, la tierra y
+          construir vs comprar. Va pegada a los datos: es lo primero que un
+          inversor quiere saber después del precio. */}
+      {cuenta && (
+        <SectionBoundary name="cuenta-lote">
+          <CuentaDelLote property={property} cuenta={cuenta} className={`${CARD} scroll-mt-40`} />
+        </SectionBoundary>
+      )}
 
       {/* Mobile-only contact (inside modal, since modal is used only on desktop anyway this is defensive) */}
       {showMobileContact && (
