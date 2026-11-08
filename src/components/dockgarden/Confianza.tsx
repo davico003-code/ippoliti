@@ -3,7 +3,7 @@
 // Aldea, cómo es cada tipología, con qué está hecho y qué hay cerca. Se usan en
 // el funnel de /emprendimientos/67173-… y en /dockgarden.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import {
   Building2,
   Car,

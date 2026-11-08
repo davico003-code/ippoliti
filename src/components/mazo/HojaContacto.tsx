@@ -4,7 +4,7 @@
 // En hoja (al salir o desde ♥ N) o en línea (el final del mazo).
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { type CriteriosBusqueda, type GuardadaLocal, esEmail, estiloSinLogo, leerContacto, textoBusqueda } from '@/lib/feed-en-red'
 import { trackEvent } from '@/lib/analytics'
 import { contactoListo, mandarConsulta } from '@/lib/mazo-consulta'

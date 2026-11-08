@@ -9,7 +9,7 @@
 
 import type { TokkoVideo } from '@/lib/tokko'
 
-function youtubeId(v: TokkoVideo): string | null {
+export function youtubeId(v: TokkoVideo): string | null {
   if (v.provider?.toLowerCase() === 'youtube' && v.video_id) {
     return v.video_id.trim().match(/^([\w-]+)/)?.[1] ?? null
   }

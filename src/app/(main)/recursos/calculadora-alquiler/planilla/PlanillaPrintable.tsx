@@ -626,6 +626,7 @@ interface ParsedInput {
   cotizacion: number
   incluirAdmin: boolean
   formaPago: FormaPagoHonorarios
+  facturaA: boolean
 }
 
 interface ParsedError {
@@ -669,6 +670,7 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
     cotizacion,
     incluirAdmin,
     formaPago,
+    facturaA: sp.get('factura') === 'A',
   }
 }
 
@@ -718,9 +720,10 @@ export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
     )
   }
 
-  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, incluirAdmin, formaPago } =
+  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, incluirAdmin, formaPago, facturaA } =
     parsed
-  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago })
+  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago, facturaA })
+  const alqDesc = facturaA ? 'Alquiler + IVA' : 'Alquiler'
 
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda permanente' : 'Comercio'
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
@@ -753,17 +756,19 @@ export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
       ? 'ajuste anual por contrato'
       : `ajuste ${frecuencia} por ${indice}`
 
-  const mes23 = alquiler + c.honoEnMes23 + c.admin
-  const mes4 = alquiler + c.admin
+  const mes23 = c.alquilerMensual + c.honoEnMes23 + c.admin
+  const mes4 = c.alquilerMensual + c.admin
   const adminDesc = c.mostrarAdmin ? ' + administración' : ''
 
   // Filas del desglose — el depósito cierra la lista para que el total con
   // depósito de la banda verde se lea completo en un solo lugar.
   const filas: { label: string; sub: string; valor: string }[] = [
     {
-      label: 'Primer mes de alquiler',
-      sub: 'Alquiler del mes en que ingresás',
-      valor: fmt(alquiler, moneda),
+      label: facturaA ? 'Primer mes de alquiler + IVA' : 'Primer mes de alquiler',
+      sub: facturaA
+        ? `Alquiler ${fmt(alquiler, moneda)} + IVA 21% ${fmt(c.ivaAlquiler, moneda)} · Factura A`
+        : 'Alquiler del mes en que ingresás',
+      valor: fmt(c.alquilerMensual, moneda),
     },
     {
       label: c.mostrarMeses23 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · totales + IVA',
@@ -838,7 +843,9 @@ export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
                 {fmt(alquiler, moneda)}
                 <span className="per">por mes</span>
               </div>
-              <div className="dato-sub">Valor base del contrato</div>
+              <div className="dato-sub">
+                {facturaA ? `Valor base del contrato · + IVA 21% (Factura A)` : 'Valor base del contrato'}
+              </div>
             </div>
           </div>
           <div className="dato-card">
@@ -909,7 +916,7 @@ export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
                 <div className="mes-pesos">+ {fmtArs(totalArs)} en pesos</div>
               )}
               <div className="mes-desc">
-                Alquiler + {c.mostrarMeses23 ? '1ª cuota de honorarios' : 'honorarios'} + sellado +
+                {alqDesc} + {c.mostrarMeses23 ? '1ª cuota de honorarios' : 'honorarios'} + sellado +
                 garantes{adminDesc}
               </div>
             </div>
@@ -919,7 +926,7 @@ export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
                 <div className="mes-sub">Cuotas restantes</div>
                 <div className="mes-valor">{fmt(mes23, moneda)}</div>
                 <div className="mes-desc">
-                  Alquiler + 2ª/3ª cuota de honorarios{adminDesc}
+                  {alqDesc} + 2ª/3ª cuota de honorarios{adminDesc}
                 </div>
               </div>
             )}
@@ -930,7 +937,7 @@ export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
               <div className="mes-sub">Pago habitual</div>
               <div className="mes-valor">{fmt(mes4, moneda)}</div>
               <div className="mes-desc">
-                Alquiler{adminDesc} · {ajusteFinalContrato}
+                {alqDesc}{adminDesc} · {ajusteFinalContrato}
               </div>
             </div>
           </div>

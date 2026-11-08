@@ -2,6 +2,7 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect } from 'react'
+import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './property-detail/titulo-seccion'
 import { MapContainer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import Link from 'next/link'
@@ -22,7 +23,7 @@ function createPriceBubble(price: string) {
     html: `<div style="position:relative;display:inline-block" class="price-bubble">
       <div style="
         background:#1A5C38;color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:700;font-size:11px;
         padding:4px 8px;border-radius:6px;
         white-space:nowrap;line-height:1.2;
@@ -75,7 +76,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 overflow-hidden max-w-full">
-      <h2 style={{ fontFamily: "'Raleway', system-ui, sans-serif" }} className="text-[18px] font-extrabold text-gray-900 mb-1">Otras propiedades en la zona</h2>
+      <h2 style={ESTILO_TITULO_SECCION} className={`${TITULO_SECCION} mb-1`}>Otras propiedades en la zona</h2>
       <p className="text-gray-500 text-[13px] mb-4 font-poppins">Explorá propiedades cercanas en el mapa · {nearbyProperties.length} propiedad{nearbyProperties.length !== 1 ? 'es' : ''}</p>
 
       <div className="w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden">

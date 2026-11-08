@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Image from "next/image"
+import Image from "@/components/Imagen"
 import Link from "next/link"
 import { ArrowRight, ArrowUpRight, MessageCircle, Phone } from "lucide-react"
 import { getPropertyById, formatPrice, generatePropertySlug } from "@/lib/tokko"

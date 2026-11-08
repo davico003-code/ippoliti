@@ -15,7 +15,7 @@ const cspReportOnly = [
   "font-src 'self' data:",
   // analytics.google.com no matchea *.google-analytics.com (dominio distinto):
   // GA4 manda /g/collect ahí y sin esta entrada quedaba como violación.
-  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
+  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org https://tiles.openfreemap.org",
   // kuula.co (tours 360 de /dockgarden) y cloudflarestream (videos del
   // desarrollador vía Brickfy) se embeben en iframes; www.google.com es el mapa
   // embebido de /emprendimientos/fisherton-work.
@@ -54,6 +54,12 @@ const nextConfig = {
         source: '/ronda',
         destination: '/ronda/index.html',
       },
+      // Salas de la Ronda (src/lib/ronda/sala.ts): la misma pantalla, su propia grilla.
+      // Los archivos de public/ronda se sirven antes que esta regla; una sala que no existe vuelve a /ronda.
+      {
+        source: '/ronda/:sala',
+        destination: '/ronda/index.html',
+      },
     ]
   },
   async redirects() {
@@ -65,6 +71,9 @@ const nextConfig = {
       // escribe en el script del streaming ("/$"===d) y Googlebot lo toma por una
       // URL relativa. No se puede sacar del HTML; al menos que no figure como 404.
       { source: '/\\$', destination: '/', statusCode: 301 },
+      // Fincazul se dio de baja de todos lados (David, 7-nov-2026): la landing se
+      // borró y la URL indexada cae en la sección, no en un 404.
+      { source: '/emprendimientos/fincazul', destination: '/emprendimientos', permanent: true },
       // Redirect vieja guía a la nueva
       {
         source: '/guia-comprador',

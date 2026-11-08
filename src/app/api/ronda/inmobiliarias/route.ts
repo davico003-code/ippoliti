@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { listarInmobiliarias } from '@/lib/ronda/almacen'
+import { inmobiliariaDeSala, salaDe } from '@/lib/ronda/sala'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -15,7 +16,9 @@ export async function GET(req: Request) {
   if (cerrado) return cerrado
 
   try {
-    const lista = await listarInmobiliarias()
+    // En una sala, solo las suyas.
+    const sala = salaDe(req)
+    const lista = (await listarInmobiliarias()).filter((i) => inmobiliariaDeSala(sala, i.nombre))
     return NextResponse.json(
       { inmobiliarias: lista.map(({ id, nombre, matriculado, matricula }) => ({ id, nombre, matriculado, matricula })) },
       { headers: { 'Cache-Control': 'private, no-store' } },

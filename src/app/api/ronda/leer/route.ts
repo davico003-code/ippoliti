@@ -12,7 +12,8 @@ import { sinAcceso } from '@/lib/ronda/acceso'
 import { rateLimit } from '@/lib/feedback'
 import { anotarLectura, guardarLectura, listarPublicaciones, type ResultadoLectura } from '@/lib/ronda/almacen'
 import { AvisoSinLectura, ENLACE_NO_SIRVE, leerAviso } from '@/lib/ronda/aviso'
-import { barrioVisible, chequeoAlPublicar, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
+import { ciudadesDe, salaDe } from '@/lib/ronda/sala'
+import { barrioVisible, chequeoAlPublicar, esCiudadRonda, claveDeUrl, origenDeLink } from '@/lib/ronda/reglas'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -62,8 +63,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const grilla = await listarPublicaciones(true)
-    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza })
+    const sala = salaDe(req)
+    const grilla = await listarPublicaciones(true, sala)
+    const traba = chequeoAlPublicar(grilla, { agenteId: sesion.aid, inmobiliariaId: sesion.iid }, { url, reemplaza }, Date.now(), sala?.maxCaptacionesPorAgente ?? null)
     if (traba) return error(traba.error, traba.status, traba.limite ? { limite: true } : {})
     const clave = claveDeUrl(url)
 
@@ -81,7 +83,8 @@ export async function POST(req: Request) {
       aviso: {
         tipo: aviso.tipo,
         operacion: aviso.operacion,
-        ciudad: aviso.ciudad,
+        // Solo se preselecciona una ciudad que se pueda elegir acá (Rosario solo en las salas).
+        ciudad: esCiudadRonda(aviso.ciudad, ciudadesDe(sala)) ? aviso.ciudad : null,
         barrio: aviso.ciudad ? barrioVisible(aviso.barrio, aviso.ciudad) : aviso.barrio,
         precio: aviso.precio,
         moneda: aviso.moneda,

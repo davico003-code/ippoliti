@@ -37,7 +37,7 @@ export default function CaraAgenteCard({ agente, size = CARA_AGENTE_COMPU }: { a
         picture={agente.picture}
         initials=""
         bg="#1A5C38"
-        fontFamily="'Raleway', system-ui, sans-serif"
+        fontFamily="var(--font-raleway, 'Raleway'), system-ui, sans-serif"
         size={size}
         className="ring-[3px] ring-white shadow-[0_3px_12px_rgba(0,0,0,0.22)]"
       />
@@ -47,7 +47,7 @@ export default function CaraAgenteCard({ agente, size = CARA_AGENTE_COMPU }: { a
           bottom: -9,
           padding: '3px 10px',
           color: 'var(--brand)',
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontWeight: 800,
           fontSize: size >= CARA_AGENTE_COMPU ? 12 : 11,
           lineHeight: 1.2,

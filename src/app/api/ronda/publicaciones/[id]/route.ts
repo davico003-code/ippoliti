@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server'
 import { sinAcceso } from '@/lib/ronda/acceso'
 import { borrarPublicacion, publicacionPorId } from '@/lib/ronda/almacen'
+import { salaDe } from '@/lib/ronda/sala'
 import { sesionDe } from '@/lib/ronda/sesion'
 
 export const dynamic = 'force-dynamic'
@@ -27,13 +28,14 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   if (!modera && !sesion) return NextResponse.json({ error: 'Primero cargá tus datos para entrar a la ronda.' }, { status: 401 })
 
   try {
-    const publicacion = await publicacionPorId(id)
+    const sala = salaDe(req)
+    const publicacion = await publicacionPorId(id, sala)
     if (!publicacion) return NextResponse.json({ ok: true })
     const suya = publicacion.agente.id === sesion?.aid || publicacion.agente.whatsapp === sesion?.whatsapp
     if (!modera && !suya) {
       return NextResponse.json({ error: 'Solo la puede dar de baja quien la publicó.' }, { status: 403 })
     }
-    await borrarPublicacion(id)
+    await borrarPublicacion(id, sala)
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ error: 'No se pudo dar de baja. Probá de nuevo.' }, { status: 503 })

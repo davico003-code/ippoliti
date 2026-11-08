@@ -140,3 +140,13 @@
 /* En el celular cada serie se desliza de costado: la página no se hace eterna. */
 @media(max-width:640px){.rail{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;margin:-6px -22px 0;padding:6px 22px 8px;scroll-padding-inline:22px;scrollbar-width:none;overscroll-behavior-x:contain}.rail::-webkit-scrollbar{display:none}.rail>.card{flex:0 0 84%;scroll-snap-align:start}.rail.shortGrid>.card{flex-basis:44%}.card h3{font-size:15px}.subtitle{font-size:13px}.detail h1{font-size:27px}.detailPoster{margin-top:20px;border-radius:12px}.detailPoster .playGlyph{left:calc(50% - 28px);bottom:calc(50% - 28px);width:56px;height:56px}.note{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.poster:not(.vertical) .playGlyph{transition:none}}
+
+/* Bajada de cada formato (para qué lo hacemos) y título del hero, más largo que el "Dale play" original. */
+.sectionDesc,.railDesc{font-size:15px;line-height:1.5;color:var(--theme-muted,#5c6d61);margin:6px 0 0;max-width:680px;text-wrap:pretty}
+/* En las filas va debajo del encabezado, alineada con el título (ícono 48 + 15 de separación). */
+.heading:has(+ .railDesc){margin-bottom:6px}
+.railDesc{margin:0 0 24px 63px}
+.hero h1{font-size:clamp(36px,3.8vw,54px);line-height:1.1}
+.intro strong{color:var(--theme-accent,#17613c);font-weight:700}
+@media(max-width:1000px){.hero h1{font-size:42px}}
+@media(max-width:640px){.hero h1{font-size:34px}.sectionDesc,.railDesc{font-size:14px}.railDesc{margin:4px 0 18px}}

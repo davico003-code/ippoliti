@@ -1,11 +1,18 @@
-// Encabezado común de las secciones de la home: eyebrow verde + título +
-// bajada, siempre alineado a la izquierda y con la misma escala. Es lo que
-// hace que la home se lea como una sola pieza.
+// Encabezado común de las secciones de la home: título + bajada, siempre
+// alineado a la izquierda y con la misma escala. Es lo que hace que la home se
+// lea como una sola pieza.
+//
+// Sin eyebrow (la etiqueta verde en mayúscula espaciada que iba arriba del
+// título): PRODUCT.md la nombra como mobiliario de landing de plantilla y era
+// una línea más que leer antes de cada título, que ya dice lo mismo. La prop
+// queda (opcional, no se dibuja) para no tocar cada sección que la pasa; si se
+// quiere volver, es restituir el <p> de abajo del <header>.
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 
 type Props = {
-  eyebrow: string
+  /** Ya no se dibuja (ver arriba). */
+  eyebrow?: string
   titulo: React.ReactNode
   bajada?: React.ReactNode
   /** h2 por defecto; h3 cuando la sección ya tiene su h2. */
@@ -13,23 +20,10 @@ type Props = {
   className?: string
 }
 
-export default function EncabezadoSeccion({ eyebrow, titulo, bajada, nivel = 'h2', className = '' }: Props) {
+export default function EncabezadoSeccion({ titulo, bajada, nivel = 'h2', className = '' }: Props) {
   const H = nivel
   return (
     <header className={`revela ${className}`}>
-      <p
-        style={{
-          fontFamily: RALEWAY,
-          fontWeight: 700,
-          fontSize: 12,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'var(--brand)',
-          margin: 0,
-        }}
-      >
-        {eyebrow}
-      </p>
       <H
         style={{
           fontFamily: RALEWAY,
@@ -38,7 +32,7 @@ export default function EncabezadoSeccion({ eyebrow, titulo, bajada, nivel = 'h2
           lineHeight: 1.06,
           letterSpacing: '-0.035em',
           color: 'var(--foreground)',
-          margin: '10px 0 0',
+          margin: 0,
         }}
       >
         {titulo}

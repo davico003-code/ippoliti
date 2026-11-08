@@ -15,20 +15,23 @@ import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
-import TemporariosHome from '@/components/home/TemporariosHome'
+import MundoSiHome from '@/components/home/MundoSiHome'
 import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
+import OportunidadConsultanos from '@/components/home/OportunidadConsultanos'
+import TextoConNumeros from '@/components/home/TextoConNumeros'
 import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
 import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
-import { esTemporadaVerano } from '@/lib/temporarios-data'
 import {
   getFeaturedProperties,
+  getProperties,
+  sanitizeProperty,
   generatePropertySlug,
   getMainPhoto,
   getAllPhotos,
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -37,6 +40,8 @@ import {
   type TokkoProperty,
 } from '@/lib/tokko'
 import { formatDireccionCompleta } from '@/lib/ubicacion'
+import { construirIndice } from '@/lib/busqueda-propiedades'
+import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
@@ -65,7 +70,8 @@ async function FeaturedPropertiesSection() {
     const fotos = portada ? [portada, ...getAllPhotos(property).filter(f => f !== portada)] : []
     const price = formatPrice(property)
     const operation = getOperationType(property)
-    const roofed = getRoofedArea(property)
+    // Superficie TOTAL (cubierta + semicubierta), como en toda pieza pública.
+    const total = getTotalSurface(property)
     const land = isLand(property)
     const mono = isMonoambiente(property)
     const beds = property.suite_amount ?? property.room_amount
@@ -81,11 +87,11 @@ async function FeaturedPropertiesSection() {
     if (!land && mono) specs.push({ num: '', unit: 'Monoambiente' })
     else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
     if (!land && baths != null && baths > 0) specs.push({ num: String(baths), unit: ` baño${baths > 1 ? 's' : ''}` })
-    if (roofed != null && roofed > 0) specs.push({ num: String(roofed), unit: ' m²' })
+    if (!land && total != null && total > 0) specs.push({ num: total.toLocaleString('es-AR'), unit: ' m²' })
     const lot = getLotSurface(property)
     if (lot != null && lot > 0) {
       if (land) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' })
-      else if (lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m² lote' })
+      else if (lot !== total) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m² lote' })
     }
 
     return (
@@ -142,7 +148,7 @@ async function FeaturedPropertiesSection() {
             <span style={{
               position: 'absolute', top: 10, right: 10, zIndex: 10,
               background: '#75AADB', color: '#0d3a5c',
-              fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
+              fontFamily: RALEWAY, fontWeight: 700, fontSize: 12,
               padding: '3px 10px', borderRadius: 6,
               boxShadow: '0 2px 8px rgba(0,0,0,0.18)', whiteSpace: 'nowrap',
             }}>
@@ -160,34 +166,30 @@ async function FeaturedPropertiesSection() {
         <div style={{ padding: '10px 2px 4px', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
           <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
+          {/* El mismo par del celu (un solo componente para los dos árboles). */}
           {esOportunidadConsultanos(property.id) ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
-              <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>
-                Oportunidad
-              </span>
-              <span style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 14, background: '#1A5C38', color: '#fff', borderRadius: 999, padding: '6px 15px', whiteSpace: 'nowrap' }}>
-                Consultanos →
-              </span>
-            </div>
+            <OportunidadConsultanos style={{ margin: '0 0 6px' }} />
           ) : (
           <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>
           )}
+          {/* La línea en Raleway y solo los números en Poppins (regla de la
+              casa: nunca Poppins en texto corrido). Igual en la dirección. */}
           {specs.length > 0 && (
-            <p style={{ fontFamily: POPPINS, fontSize: 14, color: 'var(--foreground)', margin: '0 0 4px', fontWeight: 400 }}>
+            <p style={{ fontFamily: RALEWAY, fontSize: 14, color: 'var(--foreground)', margin: '0 0 4px', fontWeight: 500 }}>
               {specs.map((s, i) => (
                 <span key={i}>
                   {i > 0 && ' · '}
-                  <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
+                  <span style={{ fontFamily: POPPINS, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
                   {s.unit}
                 </span>
               ))}
             </p>
           )}
           </div>
-          <p style={{ fontFamily: POPPINS, fontSize: 13, color: 'var(--tinta-mute)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
-            {direccion || address}
+          <p style={{ fontFamily: RALEWAY, fontSize: 13, color: 'var(--tinta-mute)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+            <TextoConNumeros texto={direccion || address || ''} />
           </p>
           </div>
           {!agente && <span className="prop-card-arrow" aria-hidden="true"><ArrowRight size={18} strokeWidth={2} /></span>}
@@ -200,21 +202,26 @@ async function FeaturedPropertiesSection() {
     <section className="home-section bg-white [--pad:24px] lg:[--pad:40px]" style={{ padding: 0 }}>
       <div className="max-w-[1440px] mx-auto px-[var(--pad)] pt-14">
         <EncabezadoSeccion
-          eyebrow="Propiedades"
           titulo="Nuestra selección"
           bajada="Elegidas con criterio, no por algoritmo."
           className="mb-7"
         />
       </div>
-      {/* Carrusel a todo el ancho: arranca alineado con el título y llega al
-          borde derecho de la pantalla. */}
+      {/* Carrusel a todo el ancho: la primera tarjeta alineada con el título,
+          la anterior asomando a la izquierda y la fila hasta el borde derecho
+          (David, 18-oct: "por defecto mostralo así full width"). La que asoma
+          es la última de la selección, pasada adelante: así la primera nunca
+          queda cortada. */}
       <div className="pb-12">
         {properties.length > 0 ? (
           <HorizontalCarousel
             className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-2 pb-3 scrollbar-none"
             style={{ paddingLeft: CARRUSEL_IZQ, paddingRight: 24, scrollPaddingLeft: CARRUSEL_IZQ }}
+            arrancarEn={properties.length > 2 ? 1 : undefined}
+            arrastrable
           >
-            {properties.map((p, i) => renderCard(p, matchday && i === 0))}
+            {(properties.length > 2 ? [properties[properties.length - 1], ...properties.slice(0, -1)] : properties)
+              .map(p => renderCard(p, matchday && p === properties[0]))}
             <Link
               href="/propiedades"
               className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
@@ -276,20 +283,29 @@ export const metadata = {
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
+/** Zonas que hoy tienen propiedades: las únicas que sugiere el buscador. Si el
+ *  listado no responde, el buscador sugiere todas (como antes). */
+async function zonasVivas(): Promise<string[] | undefined> {
+  try {
+    const data = await getProperties()
+    return idsDeZonasVivas(construirIndice((data.objects ?? []).map(sanitizeProperty)))
+  } catch (err) {
+    console.error('[home] zonas vivas:', err instanceof Error ? err.message : err)
+    return undefined
+  }
+}
+
 export default async function Home() {
-  // Temporarios: de noviembre a febrero la fila va arriba de "Nuestra
-  // selección"; el resto del año, debajo. Sin temporarios publicados no se ve.
-  const verano = esTemporadaVerano()
+  const vivas = await zonasVivas()
   return (
     <>
       <h1 className="sr-only">Propiedades y servicios inmobiliarios en Funes, Roldán y Rosario</h1>
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
-        <HeroMobile />
-        {verano && <TemporariosHome />}
+        <HeroMobile vivas={vivas} />
         <SeleccionCarousel />
-        {!verano && <TemporariosHome />}
         <ProyectosCarousel />
+        <MundoSiHome />
         <GuiaSection />
         <ConfianzaSection />
         {/* Footer: lo provee FooterWrapper (footer blanco global, responsive). */}
@@ -314,11 +330,10 @@ export default async function Home() {
           }
         ` }} />
 
-        <HeroVideo />
-        {verano && <TemporariosHome />}
+        <HeroVideo vivas={vivas} />
         <FeaturedPropertiesSection />
-        {!verano && <TemporariosHome />}
         <EmprendimientosHome />
+        <MundoSiHome />
         <GuiaDesktop />
         <ConfianzaDesktop />
       </div>

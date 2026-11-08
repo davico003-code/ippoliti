@@ -9,7 +9,8 @@ import { lugaresCercanos } from '@/lib/cercanos'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-// Overpass puede tardar hasta ~20 s la primera vez de una coordenada.
+// Fuera de la zona copiada (lib/cercanos.ts), Overpass puede tardar hasta ~20 s
+// la primera vez de una coordenada.
 export const maxDuration = 60
 
 // Argentina, Uruguay y Paraguay: donde hay propiedades. Fuera de eso no se consulta.

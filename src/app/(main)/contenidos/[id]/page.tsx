@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { notFound } from 'next/navigation'
 import { ArrowUpRight } from 'lucide-react'
 import { videos, categoryLabel, titleParts, esIndexable } from '@/lib/contenidos'

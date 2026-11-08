@@ -26,7 +26,7 @@ export const RE_ARCHIVO_FOTO = /^[\w.-]{1,200}\.(?:jpe?g|png|webp|avif|gif)$/i;
 
 const RE_FIRMADA_PROPERTY_MEDIA = /^\/storage\/v1\/object\/sign\/property-media\/.+/;
 
-type FotoConUrl = { image: string; thumb?: string; original?: string; is_blueprint?: boolean };
+type FotoConUrl = { image: string; thumb?: string; original?: string; is_blueprint?: boolean; is_front_cover?: boolean; r2?: string };
 type PropiedadConFotos = { id: number; photos?: FotoConUrl[] | null };
 
 /** Nombre del archivo de una URL firmada de property-media; null si es cualquier otra URL. */
@@ -114,19 +114,100 @@ export function fotoFija(
 export function conFotosFijas<T extends PropiedadConFotos>(property: T): T {
   if (!property.photos?.length) return property;
   const fijas = fotosFijasDe(property);
-  if (fijas.size === 0) return property;
+  const hayR2 = property.photos.some((foto) => !foto.is_blueprint && esFotoR2(foto.r2));
+  if (fijas.size === 0 && !hayR2) return property;
   return {
     ...property,
     photos: property.photos.map((foto) => {
       if (foto.is_blueprint) return foto;
       const fija = fotoFija(property, foto.image, false, fijas);
-      if (!fija || fija === foto.image) return foto;
+      const cambiaFija = !!fija && fija !== foto.image;
+      // Con sus anchos ya achicados en R2 (22-oct-2026), la foto se MUESTRA
+      // desde ahí (Imagen.tsx la pide al ancho justo, sin el optimizador de
+      // Vercel). `original` queda en la URL fija: es la de los buscadores.
+      const ver = esFotoR2(foto.r2) ? foto.r2 : cambiaFija ? fija : null;
+      if (!ver) return foto;
       return {
         ...foto,
-        image: fija,
-        ...('thumb' in foto ? { thumb: fija } : {}),
-        ...('original' in foto ? { original: fija } : {}),
+        image: ver,
+        ...('thumb' in foto ? { thumb: ver } : {}),
+        ...('original' in foto && cambiaFija ? { original: fija } : {}),
       };
     }),
   };
+}
+
+/**
+ * La foto principal para los buscadores (JSON-LD), absoluta: la URL fija
+ * `/fotos/…` cuando la hay, no la copia de R2 (esa es solo para mostrar).
+ */
+export function fotoPrincipalParaBuscadores(property: PropiedadConFotos): string | null {
+  const fotos = property.photos ?? [];
+  const principal = fotos.find((f) => f.is_front_cover && !f.is_blueprint) ?? fotos.find((f) => !f.is_blueprint) ?? fotos[0];
+  if (!principal) return null;
+  return fotoAbsoluta(esFotoR2(principal.image) ? principal.original ?? principal.image : principal.image);
+}
+
+/**
+ * Fotos ya achicadas en Cloudflare R2 (22-oct-2026).
+ *
+ * Hilo achica cada foto UNA vez a 4 anchos fijos y los guarda en R2
+ * (cron fotos-web-r2, src/lib/storage/fotos-web-r2-reglas.ts en si-crm). El
+ * feed manda en `photos[].r2` la URL del ancho mayor:
+ *   https://fotos.verficha.casa/w1/<ruta de la foto>/1920.webp
+ * y acá se cambia ese número por el ancho que pide el navegador. Así la foto
+ * no pasa por el optimizador de Vercel (cobraba cada transformación: 38.000
+ * por día el 21-oct) y R2 no cobra el tráfico.
+ */
+
+export const ANCHOS_R2 = [480, 828, 1080, 1920] as const;
+
+const RE_FOTO_R2 = /^https:\/\/fotos\.verficha\.casa\/w1\/.+\/(?:480|828|1080|1920)\.webp$/;
+const RE_ANCHO_FINAL = /\/(?:480|828|1080|1920)\.webp$/;
+
+/** true si la URL es una foto con sus anchos en R2. */
+export function esFotoR2(url: unknown): url is string {
+  return typeof url === 'string' && RE_FOTO_R2.test(url);
+}
+
+/**
+ * Cuánto se deja estirar un ancho guardado antes de pasar al siguiente: hasta
+ * un 20%. Entre 1080 y 1920 no hay escalón, y un iPhone (393-430 pt a 3x) pide
+ * 1100-1290 px para la foto a lo ancho: sin tolerancia bajaba la de 1920
+ * (≈440 KB contra ≈136 KB de la de 1080, medido en prod en oct-2026 en la foto
+ * principal de una ficha), justo en la foto que define el LCP. Estirar 1080 a
+ * 1290 en una foto de 280 px de alto no se nota; esperar ~300 KB de más, sí.
+ * Con 1280 en images.deviceSizes (next.config) el navegador elige ese
+ * candidato en los iPhone y acá se sirve la de 1080; las compus que piden
+ * 1920 siguen recibiendo la de 1920.
+ */
+const ESTIRAMIENTO_MAX = 1.2;
+
+/** El ancho guardado más chico que cubre el pedido, estirándolo hasta un 20% (o el mayor). */
+export function anchoR2(pedido: number): number {
+  return ANCHOS_R2.find((a) => a * ESTIRAMIENTO_MAX >= pedido) ?? ANCHOS_R2[ANCHOS_R2.length - 1];
+}
+
+/** Loader de next/image para las fotos de R2: arma la URL del ancho pedido. */
+export function loaderFotoR2({ src, width }: { src: string; width: number; quality?: number }): string {
+  return src.replace(RE_ANCHO_FINAL, `/${anchoR2(width)}.webp`);
+}
+
+/**
+ * La misma foto en JPG desde la web (`/fotos/<id>/<archivo>`) en lugar de la
+ * copia WebP de R2. Es el RESPALDO de los kioscos de TV (/tv y /tv-vertical):
+ * muestran la de R2 y, si el televisor no la abre, esta. No al revés: es la
+ * original (hasta 8 MB y 8064 × 6048, 23-oct-2026). El 22-oct la tele no mostró
+ * las de R2, pero ninguna foto se veía por el `inset` que su navegador no
+ * entiende (arreglado el 23-oct). Cualquier otra URL queda igual.
+ */
+export function fotoJpgDeLaWeb(id: number, url: string): string {
+  if (!esFotoR2(url)) return url;
+  let archivo: string;
+  try {
+    archivo = decodeURIComponent(url.replace(RE_ANCHO_FINAL, '').split('/').pop() ?? '');
+  } catch {
+    return url;
+  }
+  return RE_ARCHIVO_FOTO.test(archivo) ? urlFotoFija(id, archivo) : url;
 }

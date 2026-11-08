@@ -5,7 +5,7 @@
 // public/emprendimientos/fisherton-work.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   ArrowLeft,

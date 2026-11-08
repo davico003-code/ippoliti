@@ -32,7 +32,7 @@ const RENDERS = new Set([
 ])
 
 /** Archivos propios de la landing que son renders o imágenes ilustrativas. */
-const RENDER_POR_NOMBRE = /^(render|hero-aerea|galeria-comercial)/i
+const RENDER_POR_NOMBRE = /^(render|hero-aerea|galeria-comercial|portada-atardecer)|ilustrativa/i
 
 /** Nombre del archivo sin extensión, que es lo que identifica a la foto. */
 function idDeFoto(url: string): string {

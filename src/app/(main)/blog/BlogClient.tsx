@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowRight, Clock3, Search, SlidersHorizontal, X } from 'lucide-react'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 

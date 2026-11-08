@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getProperties, sanitizeProperty, ocultarPrecioOportunidad, type TokkoListResponse } from '@/lib/tokko'
+import { getProperties, sanitizeProperty } from '@/lib/tokko'
 import { enrichCardsWithAudio, fotosExtraDeCards, projectToCard } from '@/lib/projections'
-import { conFotosFijas } from '@/lib/fotos-fijas'
 
 // Devuelve TODAS las propiedades disponibles proyectadas a card-shape
 // (sin description, photos array, tags, videos, etc.). Lo consumen los
@@ -13,32 +12,16 @@ import { conFotosFijas } from '@/lib/fotos-fijas'
 // seguro cachearlo: antes iba no-store y CADA ficha desktop re-bajaba el
 // feed completo (~1MB, ~5s). Ahora cachea en el CDN 5 min y participa de la
 // revalidación por tag 'tokko-properties' (propagación instantánea al cargar).
+// Lee el mismo listado que /propiedades (getProperties: oportunidades sin
+// monto, fotos con URL fija y el feed por páginas que entran en el Data Cache).
 
 export const dynamic = 'force-dynamic'
-
-const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com'
-
-async function getFreshProperties(): Promise<TokkoListResponse> {
-  if ((process.env.DATA_SOURCE || '').toLowerCase() !== 'hilo') {
-    return getProperties()
-  }
-
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1000`, {
-    next: { revalidate: 300, tags: ['tokko-properties'] },
-  })
-  if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`)
-  const data = (await res.json()) as TokkoListResponse
-  // Mismo criterio que getProperties: las oportunidades "Consultanos" van sin
-  // monto, y las fotos con URL fija (lib/fotos-fijas.ts).
-  data.objects = (data.objects ?? []).map((o) => conFotosFijas(ocultarPrecioOportunidad(o)))
-  return data
-}
 
 const CACHE = { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=900' }
 
 export async function GET(req: Request) {
   try {
-    const data = await getFreshProperties()
+    const data = await getProperties()
     const sanitized = (data.objects ?? []).map(sanitizeProperty)
     const objects = sanitized.map(projectToCard)
     // ?fotos=extra → solo las fotos 2-5 de cada card ({ id: [urls] }): el listado

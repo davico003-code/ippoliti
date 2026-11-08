@@ -12,6 +12,7 @@
 import { getAudioUrlsBulk } from './audio'
 import type { TokkoProperty } from './tokko'
 import type { TemporadaFeed } from './temporarios'
+import { rasgosVerificables } from '@/lib/busqueda-propiedades'
 
 function isStaticBuild() {
   return process.env.NEXT_PHASE === 'phase-production-build'
@@ -76,6 +77,9 @@ export interface PropertyCardProjection {
   // audio generado, queda null y el card no renderiza el botón de play.
   // Se popula vía enrichCardsWithAudio() después de projectToCard().
   audioUrl: string | null
+  /** Lo que el buscador puede verificar de las comodidades (hoy: 'pileta').
+   *  Solo eso viaja al HTML, no la lista entera. undefined = sin datos. */
+  rasgos?: string[]
   agente?: { name: string; picture: string } | null
 }
 
@@ -170,6 +174,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
       ? { id: p.development.id, name: p.development.name }
       : null,
     audioUrl: null,
+    ...(Array.isArray(p.comodidades) ? { rasgos: rasgosVerificables(p.comodidades) } : {}),
     ...(p.agente !== undefined ? { agente: p.agente } : {}),
   }
 }

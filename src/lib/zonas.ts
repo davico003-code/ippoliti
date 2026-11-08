@@ -417,14 +417,6 @@ const ROSARIO: Zona[] = [
     aliases: ['Fisherton Rosario'],
   },
   {
-    id: 'rosario-fisherton-r',
-    nombre: 'Fisherton R',
-    ciudad: 'Rosario',
-    tipo: 'barrio',
-    centro: { lat: -32.9280, lng: -60.7150 },
-    aliases: [],
-  },
-  {
     id: 'rosario-lourdes',
     nombre: 'Lourdes',
     ciudad: 'Rosario',
@@ -677,7 +669,9 @@ function normalize(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
-export function buscarZonas(query: string, max = 8): Zona[] {
+/** `vivas`: ids de las zonas que hoy tienen propiedades (lib/zonas-vivas.ts).
+ *  Sin eso se sugerían zonas que daban "No encontramos" (25 de 79, 25-oct). */
+export function buscarZonas(query: string, max = 8, vivas?: ReadonlySet<string>): Zona[] {
   const q = normalize(query.trim())
   if (q.length < 2) return []
 
@@ -685,6 +679,7 @@ export function buscarZonas(query: string, max = 8): Zona[] {
   const scored: { zona: Zona; score: number }[] = []
 
   for (const zona of ZONAS) {
+    if (vivas && !vivas.has(zona.id)) continue
     const nombre = normalize(zona.nombre)
     const ciudad = normalize(zona.ciudad)
     const aliasNorm = (zona.aliases ?? []).map(normalize)

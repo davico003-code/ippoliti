@@ -9,6 +9,8 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { trackEvent, trackFbCustomEvent } from '@/lib/analytics'
+import { escribirContacto, leerContacto } from '@/lib/feed-en-red'
+import { haptico } from '@/lib/haptico'
 import { celularArValido, normalizarCelularAr, PLAZOS_VENTA } from '@/lib/tasacion/formato'
 import type { PlazoVenta, UtmTasacion } from '@/lib/tasacion/types'
 import { TEXTO_TIPO, TIPO_PEDIDO, type OpcionTasar, type TipoTasar } from '@/lib/tasador/opciones'
@@ -55,6 +57,14 @@ export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad,
   }, [estado])
   const ids = { nombre: useId(), tel: useId(), errTel: useId(), errNombre: useId(), honey: useId() }
 
+  // Lo que ya dejó en este navegador (el mismo contacto de la consulta, la
+  // visita y el WhatsApp con datos): no se lo volvemos a pedir.
+  useEffect(() => {
+    const c = leerContacto()
+    if (c.nombre) setNombre((v) => v || c.nombre.slice(0, 80))
+    if (c.whatsapp) setWhatsapp((v) => v || c.whatsapp)
+  }, [])
+
   const lugar = zona ? (zona.esCiudad ? zona.ciudad : zona.nombre) : ''
   const digitos = normalizarCelularAr(whatsapp)
   const telValido = celularArValido(digitos)
@@ -86,6 +96,8 @@ export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad,
     if (!nombreValido) return irA(ids.nombre)
     if (!telValido) return irA(ids.tel)
     if (!zona || enviandoRef.current) return
+    // Vibra dentro del toque (antes del primer await): en iPhone solo así se siente.
+    haptico()
     enviandoRef.current = true
     setEnviando(true)
     setError(null)
@@ -127,6 +139,10 @@ export default function PedidoTasacion({ modo, tipo, zona, m2, lote, antiguedad,
         return
       }
       // Solo acá: el servidor confirmó que Hilo recibió el pedido.
+      // Confirmación extra para Android (en iPhone, después del await, no vibra).
+      haptico(true)
+      // Y queda guardado: la próxima consulta en el sitio no se lo vuelve a pedir.
+      escribirContacto({ nombre: nombre.trim(), whatsapp: digitos })
       trackFbCustomEvent('TasacionPedida', { content_name: 'Tasación', barrio: zona.nombre, plazo: plazo ?? '' })
       trackEvent('tasacion_pedido', { barrio: zona.nombre, tipo, plazo: plazo ?? '', origen: `tasador-${modo}` })
       setEstado('listo')

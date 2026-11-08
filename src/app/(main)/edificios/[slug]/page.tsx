@@ -3,7 +3,7 @@
 // al filtrar por dormitorios o precio); esta página las muestra juntas.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MapPin } from 'lucide-react'
@@ -29,7 +29,7 @@ import {
 export const revalidate = 3600
 
 const BASE = 'https://siinmobiliaria.com'
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = '#1A5C38'
 
 async function cargarEdificios(): Promise<Edificio[]> {

@@ -1,6 +1,8 @@
 // Llena el caché de "Lugares cercanos" (Redis, un año) para TODAS las propiedades
 // publicadas, de a una y con paciencia: Overpass público suele estar saturado y
 // pide reintentar con espera. Las que ya están guardadas responden al instante.
+// Dentro de la zona de src/data/lugares-zona.json ya no hace falta: responden de
+// la copia (scripts/lugares-zona.mts); sirve para las de afuera.
 //
 //   node scripts/calentar-cercanos.mjs                       → producción
 //   BASE_URL=https://<preview>.vercel.app node scripts/calentar-cercanos.mjs

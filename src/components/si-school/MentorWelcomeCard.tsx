@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { useState } from 'react'
 
 const PAPER = '#FAF7F2'

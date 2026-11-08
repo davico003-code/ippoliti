@@ -30,6 +30,9 @@ import { Avatar, FotoAsesor, LINEA_EN_RED, isValidNote, primerNombre, tieneFicha
  */
 
 const MENSAJE_PARECIDAS = 'Ninguna te convenció. Mirá estas parecidas a lo que buscás.'
+const AVISO_SIN_GUARDAR = 'No pudimos guardar tu última respuesta. Lo reintentamos solos.'
+/** Espera antes de cada reintento de una respuesta que no se guardó (429/5xx/sin red). */
+const ESPERAS_REINTENTO = [1500, 4000, 10000]
 
 type CuerpoReaccion = {
   propertyId: string
@@ -127,19 +130,58 @@ export default function ClientShortlist({
   // solo JSON (lee → cambia → escribe) y dos PATCH a la vez se pisaban; en el
   // mazo, deslizando rápido, se perdían respuestas que el asesor nunca veía.
   const cola = useRef<Promise<unknown>>(Promise.resolve())
+  // Reintentos (25-oct): un 429 (límite por IP) o un 5xx ya no se tragan en
+  // silencio — es justo el ♥ o el "Quiero visitarla" que el asesor espera ver
+  // en HILO. La respuesta vuelve a la cola (sigue saliendo de a una) con espera
+  // creciente; si se agotan los intentos, avisamos y queda pendiente para
+  // cuando vuelva la conexión o el próximo envío.
+  const intentos = useRef<Record<string, number>>({})
+  // La última respuesta de cada propiedad: un reintento viejo nunca pisa una más nueva.
+  const vigente = useRef<Record<string, CuerpoReaccion>>({})
+  const avisoGuardado = useRef<ReturnType<typeof setTimeout>>()
 
   const enviar = useCallback((id: string, urgente = false) => {
     const body = porGuardar.current[id]
     if (!body) return
     delete porGuardar.current[id]
     if (soloMirar) return
+    const reintentar = () => {
+      // Ya hay una respuesta más nueva para esta propiedad: esa manda.
+      if (vigente.current[id] !== body || porGuardar.current[id]) return
+      porGuardar.current[id] = body
+      const n = intentos.current[id] ?? 0
+      if (n >= ESPERAS_REINTENTO.length) {
+        // Sin más reintentos automáticos: queda en porGuardar (sale con el
+        // próximo flush, al volver la conexión o al cerrar la pestaña).
+        setAviso(AVISO_SIN_GUARDAR)
+        clearTimeout(avisoGuardado.current)
+        avisoGuardado.current = setTimeout(() => setAviso((a) => (a === AVISO_SIN_GUARDAR ? null : a)), 4500)
+        return
+      }
+      intentos.current[id] = n + 1
+      clearTimeout(timers.current[id])
+      timers.current[id] = setTimeout(() => enviar(id), ESPERAS_REINTENTO[n])
+    }
     const mandar = () =>
       fetch(`/api/seleccion/${token}/reaccion`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
         keepalive: urgente,
-      }).catch(() => {})
+      }).then(
+        (res) => {
+          if (res.ok) {
+            delete intentos.current[id]
+            return
+          }
+          // 429 (muy seguido) y 5xx son pasajeros: se reintenta. Un 400/404/410
+          // (propiedad inválida, selección vencida, ya no disponible) no se arregla
+          // reintentando.
+          if (res.status === 429 || res.status >= 500) reintentar()
+        },
+        // Sin red (o la pestaña se fue en el medio): también se reintenta.
+        () => reintentar(),
+      )
     // La página se está yendo: ya, sin esperar turno.
     if (urgente) {
       void mandar()
@@ -156,15 +198,22 @@ export default function ClientShortlist({
     }
   }, [enviar])
 
-  // Que no se pierda la última respuesta si cierra la pestaña enseguida.
+  // Que no se pierda la última respuesta si cierra la pestaña enseguida
+  // (fetch con keepalive: sobrevive al cierre; sendBeacon no sirve acá porque
+  // solo hace POST y el endpoint es PATCH).
   useEffect(() => {
     const salirYa = () => flush(true)
     const onHide = () => { if (document.visibilityState === 'hidden') flush(true) }
+    // Volvió la conexión: lo que quedó sin guardar sale de nuevo, con intentos frescos.
+    const onOnline = () => { intentos.current = {}; flush() }
     window.addEventListener('pagehide', salirYa)
     document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('online', onOnline)
     return () => {
       window.removeEventListener('pagehide', salirYa)
       document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('online', onOnline)
+      clearTimeout(avisoGuardado.current)
     }
   }, [flush])
 
@@ -183,7 +232,7 @@ export default function ClientShortlist({
       sumadas.current.add(item.id)
     }
 
-    porGuardar.current[item.id] = {
+    const cuerpo: CuerpoReaccion = {
       propertyId: item.id,
       liked: updated.liked ?? null,
       wantVisit: !!updated.wantVisit,
@@ -194,6 +243,10 @@ export default function ClientShortlist({
         ? { tarjeta: { title: item.title, image: item.photos[0] ?? null, location: item.location, price: item.price, rooms: item.rooms, baths: item.baths, area: item.area } }
         : {}),
     }
+    porGuardar.current[item.id] = cuerpo
+    vigente.current[item.id] = cuerpo
+    // Respuesta nueva: arranca con sus reintentos completos.
+    delete intentos.current[item.id]
     clearTimeout(timers.current[item.id])
     timers.current[item.id] = setTimeout(() => enviar(item.id), 700)
   }

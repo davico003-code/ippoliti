@@ -4,6 +4,8 @@
 // coordinar la visita con el colega). La persona les da ♥ y, al salir, deja
 // nombre y WhatsApp: la consulta entra a Hilo con todo lo que marcó.
 
+import { guardarCookieWhatsapp } from '@/lib/cookie-whatsapp'
+
 export type PosicionLogo = 'abajo-izq' | 'abajo-der'
 
 /**
@@ -236,6 +238,8 @@ export function escribirContacto(c: Partial<ContactoLocal>): void {
     const previo = leerContacto()
     const limpio = Object.fromEntries(Object.entries(c).filter(([, v]) => typeof v === 'string' && v.trim()))
     window.localStorage.setItem(CLAVE_CONTACTO, JSON.stringify({ ...previo, ...limpio }))
+    // El celular también va a los links de WhatsApp (/w/…): quien ya habla con un agente sigue con él.
+    guardarCookieWhatsapp(limpio.whatsapp ?? previo.whatsapp)
   } catch {
     /* sin almacenamiento: se vuelve a pedir */
   }
@@ -549,7 +553,7 @@ export type CriteriosBusqueda = {
   dormMin?: number | null
   /** Barrio cerrado/abierto (solo "Conocé tu próximo hogar", al buscar una ciudad). */
   barrio?: BarrioHogar | null
-  origen: 'conoce_tu_hogar' | 'ficha'
+  origen: 'conoce_tu_hogar' | 'ficha' | 'buscador'
 }
 
 export function esEmail(v: string): boolean {
@@ -585,7 +589,7 @@ export function parsearCriteriosWeb(raw: unknown): CriteriosBusqueda | null {
     topeUsd: Number.isFinite(tope) && tope >= 10_000 && tope <= 20_000_000 ? Math.round(tope) : null,
     dormMin: tipo === 'lot' ? null : dormMinValido(r.dormMin),
     barrio: barrioHogarValido(r.barrio),
-    origen: r.origen === 'ficha' ? 'ficha' : 'conoce_tu_hogar',
+    origen: r.origen === 'ficha' || r.origen === 'buscador' ? r.origen : 'conoce_tu_hogar',
   }
 }
 

@@ -2,7 +2,7 @@
 
 import { Check, Sparkles, Video } from 'lucide-react'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = '#1A5C38'
 const AGENT_PHONE = '5493413340916'
 
