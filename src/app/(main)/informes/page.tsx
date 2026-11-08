@@ -2,6 +2,11 @@ import type { Metadata } from 'next'
 // InformesDashboard (recharts) se carga vía InformesDashboardLazy ("use client"):
 // un import estático acá metía recharts entero en el First Load JS de la ruta.
 import InformesDashboardLazy from './InformesDashboardLazy'
+import ResumenIndicadores from './ResumenIndicadores'
+
+// ISR de una hora: el resumen del server lee los indicadores de Redis con la
+// misma vigencia que el dashboard (el cron los renueva los lunes).
+export const revalidate = 3600
 
 export const metadata: Metadata = {
   title: 'Informes de Mercado Inmobiliario | SI INMOBILIARIA',
@@ -33,6 +38,8 @@ export default function InformesPage() {
         </div>
       </div>
       <InformesDashboardLazy />
+      {/* Texto indexable con los números de hoy: el dashboard es client-only. */}
+      <ResumenIndicadores />
     </>
   )
 }
