@@ -7,6 +7,12 @@ export interface Zona {
   bounds?: { north: number; south: number; east: number; west: number }
   poligono?: [number, number][]
   aliases?: string[]
+  /** Cómo se ofrece y se escribe en el buscador cuando el nombre solo confunde:
+   *  "Vida" es también el comienzo de Vida Lagoon, Vida Club de Campo, Vida Green… */
+  etiqueta?: string
+  /** Nombres de ubicación que SON esta zona y solo ellos. Buscada por su
+   *  etiqueta compara el barrio del aviso entero ("Vida" no es "Vida Lagoon"). */
+  nombresExactos?: string[]
 }
 
 // ─── FUNES ──────────────────────────────────────────────────────────────────────
@@ -110,6 +116,20 @@ const FUNES: Zona[] = [
     aliases: [],
   },
   {
+    // El barrio Vida a secas (Rossetti), Av. Illia casi Rosario: en Tokko "Barrio
+    // Vida" o "Vida". Los otros también se llaman Vida (Lagoon, Club de Campo,
+    // Green, Jardín): "Vida" sola los trae a todos; esta zona es SOLO este barrio
+    // (David, 8-nov-2026: "la opción de buscar Vida, barrio cerrado").
+    id: 'funes-vida',
+    nombre: 'Vida',
+    ciudad: 'Funes',
+    tipo: 'barrio_cerrado',
+    centro: { lat: -32.9315, lng: -60.7947 },
+    aliases: ['Barrio Vida', 'Vida Barrio Cerrado'],
+    etiqueta: 'Vida (barrio cerrado)',
+    nombresExactos: ['Vida', 'Barrio Vida'],
+  },
+  {
     // Vida 3 — Rossetti Desarrollos, 150 ha noroeste Funes, límite Roldán
     id: 'funes-vida-lagoon',
     nombre: 'Vida Lagoon',
@@ -125,7 +145,7 @@ const FUNES: Zona[] = [
     ciudad: 'Funes',
     tipo: 'barrio_cerrado',
     centro: { lat: -32.9320, lng: -60.7830 },
-    aliases: ['Vida', 'Vida Club', 'Vida 1', 'Vida I', 'Barrio Vida'],
+    aliases: ['Vida', 'Vida Club', 'Vida 1', 'Vida I'],
   },
   {
     // Vida 2 — Rossetti Desarrollos, zona norte Funes, Mitre y Colonos de Funes
@@ -662,6 +682,14 @@ const ROSARIO: Zona[] = [
 // ─── CATÁLOGO COMPLETO ──────────────────────────────────────────────────────────
 
 export const ZONAS: Zona[] = [...FUNES, ...ROLDAN, ...ROSARIO]
+
+/** Lo que se escribe en el buscador al elegir la zona (la etiqueta, si la tiene). */
+export const nombreBuscable = (z: Zona): string => z.etiqueta ?? z.nombre
+
+/** El detalle a la derecha de la sugerencia: la ciudad, y "Country" si es cerrado
+ *  (salvo que la etiqueta ya lo diga). */
+export const detalleZona = (z: Zona): string =>
+  z.tipo === 'barrio_cerrado' && !z.etiqueta ? `${z.ciudad} · Country` : z.ciudad
 
 // ─── BÚSQUEDA ───────────────────────────────────────────────────────────────────
 

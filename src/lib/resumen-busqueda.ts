@@ -56,8 +56,11 @@ function lugarEscrito(q: string): string | null {
   const n = norm(q)
   if (!n) return null
   if (CIUDAD[n]) return CIUDAD[n]
-  const z = ZONAS.find(z => norm(z.nombre) === n || (z.aliases ?? []).some(a => norm(a) === n))
-  return z ? z.nombre : null
+  const z = ZONAS.find(z => norm(z.nombre) === n || norm(z.etiqueta ?? '') === n || (z.aliases ?? []).some(a => norm(a) === n))
+  if (!z) return null
+  // Escrito el nombre a secas ("vida") se buscan todos los Vida: va el nombre.
+  // Elegida la etiqueta o un alias ("barrio vida") es solo ese barrio: va la etiqueta.
+  return norm(z.nombre) === n ? z.nombre : z.etiqueta ?? z.nombre
 }
 
 const miles = (s: string) => {

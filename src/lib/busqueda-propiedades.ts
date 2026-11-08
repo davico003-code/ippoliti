@@ -52,6 +52,11 @@ function palabras(s: string): string[] {
 
 // Damerau-Levenshtein restringida (OSA): una transposición cuenta 1, así
 // "roldna" → "roldan" es distancia 1. Corta temprano si supera `max`.
+/** El barrio del aviso como clave entera, sin "barrio " adelante: "Barrio Vida" → "vida". */
+function nombreLugarDe(s: string | null | undefined): string {
+  return palabras(s ?? '').join(' ').replace(/^(barrio|b) /, '')
+}
+
 function distancia(a: string, b: string, max: number): number {
   if (Math.abs(a.length - b.length) > max) return max + 1
   const n = a.length
@@ -306,6 +311,8 @@ interface Entrada {
   ops: Set<string>
   /** Tiene pileta (comodidades de HILO o lo dice el título). */
   pileta: boolean
+  /** El barrio del aviso entero, sin "barrio " (nombreLugarDe): para las zonas de nombre exacto. */
+  nombreLugar: string
 }
 
 export interface Indice {
@@ -440,6 +447,7 @@ export function construirIndice(props: Prop[]): Indice {
       .filter(w => /^\d{3,5}$/.test(w)).map(Number)
     const esLote = p.type?.id === 1 || p.type?.id === 9
     const codigo = normalizar(p.reference_code ?? '').replace(/[^a-z0-9]/g, '')
+    const nombreLugar = nombreLugarDe(loc?.name)
     const e: Entrada = {
       p, texto, palabras: new Set(lista), lista, lugar: ` ${lugarLista.join(' ')} `, ubicacion: ` ${ubicLista.join(' ')} `,
       lugarPalabras: new Set(lugarLista),
@@ -448,7 +456,7 @@ export function construirIndice(props: Prop[]): Indice {
       banos: num(p.bathroom_amount), cocheras: typeof p.parking_lot_amount === 'number' ? p.parking_lot_amount : null,
       mono, supLote: num(p.surface) ?? (esLote ? num(p.total_surface) : null),
       supCubierta: esLote ? [] : [p.roofed_surface, p.total_surface].map(num).filter((n): n is number => n != null),
-      codigo, ops: new Set(opsReales(p)),
+      codigo, ops: new Set(opsReales(p)), nombreLugar,
       pileta: rasgosDe(p).includes('pileta') || tituloLista.includes('pileta') || tituloLista.includes('piscina'),
     }
     porId.set(String(p.id), e)
@@ -486,6 +494,8 @@ interface Variante {
   altura?: number
   /** Solo en la ubicación del aviso (barrio), no en título ni dirección. */
   soloUbicacion?: boolean
+  /** Zona de nombre exacto: el barrio del aviso tiene que SER uno de estos ("Vida", no "Vida Lagoon"). */
+  nombresExactos?: string[]
 }
 
 interface Termino {
@@ -619,6 +629,12 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     .replace(/\bfin(es)? de semana\b/g, ' ')
     .replace(/\b(codigo|cod|ref|referencia|id|aviso)\s*[:#nº°.]*\s*([a-z]{0,4})\s*-?\s*(\d+)/g, ' $1 #$2$3 ')
     .replace(/\bque no sea\b/g, ' no ').replace(/\bpero no\b/g, ' no ').replace(/\bfuera de\b/g, ' fuera ')
+
+  // Zonas de nombre exacto ("Vida (barrio cerrado)", "barrio vida"): la frase
+  // entera pasa a un solo token ANTES de que "barrio cerrado" se lea como filtro
+  // y "barrio" como relleno. "Vida" a secas sigue trayendo todos los Vida.
+  s = s.replace(/[()]/g, ' ')
+  frasesExactas().forEach((re, idx) => { s = s.replace(re, ` zonaexacta${idx} `) })
 
   // Montos: formatos argentinos y palabras.
   s = s
@@ -1011,6 +1027,14 @@ export function interpretar(query: string, indice?: Indice): Interpretacion {
     const prev = inicioTramo.has(i) ? undefined : toks[i - 1]
     const negado = negadoEn(i)
 
+    // Zona de nombre exacto (el token que dejó frasesExactas): solo ese barrio.
+    const zx = /^zonaexacta(\d+)$/.exec(t)
+    if (zx) {
+      const exacto = terminoExacto(ZONAS_EXACTAS[Number(zx[1])], i)
+      if (negado) out.excluir.push(exacto); else porPosicion.push(exacto)
+      continue
+    }
+
     if (t === 'o' || t === 'u' || t === 'y' || t === 'e') continue
     if (NEGADORES.has(t)) continue
     // Una letra suelta no dice nada (y a medio tipear, menos).
@@ -1374,6 +1398,45 @@ function zonaDeUnaPalabra(t: string, frases: FraseZona[]): FraseZona | null {
   return { mostrar: t.toUpperCase(), palabras: [t], nombre: t.toUpperCase(), variantes: Array.from(variantes.values()), expande: true, esNombre: false, zonas: [] }
 }
 
+// ─── Zonas de nombre exacto ──────────────────────────────────────────────────
+// "Vida" es un barrio y también el comienzo de Vida Lagoon, Vida Club de Campo,
+// Vida Green…: escrito a secas trae a todos (eso se quiere). La zona con
+// `nombresExactos` se pide por su etiqueta ("Vida (barrio cerrado)") o con
+// "barrio" adelante ("barrio vida"), y entonces vale SOLO ese barrio.
+const ZONAS_EXACTAS: Zona[] = ZONAS.filter(z => z.nombresExactos?.length)
+let FRASES_EXACTAS: RegExp[] | null = null
+
+/** Una expresión por zona exacta (mismo orden que ZONAS_EXACTAS): sus frases, salvo
+ *  cuando siguen con la palabra que las vuelve OTRA zona ("barrio vida club de campo"). */
+function frasesExactas(): RegExp[] {
+  if (FRASES_EXACTAS) return FRASES_EXACTAS
+  FRASES_EXACTAS = ZONAS_EXACTAS.map(z => {
+    const nombre = palabras(z.nombre).join(' ')
+    const frases = unicos([z.etiqueta ?? '', ...(z.aliases ?? []), `barrio ${nombre}`, `${nombre} barrio cerrado`]
+      .map(f => palabras(f).join(' ')).filter(f => f && f !== nombre)).sort((a, b) => b.length - a.length)
+    const sigue = unicos(ZONAS.filter(o => o !== z).flatMap(o => [o.nombre, ...(o.aliases ?? [])])
+      .map(f => palabras(f).join(' ')).filter(f => f.startsWith(`${nombre} `)).map(f => f.slice(nombre.length + 1).split(' ')[0]))
+    // Entre palabras puede haber más de un espacio (el paréntesis de la etiqueta se vuelve espacio).
+    return new RegExp(`\\b(?:${frases.map(f => f.split(' ').join('\\s+')).join('|')})\\b${sigue.length ? `(?!\\s+(?:${sigue.join('|')})\\b)` : ''}`, 'g')
+  })
+  return FRASES_EXACTAS
+}
+
+function terminoExacto(z: Zona, pos: number): Termino {
+  const nombre = palabras(z.nombre).join(' ')
+  return {
+    crudo: nombre,
+    mostrar: z.etiqueta ?? z.nombre,
+    variantes: [{ ws: nombre.split(' '), nombresExactos: (z.nombresExactos ?? [z.nombre]).map(nombreLugarDe) }],
+    pos,
+    fin: pos,
+    parcial: false,
+    deZona: true,
+    soloLugar: true,
+    sinTypos: true,
+  }
+}
+
 function terminoZona(fz: FraseZona, tipeado: string, pos: number): Termino {
   return {
     crudo: tipeado,
@@ -1451,6 +1514,8 @@ function puntajePalabra(e: Entrada, w: string, parcial: boolean, sinTypos = fals
 
 function puntajeVariante(e: Entrada, v: Variante, t: Termino): number {
   if (v.soloCiudad) return e.ciudad === v.soloCiudad ? 4 : 0
+  // Zona de nombre exacto: vale el barrio entero del aviso, no la palabra ("vida" está en "Vida Lagoon").
+  if (v.nombresExactos) return v.nombresExactos.includes(e.nombreLugar) ? 5.5 : 0
   if (v.ciudad && e.ciudad && e.ciudad !== v.ciudad) return 0
   const ws = v.ws
   if (v.soloUbicacion || t.soloUbicacion) {
