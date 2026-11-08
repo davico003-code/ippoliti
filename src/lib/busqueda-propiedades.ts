@@ -43,6 +43,7 @@ export function normalizar(s: string): string {
 }
 
 const ROMANOS: Record<string, string> = { i: '1', ii: '2', iii: '3' }
+const ROMANO_DE: Record<string, string> = { '1': 'i', '2': 'ii', '3': 'iii' }
 
 /** Texto → palabras (solo letras/dígitos). "Vida II" → ["vida", "2"]. */
 function palabras(s: string): string[] {
@@ -50,13 +51,13 @@ function palabras(s: string): string[] {
   return ws.map((w, i) => (ROMANOS[w] && i > 0 && /[a-z]/.test(ws[i - 1]) ? ROMANOS[w] : w))
 }
 
-// Damerau-Levenshtein restringida (OSA): una transposición cuenta 1, así
-// "roldna" → "roldan" es distancia 1. Corta temprano si supera `max`.
 /** El barrio del aviso como clave entera, sin "barrio " adelante: "Barrio Vida" → "vida". */
 function nombreLugarDe(s: string | null | undefined): string {
   return palabras(s ?? '').join(' ').replace(/^(barrio|b) /, '')
 }
 
+// Damerau-Levenshtein restringida (OSA): una transposición cuenta 1, así
+// "roldna" → "roldan" es distancia 1. Corta temprano si supera `max`.
 function distancia(a: string, b: string, max: number): number {
   if (Math.abs(a.length - b.length) > max) return max + 1
   const n = a.length
@@ -1313,8 +1314,8 @@ function construirFrasesZona(): FraseZona[] {
     for (const f of [z.nombre, ...(z.aliases ?? [])]) {
       const k = palabras(f).join(' ')
       if (!original.has(k)) original.set(k, f)
-      // "barrio vida", "barrio martin": "barrio" es relleno y "vida" ya se busca
-      // como texto (trae los tres Vida, que es lo que se quiere).
+      // "barrio martin": "barrio" es relleno y "martin" ya se busca como texto.
+      // ("barrio vida" no llega acá: frasesExactas lo toma antes como la zona exacta.)
       if (!k || CIUDADES.has(k) || /^barrio /.test(k)) continue
       porFrase.set(k, [...(porFrase.get(k) ?? []), z])
     }
@@ -1416,8 +1417,10 @@ function frasesExactas(): RegExp[] {
       .map(f => palabras(f).join(' ')).filter(f => f && f !== nombre)).sort((a, b) => b.length - a.length)
     const sigue = unicos(ZONAS.filter(o => o !== z).flatMap(o => [o.nombre, ...(o.aliases ?? [])])
       .map(f => palabras(f).join(' ')).filter(f => f.startsWith(`${nombre} `)).map(f => f.slice(nombre.length + 1).split(' ')[0]))
+    // La frase se busca en el texto crudo, donde "Vida II" todavía no es "vida 2": también las formas romanas.
+    const corta = unicos(sigue.flatMap(w => (ROMANO_DE[w] ? [w, ROMANO_DE[w]] : [w])))
     // Entre palabras puede haber más de un espacio (el paréntesis de la etiqueta se vuelve espacio).
-    return new RegExp(`\\b(?:${frases.map(f => f.split(' ').join('\\s+')).join('|')})\\b${sigue.length ? `(?!\\s+(?:${sigue.join('|')})\\b)` : ''}`, 'g')
+    return new RegExp(`\\b(?:${frases.map(f => f.split(' ').join('\\s+')).join('|')})\\b${corta.length ? `(?!\\s+(?:${corta.join('|')})\\b)` : ''}`, 'g')
   })
   return FRASES_EXACTAS
 }
