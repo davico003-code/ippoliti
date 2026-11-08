@@ -48,6 +48,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     fija('/', 'daily', 1),
     fija('/contenidos', 'weekly', 0.8),
     fija('/nosotros', 'monthly', 0.5),
+    // Política de privacidad: la enlazan los formularios (Meta la exige); Google la tenía como 404 de junio.
+    fija('/privacidad', 'yearly', 0.3),
     fija('/tasaciones', 'monthly', 0.7),
     fija('/inmobiliaria-roldan', 'monthly', 0.8),
     fija('/inmobiliaria-funes', 'monthly', 0.8),

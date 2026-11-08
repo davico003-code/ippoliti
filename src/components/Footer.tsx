@@ -19,8 +19,8 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: 'PROPIEDADES',
     links: [
-      { label: 'Comprar en Funes y Roldán', href: '/propiedades?op=venta' },
-      { label: 'Alquilar en Funes y Roldán', href: '/propiedades?op=alquiler' },
+      { label: 'Comprar en Funes y Roldán', href: '/propiedades?operacion=venta' },
+      { label: 'Alquilar en Funes y Roldán', href: '/propiedades?operacion=alquiler' },
       { label: 'Alquileres temporarios', href: '/alquileres-temporarios' },
       { label: 'Emprendimientos', href: '/emprendimientos' },
       { label: 'Vender tu propiedad', href: '/vender' },

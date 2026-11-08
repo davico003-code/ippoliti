@@ -33,8 +33,8 @@ const CLAVE_HISTORIAL = 'si_search_history'
 
 const ZONAS_SUGERIDAS = ['Funes', 'Roldán', 'Rosario', 'Fisherton']
 const QUE_BUSCAS = [
-  { label: 'Comprar', href: '/propiedades?op=venta' },
-  { label: 'Alquilar', href: '/propiedades?op=alquiler' },
+  { label: 'Comprar', href: '/propiedades?operacion=venta' },
+  { label: 'Alquilar', href: '/propiedades?operacion=alquiler' },
   { label: 'Terrenos', href: '/propiedades?q=terreno' },
   { label: 'Emprendimientos', href: '/emprendimientos' },
 ]

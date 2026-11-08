@@ -86,7 +86,9 @@ export default async function VenderBarrioPage({ params }: Props) {
     .filter((x): x is Landing => !!x)
   const vecinos = landingsDeCiudad(indice, l.zona.ciudad, l.tipo).filter((x) => x.slug !== l.slug && x.conNumero && !x.zona.esCiudad).slice(0, 16)
   const tipoBusqueda = l.tipo === 'lote' ? 'terreno' : l.tipo
-  const enVenta = `/propiedades?op=venta&tipo=${tipoBusqueda}&q=${encodeURIComponent(l.zona.esCiudad ? l.zona.ciudad : l.nombre)}`
+  // Los nombres canónicos de la query del listado (operacion/tipo/q): con el legacy `op=` el
+  // listado reescribía la URL en el navegador y Google contaba cada link como una redirección.
+  const enVenta = `/propiedades?operacion=venta&tipo=${tipoBusqueda}&q=${encodeURIComponent(l.zona.esCiudad ? l.zona.ciudad : l.nombre)}`
 
   const mercadoTiles: { valor: string; texto: string }[] = []
   if (m) {
