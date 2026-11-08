@@ -250,17 +250,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     };
   } catch (e) {
-    // La propiedad no existe / el feed falló. La ruta hace notFound() pero por
-    // una limitación de Next el streaming ya commiteó HTTP 200 (soft-404). El
-    // noindex evita que Google indexe esa página de error. Cuando la página
-    // termina en notFound() Next ya agrega su propio noindex: sumar el nuestro
-    // dejaba dos <meta name="robots">.
+    // La propiedad no existe: la ruta hace notFound() (y Next agrega su propio
+    // noindex; sumar el nuestro dejaba dos <meta name="robots">). Las dadas de
+    // baja ni llegan acá: el middleware responde 301/410 antes.
     const esNotFound =
       isNaN(getIdFromSlug(params.slug)) || (e instanceof Error && e.message.includes('not found'));
-    return {
-      title: 'Propiedad no encontrada | SI INMOBILIARIA',
-      ...(esNotFound ? {} : { robots: { index: false, follow: false } }),
-    };
+    // Falla PASAJERA del feed (timeout, 5xx de Hilo): antes esta rama devolvía
+    // "Propiedad no encontrada" con noindex y HTTP 200, y Google la tomaba por
+    // una orden: sacó del índice fichas VIVAS (7879811 y 7872050, 22/23-oct-2026,
+    // "Excluida por noindex" en Search Console). Se relanza: la respuesta es un
+    // 500, que para Google es temporal y conserva lo indexado hasta reintentar.
+    if (!esNotFound) throw e;
+    return { title: 'Propiedad no encontrada | SI INMOBILIARIA' };
   }
 }
 

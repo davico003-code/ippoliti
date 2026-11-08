@@ -99,8 +99,8 @@ function IngresarButton({ agent, onClick }: IngresarButtonProps) {
 }
 
 const LEFT_ITEMS = [
-  { href: '/propiedades?op=venta', label: 'Comprar' },
-  { href: '/propiedades?op=alquiler', label: 'Alquilar' },
+  { href: '/propiedades?operacion=venta', label: 'Comprar' },
+  { href: '/propiedades?operacion=alquiler', label: 'Alquilar' },
   { href: '/vender', label: 'Vender' },
   { href: '/emprendimientos', label: 'Emprendimientos' },
 ]
