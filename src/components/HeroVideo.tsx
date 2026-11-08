@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import HeroSearch from './HeroSearch'
 import HeroVideoDesktop from './home/HeroVideoDesktop'
 import CiudadRotativa from './home/CiudadRotativa'
@@ -49,9 +50,35 @@ export default function HeroVideo({ vivas }: { vivas?: string[] }) {
           }}>
             Propiedades en <CiudadRotativa />
           </p>
-          <div className="portada-in portada-buscador" style={{ ['--d' as string]: '680ms' }}>
+          {/* relative z-20: el panel de sugerencias del buscador tiene que
+              pintar ENCIMA del link de abajo (los dos animan con portada-in;
+              mismo arreglo que en HeroMobile). */}
+          <div className="portada-in portada-buscador relative z-20" style={{ ['--d' as string]: '680ms' }}>
             <HeroSearch vivas={vivas} />
           </div>
+
+          {/* La puerta para quien vende, la misma que en el celu (HeroMobile):
+              el segundo público de SI no tenía ninguna entrada en la portada
+              de la compu (solo "Vender" en el menú). Una sola, chica y blanca:
+              buscar sigue siendo LA acción; esto no compite. Lleva al tasador,
+              que da un valor al instante. */}
+          <Link
+            href="/tasar"
+            className="portada-in si-tap group mt-3 inline-flex min-h-[44px] items-center rounded-full px-4 font-raleway text-white"
+            style={{
+              ['--d' as string]: '820ms',
+              textDecoration: 'none',
+              fontSize: 'clamp(15px, 1.25vw, 18px)',
+              textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            }}
+          >
+            {/* Un solo renglón de texto con espacio real (no gap de flex): así
+                se lee "¿Vendés? Mirá…" y no "¿Vendés?Mirá…". */}
+            <span>
+              <span className="font-medium text-white/85 group-hover:text-white">¿Vendés?</span>{' '}
+              <span className="font-bold">Mirá cuánto vale tu casa →</span>
+            </span>
+          </Link>
         </div>
       </div>
 
