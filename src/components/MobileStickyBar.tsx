@@ -120,10 +120,11 @@ export default function MobileStickyBar({
   }
 
   // ── Compartir ──────────────────────────────────────────────────────────────
-  // Hoja nativa del celu (WhatsApp, Instagram, Mensajes, AirDrop en un toque).
-  // Se llama SINCRÓNICA dentro del toque (regla iOS). Si el navegador tiene
-  // navigator.share pero falla (algunos navegadores embebidos), se abre el menú
-  // de siempre en vez de dejar el toque sin respuesta; cancelar no es error.
+  // Hoja nativa del celu (WhatsApp, Instagram, Mensajes, AirDrop): es la opción
+  // "Compartir…" del menú del asesor. Se llama SINCRÓNICA dentro del toque
+  // (regla iOS). Si el navegador tiene navigator.share pero falla (algunos
+  // navegadores embebidos), vuelve a abrir el menú en vez de dejar el toque sin
+  // respuesta; cancelar no es error.
   const abrirHojaNativa = (): boolean => {
     if (!puedeCompartirNativo()) return false
     haptico()
@@ -135,17 +136,12 @@ export default function MobileStickyBar({
     return true
   }
 
-  // Política de compartir del sitio: el visitante en el celu va DIRECTO a la
-  // hoja nativa (un toque, sin menú propio). El asesor con sesión y la compu
-  // ven el menú (el asesor, con "Compartir…" primero y sus herramientas).
-  const handleCompartir = () => {
-    if (shareOpen) {
-      setShareOpen(false)
-      return
-    }
-    if (!esAgente && abrirHojaNativa()) return
-    setShareOpen(true)
-  }
+  // El toque abre SIEMPRE el menú, para elegir qué se manda: el link nuestro
+  // (WhatsApp / Copiar link) o la ficha sin marca para un colega. Del 7 al
+  // 10-nov-2026 el celu iba directo a la hoja nativa y no dejaba elegir: el
+  // equipo comparte desde acá sin sesión de asesor y se quedó sin "Link para
+  // colega" ni "Crear placa" (David, 10-nov: "que vuelva a estar como antes").
+  const handleCompartir = () => setShareOpen(o => !o)
 
   const handleCopyLink = () => {
     // copiarLinkPropiedad arranca el portapapeles en el acto (con el respaldo
@@ -174,15 +170,13 @@ export default function MobileStickyBar({
     if (generandoFicha) return
     setShareOpen(false)
     setGenerandoFicha(true)
-    // El toast (éxito o error) lo muestra la lib — no duplicar acá: mostraba
-    // "Link para colega copiado" aunque fallara. Se llama sin await previo: el
-    // portapapeles se reserva dentro del toque (ClipboardItem con Promise).
-    void generarYCopiarFichaLink(propertyId)
+    // El toast (éxito o error) y el registro en GA4 los hace la lib — no
+    // duplicar acá: mostraba "Link para colega copiado" aunque fallara y contaba
+    // el compartido dos veces. Se llama sin await previo: el portapapeles se
+    // reserva dentro del toque (ClipboardItem con Promise).
+    void generarYCopiarFichaLink(propertyId, 'ficha')
       .then(ok => {
-        if (ok) {
-          haptico()
-          registrarCompartir('colega', 'ficha', propertyId)
-        }
+        if (ok) haptico()
       })
       .finally(() => setGenerandoFicha(false))
   }
@@ -345,8 +339,8 @@ export default function MobileStickyBar({
     }
   }
 
-  // El menú propio solo lo ve quien no tiene hoja nativa (compu) o el asesor.
-  // Se evalúa al abrirlo (siempre en el navegador, nunca en el render del server).
+  // ¿Hay hoja nativa? (para el "Compartir…" del asesor). Se evalúa al abrir el
+  // menú: siempre en el navegador, nunca en el render del server.
   const hayNativo = shareOpen && puedeCompartirNativo()
 
   return (
@@ -448,7 +442,7 @@ export default function MobileStickyBar({
               <Share2 className="w-[20px] h-[20px]" style={{ color: 'var(--theme-ink, #3a4a54)' }} />
             </button>
 
-            {/* Popup de compartir (compu, sin hoja nativa, o asesor con sesión) */}
+            {/* Menú de compartir: lo ve todo el que toca el botón. */}
             {shareOpen && (
               <div
                 role="menu"
@@ -528,24 +522,23 @@ export default function MobileStickyBar({
                   <span aria-live="polite">{linkCopied ? '¡Copiado!' : 'Copiar link'}</span>
                 </button>
 
-                {/* Herramienta de asesor: el comprador no la necesita. */}
-                {esAgente && (
-                  <Link
-                    href={`/propiedades/${slug}/placa`}
-                    role="menuitem"
-                    onClick={() => { registrarCompartir('placa', 'ficha', propertyId); setShareOpen(false) }}
-                    className="w-full flex items-center gap-3 text-left"
-                    style={ITEM}
-                  >
-                    <div className="flex items-center justify-center" style={{ ...CIRCULO, background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-                      <Instagram className="w-4 h-4 text-white" />
-                    </div>
-                    Crear placa
-                  </Link>
-                )}
+                {/* Para todos, como siempre: el equipo arma la placa desde acá
+                    sin iniciar sesión. */}
+                <Link
+                  href={`/propiedades/${slug}/placa`}
+                  role="menuitem"
+                  onClick={() => { registrarCompartir('placa', 'ficha', propertyId); setShareOpen(false) }}
+                  className="w-full flex items-center gap-3 text-left"
+                  style={ITEM}
+                >
+                  <div className="flex items-center justify-center" style={{ ...CIRCULO, background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
+                    <Instagram className="w-4 h-4 text-white" />
+                  </div>
+                  Crear placa
+                </Link>
 
-                {/* "Link para colega" queda para TODOS, al final y separado: lo
-                    usan colegas de otras inmobiliarias (link sin marca). */}
+                {/* "Link para colega", al final y separado: la ficha sin marca
+                    (verficha.casa) para pasarle a un colega de otra inmobiliaria. */}
                 <div aria-hidden style={{ height: 1, background: 'var(--theme-border, #eef1f3)', margin: '4px 12px' }} />
 
                 <button

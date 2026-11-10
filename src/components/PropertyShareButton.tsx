@@ -5,19 +5,18 @@
 //   - Card mobile preview (PropiedadesView.tsx) — Bottom-sheet style
 //   - Tarjetas de PropiedadCardGrid / PropertyGrid
 //
-// Política de compartir (25-oct-2026, igual en todo el sitio):
-//   · Celu + visitante común: el toque abre la hoja nativa DIRECTO (WhatsApp,
-//     Instagram, Mensajes, AirDrop…). Antes eran dos toques y un menú web.
-//   · Celu + asesor: menú con "Compartir…" (hoja nativa) + WhatsApp + Copiar
-//     + Crear placa + Link para colega.
-//   · Compu: menú con WhatsApp, Copiar link y Link para colega.
-// El menú es MenuCompartirPropiedad (el mismo del panel de la compu). El texto
-// lleva título, precio y zona, y cada link sale con utm y queda medido.
+// El toque abre SIEMPRE el menú (celu y compu), para elegir qué se manda:
+// Enviar por WhatsApp y Copiar link (el link nuestro) o Link para colega (la
+// ficha sin marca). Del 7 al 10-nov-2026 el celu iba directo a la hoja nativa
+// y no dejaba elegir (David, 10-nov: "que vuelva a estar como antes").
+// El asesor con sesión suma "Compartir…" (hoja nativa, en el celu) y "Crear
+// placa". El menú es MenuCompartirPropiedad (el mismo del panel de la compu).
+// El texto lleva título, precio y zona, y cada link sale con utm y queda medido.
 
 import { useRef, useState } from 'react'
 import { Share2 } from 'lucide-react'
 
-import { compartirPropiedadNativo, type ContextoCompartir, type PropiedadCompartible } from '@/lib/compartir'
+import type { ContextoCompartir, PropiedadCompartible } from '@/lib/compartir'
 import { useEsAgente } from '@/lib/use-es-agente'
 import MenuCompartirPropiedad from './MenuCompartirPropiedad'
 
@@ -72,14 +71,7 @@ export default function PropertyShareButton({
 
   const onToggle = (e: React.MouseEvent) => {
     stopAll(e)
-    if (open) {
-      setOpen(false)
-      return
-    }
-    // Celu con hoja nativa y visitante común: un toque, directo a la hoja
-    // (sincrónico: navigator.share es lo primero que corre en el toque).
-    if (!esAgente && compartirPropiedadNativo(propiedad, contexto)) return
-    setOpen(true)
+    setOpen(o => !o)
   }
 
   const cerrar = (devolverFoco: boolean) => {
@@ -147,7 +139,8 @@ export default function PropertyShareButton({
           direccion={popoverDirection === 'up' ? 'arriba' : 'abajo'}
           alineacion="derecha"
           esAgente={esAgente}
-          placaHref={placaHref ?? `/propiedades/${slug}/placa`}
+          // En tarjetas y mapa la placa es solo del asesor (acá nunca fue de todos).
+          placaHref={esAgente ? (placaHref ?? `/propiedades/${slug}/placa`) : undefined}
           onCerrar={cerrar}
         />
       )}

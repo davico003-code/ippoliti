@@ -2,14 +2,16 @@
 
 // ¿Quien mira es un asesor de SI con sesión? (25-oct-2026)
 //
-// Las herramientas de asesor ("Link para colega", "Crear placa") estaban en el
-// menú Compartir de CUALQUIER visitante: un comprador veía opciones internas
-// que no entiende. Ahora solo aparecen con sesión de agente. Una sola consulta
+// Con sesión de agente, el menú Compartir suma "Compartir…" (la hoja nativa del
+// celu) y, en tarjetas y mapa, "Crear placa". "Link para colega" y la placa de
+// la ficha NO dependen de esto: son para todos, porque el equipo comparte desde
+// la web sin iniciar sesión (10-nov-2026; del 7 al 10 quedaron detrás de la
+// sesión y el equipo se quedó sin esas opciones en el celu). Una sola consulta
 // a /api/agentes/me por carga de página (la promesa queda en el módulo), así
 // cada botón de compartir no dispara la suya.
 //
 // Hasta que responde, devuelve false: el visitante común nunca ve un parpadeo
-// de opciones internas. El asesor las ve un instante después.
+// de opciones de asesor. El asesor las ve un instante después.
 
 import { useEffect, useState } from 'react'
 
