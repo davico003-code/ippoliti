@@ -3,7 +3,7 @@
 // Shared desktop body: all content sections in identical order for
 // the modal (PropertyPanel) and the full page (/propiedades/[slug]).
 // Mobile is NOT rendered here — each parent keeps its own mobile layout.
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { MapPin, Bed, Bath, Maximize, Home, Car, MessageCircle, Navigation, Umbrella, Ruler, CalendarDays, Sparkles, Compass, Layers, DoorOpen } from 'lucide-react'
 import {
@@ -247,21 +247,6 @@ export default function PropertyDetailBody({
   const disposicion = translateDisposition(property.disposition)
   if (disposicion) specs.push({ icon: <DoorOpen className="w-5 h-5" />, label: 'Disposición', value: disposicion })
 
-  // Resumen pegado al precio ("3 dorm · 2 baños · 150 m² cub. · 2.350 m² lote"): la
-  // pregunta del que mira es "¿cuánto sale y qué es?" y se contesta en un vistazo,
-  // sin bajar hasta las tarjetas (patrón Zillow). Las tarjetas de abajo siguen
-  // siendo el detalle completo. Sale de los mismos campos que `specs`; el número
-  // va en Poppins y la palabra en Raleway.
-  const resumen: { num: string | null; txt: string }[] = []
-  if (isMonoambiente(property)) resumen.push({ num: null, txt: 'Monoambiente' })
-  else if (property.suite_amount > 0) resumen.push({ num: String(property.suite_amount), txt: ' dorm' })
-  if (property.bathroom_amount > 0) resumen.push({ num: String(property.bathroom_amount), txt: property.bathroom_amount === 1 ? ' baño' : ' baños' })
-  // Lo construido: la cubierta; si no está cargada, la total (salvo que sea el terreno).
-  const construida = roofedArea ?? (area != null && area > 0 && area !== lotSurface ? area : null)
-  // "cub." cuando es la cubierta: la tarjeta de abajo puede decir otra "Sup. total".
-  if (construida) resumen.push({ num: construida.toLocaleString('es-AR'), txt: roofedArea ? ' m² cub.' : ' m²' })
-  if (lotSurface != null && lotSurface > 0 && lotSurface !== construida) resumen.push({ num: lotSurface.toLocaleString('es-AR'), txt: ' m² lote' })
-
   return (
     <div className="space-y-6">
       {/* OVERVIEW — title + location + price + badges */}
@@ -341,20 +326,9 @@ export default function PropertyDetailBody({
           )}
         </div>
         )}
-        {resumen.length > 0 && (
-          <p className="mt-3" style={{ fontFamily: R, fontSize: 16, fontWeight: 600, color: 'var(--tinta-soft)', lineHeight: 1.4 }}>
-            {resumen.map((d, i) => (
-              <Fragment key={d.txt}>
-                {/* El punto no se lee en voz alta; los espacios de afuera separan los datos. */}
-                {i > 0 && <> <span aria-hidden="true">·</span> </>}
-                <span className="whitespace-nowrap">
-                  {d.num && <span className="font-numeric" style={{ color: 'var(--foreground)', fontWeight: 700 }}>{d.num}</span>}
-                  {d.txt}
-                </span>
-              </Fragment>
-            ))}
-          </p>
-        )}
+        {/* Debajo del precio NO va un renglón con dormitorios, baños y metros (estuvo
+            del 7 al 10-nov-2026): son los mismos datos de las tarjetas de Características,
+            acá abajo, y se leían dos veces seguidas (David, 10-nov: "se repite dos veces"). */}
         {/* David 4-oct: "Avisame si baja" — solo venta con precio en dólares a la vista. */}
         {avisarSiBaja && <AvisameSiBaja propertyId={property.id} />}
       </section>
