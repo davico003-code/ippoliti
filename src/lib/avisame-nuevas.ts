@@ -26,7 +26,7 @@ export function criteriosDelBuscador(f: { operation: string; type: string; locat
   const tipo = f.type === 'todos' ? null : TIPOS[f.type] ?? undefined
   if (tipo === undefined) return null
   const q = norm(f.search)
-  const barrio = q ? ZONAS.find((z) => norm(z.nombre) === q || (z.aliases ?? []).some((a) => norm(a) === q)) : undefined
+  const barrio = q ? ZONAS.find((z) => norm(z.nombre) === q || norm(z.etiqueta ?? '') === q || (z.aliases ?? []).some((a) => norm(a) === q)) : undefined
   const zona = barrio?.nombre ?? CIUDADES[f.location] ?? null
   if (!zona) return null
   return { zona, tipo, topeUsd: null, origen: 'buscador' }

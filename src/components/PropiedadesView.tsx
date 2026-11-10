@@ -51,7 +51,7 @@ import { compartirPagina } from '@/lib/compartir'
 import { resumenBusqueda } from '@/lib/resumen-busqueda'
 import { showToast } from '@/components/Toast'
 import { mesAnioAR } from '@/lib/listado-alquileres'
-import { buscarZonas } from '@/lib/zonas'
+import { buscarZonas, detalleZona, nombreBuscable } from '@/lib/zonas'
 import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 import { highlightMatch } from '@/lib/highlight'
 import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
@@ -868,6 +868,8 @@ export default function PropiedadesView({
     return ZONAS.find(z => {
       const n = z.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       if (n === q) return true
+      // La etiqueta con la que se eligió ("Vida (barrio cerrado)") también es la zona.
+      if (z.etiqueta && z.etiqueta.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === q) return true
       return (z.aliases ?? []).some(a => a.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === q)
     }) ?? null
   }, [initialSearch])
@@ -1841,8 +1843,8 @@ export default function PropiedadesView({
                     type="button"
                     onMouseDown={e => e.preventDefault()}
                     onClick={() => {
-                      set('search', zona.nombre)
-                      pushToHistory(zona.nombre)
+                      set('search', nombreBuscable(zona))
+                      pushToHistory(nombreBuscable(zona))
                       setSearchSuggestions(false)
                     }}
                     className="w-full flex items-center gap-3 text-left"
@@ -1859,9 +1861,9 @@ export default function PropiedadesView({
                     }}
                   >
                     <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
+                    <span className="flex-1 truncate">{highlightMatch(nombreBuscable(zona), filters.search)}</span>
                     <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0 }}>
-                      {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+                      {detalleZona(zona)}
                     </span>
                   </button>
                 ))}
@@ -2035,8 +2037,8 @@ export default function PropiedadesView({
                   type="button"
                   onMouseDown={e => e.preventDefault()}
                   onClick={() => {
-                    set('search', zona.nombre)
-                    pushToHistory(zona.nombre)
+                    set('search', nombreBuscable(zona))
+                    pushToHistory(nombreBuscable(zona))
                     setSearchDropdownDesktop(false)
                   }}
                   className="w-full flex items-center gap-3 text-left"
@@ -2050,9 +2052,9 @@ export default function PropiedadesView({
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
+                  <span className="flex-1 truncate">{highlightMatch(nombreBuscable(zona), filters.search)}</span>
                   <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0 }}>
-                    {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+                    {detalleZona(zona)}
                   </span>
                 </button>
               ))}

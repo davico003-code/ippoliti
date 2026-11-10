@@ -21,7 +21,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { History, Search, X } from 'lucide-react'
 import { highlightMatch } from '@/lib/highlight'
-import { buscarZonas, type Zona } from '@/lib/zonas'
+import { buscarZonas, detalleZona, nombreBuscable, type Zona } from '@/lib/zonas'
 import { haptico } from '@/lib/haptico'
 
 const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
@@ -155,11 +155,11 @@ export default function SugerenciasBusqueda({ query, zonas, reciente, onElegir }
             type="button"
             className="buscador-sug"
             onMouseDown={sinRobarFoco}
-            onClick={() => onElegir(urlBusqueda(zona.nombre), zona.nombre)}
+            onClick={() => onElegir(urlBusqueda(nombreBuscable(zona)), nombreBuscable(zona))}
           >
-            <span style={{ flex: 1, minWidth: 0 }}>{highlightMatch(zona.nombre, query)}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>{highlightMatch(nombreBuscable(zona), query)}</span>
             <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--theme-subtle, #6b7280)', flexShrink: 0, whiteSpace: 'nowrap' }}>
-              {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+              {detalleZona(zona)}
             </span>
           </button>
         ))
