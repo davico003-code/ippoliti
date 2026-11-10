@@ -3,11 +3,10 @@
 // Botón "Compartir" de la ficha. Vive en el header del panel (variant="header",
 // a la derecha del logo); variant="sidebar" es el bloque ancho con título.
 //
-// Política de compartir (25-oct-2026, igual en todo el sitio):
-//   · Celu + visitante común: el toque abre la hoja nativa DIRECTO.
-//   · Celu + asesor: menú con "Compartir…" (hoja nativa) primero.
-//   · Compu: menú con Enviar por WhatsApp, Copiar link, Crear placa (solo
-//     asesor) y, separado al final, Link para colega (para todos).
+// El toque abre SIEMPRE el menú (también en una pantalla táctil; del 7 al
+// 10-nov-2026 iba directo a la hoja nativa y no dejaba elegir): Enviar por
+// WhatsApp, Copiar link, Crear placa y, separado al final, Link para colega,
+// para todos. El asesor con sesión suma "Compartir…" (hoja nativa) en el celu.
 // El menú es MenuCompartirPropiedad (el mismo de tarjetas y mapa): va por
 // portal a document.body (position:fixed) para no quedar cortado por el
 // overflow del panel, con z-index por encima del PropertyPanel (z-[9995]).
@@ -17,7 +16,7 @@
 import { useRef, useState } from 'react'
 import { Share2 } from 'lucide-react'
 
-import { compartirPropiedadNativo, type PropiedadCompartible } from '@/lib/compartir'
+import type { PropiedadCompartible } from '@/lib/compartir'
 import { useEsAgente } from '@/lib/use-es-agente'
 import MenuCompartirPropiedad from './MenuCompartirPropiedad'
 
@@ -43,15 +42,7 @@ export default function ShareMenu({ propertyId, slug, title, placaHref, variant 
 
   const propiedad: PropiedadCompartible = { id: propertyId, slug, titulo: title, precio, ubicacion }
 
-  const abrir = () => {
-    if (open) {
-      setOpen(false)
-      return
-    }
-    // Celu con hoja nativa y visitante común: un toque, directo a la hoja.
-    if (!esAgente && compartirPropiedadNativo(propiedad, 'panel')) return
-    setOpen(true)
-  }
+  const abrir = () => setOpen(o => !o)
 
   const cerrar = (devolverFoco: boolean) => {
     setOpen(false)

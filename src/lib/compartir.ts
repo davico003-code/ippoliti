@@ -156,9 +156,10 @@ export function textoPropiedad(p: PropiedadCompartible, url: string): string {
 }
 
 /**
- * El toque en "Compartir" de una propiedad, en el celu: hoja nativa en UN
- * toque. Devuelve false si no hay hoja nativa (compu, navegador viejo): el que
- * llama muestra su menú de siempre.
+ * La opción "Compartir…" del menú de una propiedad (asesor, en el celu): abre
+ * la hoja nativa con el link nuestro. Devuelve false si no hay hoja nativa
+ * (compu, navegador viejo). El botón Compartir NO la llama directo: abre el
+ * menú, para poder elegir entre el link nuestro y el link para colega.
  */
 export function compartirPropiedadNativo(p: PropiedadCompartible, contexto: ContextoCompartir): boolean {
   if (!puedeCompartirNativo()) return false

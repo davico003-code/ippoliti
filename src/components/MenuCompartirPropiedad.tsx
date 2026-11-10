@@ -9,13 +9,17 @@
 // borde claro fijo que en modo oscuro quedaba como un aro blanco. Este es el
 // único; el botón que lo abre es de cada componente.
 //
-// Qué muestra (política de compartir del sitio):
-//   · "Compartir…" (hoja nativa): solo asesor en el celu. El visitante común
-//     del celu ni ve este menú: su toque va directo a la hoja nativa.
-//   · Enviar por WhatsApp · Copiar link: para todos.
-//   · Crear placa: solo asesor.
-//   · Link para colega: para todos, separado al final (colegas de otras
-//     inmobiliarias lo usan para pasarle la ficha neutra a su cliente).
+// Lo abre SIEMPRE el toque en Compartir, en el celu y en la compu (David,
+// 10-nov-2026: hay que poder elegir entre el link nuestro y la ficha para un
+// colega; del 7 al 10-nov el celu iba directo a la hoja nativa y no dejaba).
+//
+// Qué muestra:
+//   · "Compartir…" (hoja nativa): solo asesor con sesión, en el celu.
+//   · Enviar por WhatsApp · Copiar link (el link nuestro): para todos.
+//   · Crear placa: si quien lo abre pasa `placaHref` (la ficha, siempre;
+//     tarjetas y mapa, solo al asesor).
+//   · Link para colega: para todos, separado al final (la ficha sin marca de
+//     verficha.casa, para pasarle a un colega de otra inmobiliaria).
 //
 // Teclado: el foco entra al primer ítem, flechas / Inicio / Fin se mueven,
 // Escape y Tab cierran y devuelven el foco al botón. Entra con fade + escala
@@ -56,8 +60,10 @@ export interface MenuCompartirPropiedadProps {
   /** 'derecha': borde derecho con el del botón. 'ancho': mismo ancho que el botón. */
   alineacion?: 'derecha' | 'ancho'
   ancho?: number
+  /** Asesor con sesión: suma "Compartir…" (hoja nativa) en el celu. */
   esAgente: boolean
-  /** Ruta de la placa de Instagram (solo la ve un asesor). */
+  /** Ruta de la placa de Instagram. Si viene, se muestra "Crear placa": quien
+   *  abre el menú decide a quién (ver el comentario de arriba). */
   placaHref?: string
   /** Por encima del panel de la compu (9995), de la card del mapa (9998) y del sheet (10001). */
   zIndex?: number
@@ -289,7 +295,7 @@ export default function MenuCompartirPropiedad({
         <span aria-live="polite">{copiado ? '¡Copiado!' : 'Copiar link'}</span>
       </button>
 
-      {esAgente && placaHref && (
+      {placaHref && (
         <Link href={placaHref} role="menuitem" className="si-menu-cmp__item" onClick={onPlaca}>
           <span className="si-menu-cmp__ico" style={{ background: 'var(--theme-surface-soft, #F1F3F4)' }}>
             <Instagram size={15} style={{ color: 'var(--theme-muted, #4B5563)' }} aria-hidden />

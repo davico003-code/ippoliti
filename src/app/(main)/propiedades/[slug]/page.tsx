@@ -16,7 +16,6 @@ import PropertyDetailBody from '@/components/property-detail/PropertyDetailBody'
 import EdificioBanner from '@/components/property-detail/EdificioBanner';
 import { detectarEdificios, edificioDe, desdeTexto } from '@/lib/edificios';
 import PropertyDetailSimilars from '@/components/property-detail/PropertyDetailSimilars';
-import LinkParaColega from '@/components/property-detail/LinkParaColega';
 import {
   getPropertyById,
   getPropertiesEstable,
@@ -532,12 +531,10 @@ export default async function PropertyPage({ params }: Props) {
           <PropertyDetailSimilars property={property} />
         </div>
 
-        {/* Cierre: el link neutro para colegas (discreto: el visitante común
-            comparte con la hoja nativa del celu y no lo ve en ningún menú) y
-            "Volver al catálogo", que vuelve igual que el "Volver" del header
-            (a la misma búsqueda, no al listado entero). */}
+        {/* Cierre: "Volver al catálogo", que vuelve igual que el "Volver" del
+            header (a la misma búsqueda, no al listado entero). El link para
+            colegas está en el menú de Compartir de la barra de abajo. */}
         <div className="px-4 pb-2 pt-2 border-t border-gray-100 flex flex-col items-start gap-1">
-          <LinkParaColega propertyId={property.id} />
           <VolverAlListado variante="pie" />
         </div>
       </div>
