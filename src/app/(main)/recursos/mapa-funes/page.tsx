@@ -77,12 +77,43 @@ const breadcrumbJsonLd = {
   ],
 }
 
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: '¿Cuánto puedo construir en un lote en Funes?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Depende de la zona. En AR3, la residencial más común, el FOS máximo es 0,3 y el FOT 0,6: en un lote de 500 m² podés ocupar hasta 150 m² en planta baja y construir hasta 300 m² en total, en PB+1. En AR4 (lotes desde 1.000 m²) rigen FOS 0,25 y FOT 0,5: 250 m² en planta y 500 m² en total.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Cómo sé en qué zona está mi lote en Funes?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'En el mapa de Funes de SI INMOBILIARIA elegís la manzana y ves la zona con sus indicadores. Las secciones numeradas del 1 al 17 son una división administrativa: el FOS, el FOT y la altura los define la zona de la manzana.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: '¿Qué zona de Funes permite construir más?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Los ejes comerciales (EJES AC) tienen los índices más altos: FOS 0,67 y FOT 1,5. Le sigue el Área Central (AC 1-1 / 1-2), con FOS 0,5, FOT 1,0 y hasta PB+2. Las zonas residenciales AR3 y AR4 son las más restrictivas.',
+      },
+    },
+  ],
+}
+
 export default function MapaFunesPage() {
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([breadcrumbJsonLd, faqJsonLd]) }}
       />
 
       <RecursoHero
@@ -138,6 +169,18 @@ export default function MapaFunesPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '32px clamp(16px, 3vw, 26px) 8px' }}>
+        <h2 style={{ fontFamily: 'var(--font-raleway), Raleway, system-ui, sans-serif', fontWeight: 700, fontSize: 26, color: 'var(--foreground)', marginBottom: 12 }}>
+          Preguntas frecuentes
+        </h2>
+        {faqJsonLd.mainEntity.map((f) => (
+          <details key={f.name} style={{ borderBottom: '1px solid var(--line)', padding: '12px 0' }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: 16, color: 'var(--foreground)' }}>{f.name}</summary>
+            <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--tinta-soft)', marginTop: 8, maxWidth: 760 }}>{f.acceptedAnswer.text}</p>
+          </details>
+        ))}
       </section>
 
       <RecursosCTA
