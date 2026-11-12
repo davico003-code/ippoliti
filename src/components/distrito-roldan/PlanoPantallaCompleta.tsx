@@ -13,25 +13,71 @@
 // con aire arriba y abajo, en vez de pegado al techo con un hueco de papel.
 
 import { useEffect, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 
 // ?pantalla=completa: el plano se centra solo adentro del iframe y la hoja del
 // lote llega al borde inferior real de la pantalla (06-sep-2026). Por eso acá
 // el iframe mide como mínimo 100dvh y ya no hace falta centrarlo desde afuera.
-const SRC = '/planos/distrito-roldan.html?pantalla=completa'
+
+// Estado del plano que viaja en el link compartido: capas prendidas (?ver=),
+// tipo de lote (?tipo=) y lote abierto (?lote=). El plano avisa cada cambio
+// por postMessage y lo reflejamos en la URL de esta página, que es la que se
+// comparte; al abrir el link se lo pasamos al iframe. El resto de los
+// parámetros (utm_*, fbclid) no se toca.
+const PARAMS_PLANO = ['ver', 'tipo', 'lote'] as const
 
 export default function PlanoPantallaCompleta() {
   const [alto, setAlto] = useState<number | null>(null)
+  // null hasta leer la URL en el cliente: si el iframe arrancara sin los parámetros y
+  // después cambiara, el plano se cargaría dos veces.
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    const actual = new URLSearchParams(window.location.search)
+    const q = new URLSearchParams({ pantalla: 'completa' })
+    for (const k of PARAMS_PLANO) {
+      const v = actual.get(k)
+      if (v) q.set(k, v)
+    }
+    setSrc(`/planos/distrito-roldan.html?${q.toString()}`)
+  }, [])
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
-      const d = e.data as { type?: string; h?: number } | null
+      if (e.origin !== window.location.origin) return
+      const d = e.data as { type?: string; h?: number; q?: string } | null
       if (d && d.type === 'plano-height' && typeof d.h === 'number') {
         setAlto(Math.max(420, Math.min(3000, Math.round(d.h))))
+      }
+      if (d && d.type === 'plano-estado' && typeof d.q === 'string') {
+        const url = new URL(window.location.href)
+        const delPlano = new URLSearchParams(d.q)
+        for (const k of PARAMS_PLANO) {
+          const v = delPlano.get(k)
+          if (v) url.searchParams.set(k, v)
+          else url.searchParams.delete(k)
+        }
+        // ver=d,v y no ver=d%2Cv: el link se lee mejor al pegarlo en WhatsApp.
+        const nueva = url.href.replace(/%2C/gi, ',')
+        if (nueva !== window.location.href) window.history.replaceState(window.history.state, '', nueva)
       }
     }
     window.addEventListener('message', onMsg)
     return () => window.removeEventListener('message', onMsg)
   }, [])
+
+  // Volver: si se llegó desde el sitio, vuelve a esa página; si el link se
+  // abrió directo (WhatsApp), lleva a la página del emprendimiento.
+  const volver = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    let desdeElSitio = false
+    try {
+      desdeElSitio = !!document.referrer && new URL(document.referrer).origin === window.location.origin
+    } catch {}
+    if (desdeElSitio && window.history.length > 1) {
+      e.preventDefault()
+      window.history.back()
+    }
+  }
 
   return (
     <main
@@ -40,15 +86,50 @@ export default function PlanoPantallaCompleta() {
         // direcciones se esconde al scrollear y con vh el plano quedaba cortado.
         minHeight: '100dvh',
         width: '100%',
-        background: '#EDE7DA',
+        position: 'relative',
+        background: '#FFFFFF',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
+      {/* Solo en computadora: en el celular está el volver del navegador y el
+          botón le taparía el título al plano. */}
+      {/* En computadora el ancho del plano sale del alto de la pantalla (el plano
+          mide ~1.23 de ancho por 1 de alto, más ~110 px de encabezado y filtros):
+          bajando un poco entra entero, y en pantallas grandes crece hasta 1480. */}
+      <style>{`.dr-volver{display:none}.dr-volver:hover{background:#F3F4F2}@media (min-width:961px){.dr-volver{display:inline-flex}.dr-plano{max-width:clamp(961px,calc((100dvh - 110px) * 1.23 + 112px),1480px)}}`}</style>
+      <a
+        href="/emprendimientos/distrito-roldan"
+        onClick={volver}
+        className="dr-volver"
+        style={{
+          position: 'fixed',
+          top: 18,
+          left: 24,
+          zIndex: 10,
+          alignItems: 'center',
+          gap: 6,
+          height: 40,
+          padding: '0 16px 0 12px',
+          borderRadius: 999,
+          border: '1px solid rgba(35,41,31,.14)',
+          background: '#FFFFFF',
+          boxShadow: '0 1px 2px rgba(35,41,31,.08)',
+          color: '#23291F',
+          fontSize: 14,
+          fontWeight: 600,
+          textDecoration: 'none',
+          fontFamily: 'var(--font-raleway), system-ui, sans-serif',
+        }}
+      >
+        <ArrowLeft size={18} aria-hidden />
+        Volver
+      </a>
       <iframe
-        src={SRC}
+        src={src ?? undefined}
         title="Plano interactivo de lotes — Distrito Roldán"
+        className="dr-plano"
         style={{
           display: 'block',
           width: '100%',

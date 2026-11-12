@@ -88,7 +88,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     color: 'var(--tinta-mute)',
-    fontFamily: "'Raleway', system-ui, sans-serif",
+    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
   }
 
   return (
@@ -116,7 +116,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
             lineHeight: 1.4,
             color: 'var(--tinta-mute)',
             margin: '0 0 12px',
-            fontFamily: "'Raleway', system-ui, sans-serif",
+            fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           }}
         >
           Esta propiedad no incluye gasto administrativo mensual.
@@ -132,7 +132,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
             className="inline-grid gap-1 p-0.5 rounded-lg"
             style={{
               gridTemplateColumns: 'repeat(2, minmax(60px, 1fr))',
-              background: '#FAFAF7',
+              background: 'var(--theme-surface-soft, #FAFAF7)',
               border: '1px solid var(--line)',
             }}
           >
@@ -149,7 +149,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
                     padding: '6px 12px',
                     fontSize: 12,
                     fontWeight: 700,
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     background: active ? 'var(--si-green)' : 'transparent',
                     color: active ? '#fff' : 'var(--tinta-soft)',
                     boxShadow: active ? '0 1px 3px rgba(26, 92, 56, 0.25)' : 'none',
@@ -169,7 +169,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         {/* Card 1 — Total al ingresar */}
         <div
           className="rounded-xl p-4"
-          style={{ background: '#FAFAF7', border: '1px solid var(--line)' }}
+          style={{ background: 'var(--theme-surface-soft, #FAFAF7)', border: '1px solid var(--line)' }}
         >
           <div style={eyebrowStyle}>Total al ingresar</div>
           {moneda === 'USD' ? (
@@ -207,7 +207,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         <div
           className="rounded-xl p-4"
           style={{
-            background: '#FAFAF7',
+            background: 'var(--theme-surface-soft, #FAFAF7)',
             border: '1px solid var(--line)',
             borderLeft: '3px solid var(--usd)',
           }}
@@ -240,7 +240,7 @@ export default function CostosIngresoMini({ alquiler, moneda, tipoPropiedad, pro
         onClick={() => events.fichaPropiedadCalculadoraClick()}
         className="inline-flex items-center gap-1 mt-2"
         style={{
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontSize: 13,
           fontWeight: 700,
           color: 'var(--si-green)',

@@ -26,8 +26,17 @@ export default function FooterWrapper() {
   if (pathname?.startsWith('/propiedades/')) {
     // En desktop ocultamos (lo renderiza el panel). En mobile la ruta [slug]
     // sigue siendo la ficha completa y mantiene el footer global.
+    // En la ficha (exactamente /propiedades/<slug>) la barra fija de abajo
+    // (MobileStickyBar, ~70 px + área segura) tapaba la última fila del footer:
+    // el © y la matrícula. El aire va acá, debajo del footer, y no en la
+    // página: el footer es lo último que se ve. /propiedades/<slug>/placa no
+    // tiene barra y queda como estaba.
+    const esFicha = pathname.split('/').filter(Boolean).length === 2
     return (
-      <div className="md:hidden">
+      <div
+        className="md:hidden"
+        style={esFicha ? { paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', background: 'var(--background)' } : undefined}
+      >
         <Footer />
       </div>
     )

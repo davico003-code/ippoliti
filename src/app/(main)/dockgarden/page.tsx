@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
 import { getDockGarden } from '@/lib/brickfy'
 import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGardenUnits'
+import { OficinaVentas, SeccionCercanias, SeccionTerminaciones, SeccionVers } from '@/components/dockgarden/Confianza'
+import Recorridos360 from '@/components/dockgarden/Recorridos360'
+import ElegiTuUnidad from '@/components/dockgarden/ElegiTuUnidad'
+import { unidadesExplorador } from '@/lib/dockgarden'
 
 // Landing compartible de Dock Garden (Aldea Fisherton) — versión SI del link
 // de compartir de Brickfy del desarrollador, con todas las unidades, planos,
@@ -14,9 +19,11 @@ export const revalidate = 3600
 
 const WA_PHONE = '5493413340916'
 const PAGE_URL = 'https://siinmobiliaria.com/dockgarden'
+// Mismo ancho que el header y la lista de esta página.
+const CONTENEDOR = 'mx-auto w-full max-w-6xl px-4 sm:px-6'
 
 export const metadata: Metadata = {
-  title: 'Dock Garden — Unidades, precios y vistas 360° | SI INMOBILIARIA',
+  title: 'Dock Garden — Unidades, precios y vistas 360°',
   description:
     'Todas las unidades en venta de Dock Garden Aldea Fisherton: precios, planos, fotos y recorridos 360°. Financiación en cuotas en USD. SI INMOBILIARIA.',
   robots: { index: false, follow: true },
@@ -61,8 +68,11 @@ export default async function DockGardenPage() {
 
   const { project, units } = data
   const available = units.filter(u => u.status === 'available')
-  const areas = units.map(u => u.coveredSurfaceM2).filter(a => a > 0).sort((a, b) => a - b)
-  const dormsSet = Array.from(new Set(units.map(u => u.bedrooms))).sort((a, b) => a - b)
+  // Rangos de lo que está en venta (sin las vendidas), como la lista de abajo.
+  const enVenta = units.filter(u => u.status === 'available' || u.status === 'reserved')
+  const areas = enVenta.map(u => u.coveredSurfaceM2).filter(a => a > 0).sort((a, b) => a - b)
+  const dormsSet = Array.from(new Set(enVenta.map(u => u.bedrooms))).sort((a, b) => a - b)
+  const m2 = (n: number) => n.toLocaleString('es-AR')
   const videos = (project.videos || []).map(v => ({
     nombre: v.nombre,
     // El iframe de Cloudflare Stream vive en el mismo host que el thumbnail.
@@ -72,8 +82,9 @@ export default async function DockGardenPage() {
 
   const stats = [
     { label: 'Unidades disponibles', value: String(available.length) },
-    { label: 'Dormitorios', value: dormsSet.join(' y ') },
-    ...(areas.length > 0 ? [{ label: 'Superficies', value: `${areas[0]} a ${areas[areas.length - 1]} m²` }] : []),
+    // "1, 2 y 3" (antes salía "1 y 2 y 3").
+    { label: 'Dormitorios', value: dormsSet.length > 1 ? `${dormsSet.slice(0, -1).join(', ')} y ${dormsSet[dormsSet.length - 1]}` : String(dormsSet[0] ?? '') },
+    ...(areas.length > 0 ? [{ label: 'Superficies', value: `${m2(areas[0])} a ${m2(areas[areas.length - 1])} m²` }] : []),
     { label: 'Entrega estimada', value: project.deliveryDate },
   ]
 
@@ -87,34 +98,51 @@ export default async function DockGardenPage() {
             <img src="/logo-si-horizontal.png" alt="SI INMOBILIARIA" className="h-8 w-auto" />
           </Link>
           {/* Único WhatsApp de la página = FAB flotante; el header queda liviano. */}
-          <a href="tel:+5493412101694"
+          <a href="tel:+5493413340916"
             className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-gray-50">
-            <Phone className="h-4 w-4" /> <span className="hidden font-numeric sm:inline">(341) 210-1694</span><span className="sm:hidden">Llamar</span>
+            <Phone className="h-4 w-4" /> <span className="hidden font-numeric sm:inline">(341) 334-0916</span><span className="sm:hidden">Llamar</span>
           </a>
         </div>
       </header>
 
       {/* Hero */}
-      {/* Hero compacto en mobile: la info manda, la foto acompaña. */}
-      <section className="relative h-[34vh] min-h-[240px] w-full md:h-[56vh]">
-        {/* El render trae el logo del desarrollador estampado en la franja
-            superior: crop anclado abajo + zoom para dejarlo fuera del encuadre
-            en cualquier viewport. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={project.coverUrl} alt="Dock Garden — Aldea Fisherton" className="absolute inset-0 h-full w-full scale-125 object-cover object-bottom origin-bottom" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
+      {/* Mobile: foto 16:9 limpia y el título debajo (encima tapaba los
+          edificios). Desde md: hero a pantalla con el texto sobre la foto. */}
+      <section className="relative w-full bg-white md:h-[56vh]">
+        <div className="relative aspect-[16/9] w-full md:absolute md:inset-0 md:aspect-auto">
+          {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
+              galería) traen el logo del desarrollador estampado. */}
+          {/* next/image: el archivo pesa 456 KB y un <img> lo bajaba entero
+              también en el celular; así cada pantalla recibe su tamaño. */}
+          <Image
+            src="/images/dockgarden/render-frente.webp"
+            alt="Dock Garden — Aldea Fisherton"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 hidden bg-gradient-to-t from-black/80 via-black/30 to-black/10 md:block" />
+        </div>
+        <div className="relative px-4 pb-2 pt-5 sm:px-6 md:absolute md:inset-x-0 md:bottom-0 md:p-10">
           <div className="mx-auto max-w-6xl">
             <div className="mb-3 flex flex-wrap gap-2">
               <span className="rounded-full bg-[#1A5C38] px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Condominio + Paseo comercial</span>
-              <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#1A5C38]">{project.status}</span>
+              <span className="rounded-full border border-[#1A5C38]/20 bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#1A5C38] md:border-transparent">{project.status}</span>
             </div>
-            <h1 className="mb-2 text-4xl font-black text-white drop-shadow-md md:text-5xl" style={{ fontFamily: 'Raleway, sans-serif' }}>
+            <h1 className="mb-2 text-4xl font-black text-gray-900 md:text-5xl md:text-white md:drop-shadow-md" style={{ fontFamily: 'Raleway, sans-serif' }}>
               Dock Garden
             </h1>
-            <div className="flex items-center gap-2 text-white/80">
+            <div className="flex items-center gap-2 text-gray-500 md:text-white/80">
               <MapPin className="h-4 w-4 shrink-0" />
               <span className="text-sm font-medium">{project.location}</span>
+            </div>
+            {/* Quién lo hace: el estudio, como aval (azul en celular sobre blanco,
+                blanco desde md sobre la foto). */}
+            <div className="mt-4 flex items-center gap-3">
+              <span className="text-xs font-medium text-gray-500 md:text-white/75">Un proyecto de</span>
+              <Image src="/emprendimientos/marcas/vers-azul.webp" alt="Estudio VERS" width={640} height={185} className="h-8 w-auto md:hidden" />
+              <Image src="/emprendimientos/marcas/vers-blanco.webp" alt="Estudio VERS" width={640} height={185} className="hidden h-10 w-auto md:block" />
             </div>
           </div>
         </div>
@@ -137,6 +165,9 @@ export default async function DockGardenPage() {
           </div>
         </div>
       </section>
+
+      {/* Elegir la unidad en el edificio antes de la lista completa */}
+      <ElegiTuUnidad unidades={unidadesExplorador(units)} contenedor={CONTENEDOR} whatsapp={WA_PHONE} />
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         {/* Unidades */}
@@ -179,11 +210,23 @@ export default async function DockGardenPage() {
         )}
       </div>
 
+      {/* Confianza, después de la lista (la página sigue siendo la lista):
+          las vistas 360°, quién lo construye, con qué está hecho y qué hay cerca. */}
+      <Recorridos360 contenedor={CONTENEDOR} />
+      <SeccionVers contenedor={CONTENEDOR} />
+      <SeccionTerminaciones contenedor={CONTENEDOR} />
+      <SeccionCercanias contenedor={CONTENEDOR} />
+      <div className="bg-white pb-12">
+        <div className={CONTENEDOR}>
+          <OficinaVentas className="max-w-md" />
+        </div>
+      </div>
+
       {/* Footer compacto — el contacto vive en el FAB de WhatsApp. */}
       <footer className="border-t border-gray-100 bg-white px-4 py-8 text-center">
         <p className="text-xs text-gray-400">
           SI INMOBILIARIA · David Flores · Mat. N° 0621 ·{' '}
-          <a href="tel:+5493412101694" className="font-numeric hover:text-gray-600">(341) 210-1694</a> ·{' '}
+          <a href="tel:+5493413340916" className="font-numeric hover:text-gray-600">(341) 334-0916</a> ·{' '}
           <Link href="/emprendimientos" className="underline decoration-gray-300 underline-offset-2 hover:text-gray-600">
             Ver más emprendimientos
           </Link>

@@ -1,8 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import { memo, useEffect, useMemo, useState, useCallback, useRef, type MutableRefObject } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -13,12 +12,16 @@ import {
   propertyTypeLabelById,
   getTotalSurface,
   generatePropertySlug,
+  operacionPrincipal,
+  tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
-import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
+import { formatUbicacion } from '@/lib/ubicacion'
+import { DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES, DEFAULT_ZOOM, esEncuadreInicial, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
-import { VOYAGER_TILES } from '@/lib/map-tiles'
+import CapaCalles from './CapaCalles'
+import FotosVistaPrevia from './FotosVistaPrevia'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -90,19 +93,99 @@ function groupByDevelopment(properties: TokkoProperty[]): { standalone: TokkoPro
   return { standalone, devGroups }
 }
 
-function createCraneIcon() {
+// Marcador del emprendimiento. Lejos es un círculo verde con grúa (discreto);
+// desde zoom 15 se transforma en la pastilla
+// negra con el nombre (amarillo solo como detalle).
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
+}
+
+const DEV_ZOOM_CERCA = 15
+
+// Nombre corto para el mapa cuando el cargado en el CRM es largo.
+const DEV_NOMBRE_MAPA: Record<string, string> = {
+  dockgarden: 'Dock Garden',
+}
+
+function nombreMapa(name: string) {
+  const clave = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '')
+  const hit = Object.keys(DEV_NOMBRE_MAPA).find(k => clave.startsWith(k))
+  return hit ? DEV_NOMBRE_MAPA[hit] : name
+}
+
+// Lejos: círculo verde oscuro con grúa, mismo verde que los clusters y más
+// chico, para que acompañe sin distraer. Sin precio ni nombre.
+// Los colores de los marcadores son variables (--si-pin*): en modo claro,
+// verdes con texto blanco; en modo oscuro globals.css los vuelve pastillas
+// blancas con texto oscuro (elegido por David sobre el mapa real, 15-oct).
+function createDevCircle() {
   return L.divIcon({
     className: '',
     html: `<div style="
-      background:#1A5C38;color:white;
+      background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
       width:32px;height:32px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;
-    "><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-6 7 6v12"/><path d="M9 20v-6h6v6"/><path d="M12 2v6"/><path d="M8 8h8"/></svg></div>`,
+      border:2.5px solid var(--si-pin-borde,rgba(255,255,255,0.9));
+      box-shadow:0 2px 8px rgba(0,0,0,0.25);
+      cursor:pointer;box-sizing:border-box;
+    "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -18],
   })
+}
+
+function createDevPill(rawName: string) {
+  const name = nombreMapa(rawName)
+  const label = name.length > 24 ? name.slice(0, 23).trimEnd() + '…' : name
+  const t = { gap: 6, pad: '4px 11px 4px 4px', font: 12, dot: 20, svg: 12, tail: 6, shadow: '0 2px 8px rgba(0,0,0,0.3)' }
+  const html = `
+    <div style="position:relative;display:inline-block;cursor:pointer;">
+      <div style="
+        display:inline-flex;align-items:center;gap:${t.gap}px;
+        background:#111;color:#fff;
+        font-family:var(--font-raleway, 'Raleway'),system-ui,sans-serif;
+        font-weight:700;font-size:${t.font}px;line-height:1.2;
+        padding:${t.pad};border-radius:999px;
+        border:2px solid rgba(255,255,255,0.95);
+        box-shadow:${t.shadow};
+        white-space:nowrap;
+      ">
+        <span style="
+          width:${t.dot}px;height:${t.dot}px;border-radius:50%;background:#fbce07;
+          display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+        "><svg xmlns="http://www.w3.org/2000/svg" width="${t.svg}" height="${t.svg}" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg></span>
+        ${escapeHtml(label)}
+      </div>
+      <div style="
+        width:0;height:0;margin:0 auto;
+        border-left:${t.tail}px solid transparent;
+        border-right:${t.tail}px solid transparent;
+        border-top:${t.tail}px solid #111;
+      "></div>
+    </div>`
+
+  const w = Math.max(label.length * 7.2 + 44, 70)
+  const h = 36
+
+  return L.divIcon({
+    className: '',
+    html,
+    iconSize: [w, h],
+    iconAnchor: [w / 2, h],
+    popupAnchor: [0, -h - 2],
+  })
+}
+
+function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    const handler = () => onZoom(map.getZoom())
+    handler()
+    map.on('zoomend', handler)
+    return () => { map.off('zoomend', handler) }
+  }, [map, onZoom])
+  return null
 }
 
 // ─── Short price label for map bubbles ────────────────────────────────────────
@@ -110,7 +193,7 @@ function createCraneIcon() {
 function shortPrice(property: TokkoProperty): string {
   // "Sin Precio" en Tokko: la burbuja no muestra el monto
   if (property.web_price === false) return 'Consultar'
-  const op = property.operations?.[0]
+  const op = operacionPrincipal(property)
   if (!op?.prices?.[0]) return 'Consultar'
   const p = op.prices[0]
   if (!p.price || p.price === 0) return 'Consultar'
@@ -130,9 +213,14 @@ function shortPrice(property: TokkoProperty): string {
 
 // ─── Price bubble DivIcon ─────────────────────────────────────────────────────
 
-function createPriceBubble(label: string, selected: boolean, hovered: boolean = false) {
+// En pantallas táctiles la burbuja suma 6 px transparentes alrededor: se ve
+// igual (agrandar el precio pisaría más a las vecinas) pero el dedo tiene ~44 px
+// de alto para acertarle en vez de 34.
+const PAD_TACTIL = 6
+
+function createPriceBubble(label: string, selected: boolean, hovered: boolean = false, tactil: boolean = false) {
   // selected > hovered (sin "selected"). Hover más claro y con outline amarillo.
-  const bg = selected ? '#145030' : hovered ? '#2D7A4F' : '#1A5C38'
+  const bg = selected ? 'var(--si-pin-activo,#145030)' : hovered ? 'var(--si-pin-hover,#2D7A4F)' : 'var(--si-pin,#1A5C38)'
   const scale = selected || hovered ? 'transform:scale(1.1);' : ''
   const zExtra = selected ? 'z-index:9999;' : hovered ? 'z-index:5000;' : ''
   const shadow = selected
@@ -142,18 +230,20 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
     : 'box-shadow:0 2px 8px rgba(0,0,0,0.25);'
   const border = hovered && !selected
     ? '2px solid #FBBF24'
-    : '2px solid rgba(255,255,255,0.9)'
+    : '2px solid var(--si-pin-borde,rgba(255,255,255,0.9))'
 
+  const pad = tactil ? PAD_TACTIL : 0
   const html = `
     <div style="
       position:relative;display:inline-block;${zExtra}${scale}
+      ${pad ? `padding:${pad}px;` : ''}
       transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
     ">
       <div style="
-        background:${bg};color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
+        background:${bg};color:var(--si-pin-texto,#fff);
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:700;font-size:11px;
-        padding:4px 8px;border-radius:6px;
+        padding:4px 8px;border-radius:var(--si-pin-radio,6px);
         white-space:nowrap;line-height:1.2;
         border:${border};
         ${shadow}
@@ -163,7 +253,7 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
         width:0;height:0;margin:0 auto;
         border-left:6px solid transparent;
         border-right:6px solid transparent;
-        border-top:6px solid ${bg};
+        border-top:6px solid var(--si-pin-cola,${bg});
       "></div>
     </div>`
 
@@ -174,52 +264,244 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
   return L.divIcon({
     className: '',
     html,
-    iconSize: [w, 34],
-    iconAnchor: [w / 2, 34],
+    iconSize: [w + pad * 2, 34 + pad * 2],
+    // La punta de la cola sigue clavada en la coordenada: el relleno de abajo
+    // queda por debajo del punto.
+    iconAnchor: [w / 2 + pad, 34 + pad],
     popupAnchor: [0, -36],
   })
 }
 
+// Un ícono por (precio, estado): pasar el mouse por una tarjeta ya no arma
+// ~300 L.divIcon nuevos. react-leaflet hace setIcon cuando cambia la
+// identidad del ícono, así que con la misma instancia el marcador ni se toca.
+const ICONOS_PRECIO = new Map<string, L.DivIcon>()
+// Se pregunta una vez por carga (son ~300 pines y el tipo de puntero no cambia).
+let esTactilCache: boolean | null = null
+function esTactil(): boolean {
+  if (esTactilCache === null) {
+    esTactilCache = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
+  }
+  return esTactilCache
+}
+function burbujaPrecio(label: string, selected: boolean, hovered: boolean): L.DivIcon {
+  const tactil = esTactil()
+  const clave = `${label}|${selected ? 1 : 0}|${hovered ? 1 : 0}|${tactil ? 1 : 0}`
+  let icono = ICONOS_PRECIO.get(clave)
+  if (!icono) {
+    icono = createPriceBubble(label, selected, hovered, tactil)
+    ICONOS_PRECIO.set(clave, icono)
+  }
+  return icono
+}
+
+interface AccionesPin {
+  onSelect: (id: number) => void
+  onDeselect?: () => void
+  onOpenDetail?: (id: number) => void
+}
+
+// Un marcador de propiedad suelta. Memo con props primitivas (más la propiedad,
+// que llega con la misma referencia mientras no cambie el listado): al pasar el
+// mouse por la grilla solo se re-renderizan los dos pines que cambian de estado
+// (el que se prende y el que se apaga), no los ~300.
+const PinPropiedad = memo(function PinPropiedad({ property, isSelected, isHovered, isMobile, accionesRef }: {
+  property: TokkoProperty
+  isSelected: boolean
+  isHovered: boolean
+  isMobile: boolean
+  accionesRef: MutableRefObject<AccionesPin>
+}) {
+  // Posición estable: un array nuevo en cada render hacía setLatLng, y
+  // markercluster sacaba y volvía a meter el marcador en su árbol.
+  const position = useMemo<[number, number]>(
+    () => [parseFloat(property.geo_lat!), parseFloat(property.geo_long!)],
+    [property.geo_lat, property.geo_long],
+  )
+  const eventHandlers = useMemo(() => ({
+    click: () => accionesRef.current.onSelect(property.id),
+    popupclose: () => accionesRef.current.onDeselect?.(),
+  }), [property.id, accionesRef])
+  const priceLabel = shortPrice(property)
+  const icon = burbujaPrecio(priceLabel, isSelected, isHovered)
+  const photo = getMainPhoto(property)
+  const fullPrice = formatPrice(property)
+  const typeName = propertyTypeLabelById(property.type?.id)
+  const area = getTotalSurface(property)
+  const titulo = tituloVisible(property) || property.address || ''
+
+  return (
+    <Marker
+      position={position}
+      icon={icon}
+      zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
+      eventHandlers={eventHandlers}
+    >
+      {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
+        <div style={{ width: '270px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", position: 'relative' }}>
+          {photo && (
+            // Fotos que se pasan con las flechas sin abrir la ficha. Va de borde
+            // a borde del popup (por eso el ancho y el margen).
+            <FotosVistaPrevia
+              property={property}
+              alt={titulo}
+              className="aspect-[16/9]"
+              style={{ width: 'calc(100% + 40px)', margin: '-10px -20px 12px', borderRadius: 0 }}
+            >
+              {typeName && (
+                <span style={{
+                  position: 'absolute', top: '8px', left: '8px', zIndex: 10, transform: 'translateZ(0)',
+                  background: 'rgba(26,92,56,0.85)', color: '#fff',
+                  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
+                }}>
+                  {typeName}
+                </span>
+              )}
+              <PropertyShareButton
+                propertyId={property.id}
+                slug={generatePropertySlug(property)}
+                title={titulo}
+                priceLabel={fullPrice}
+                ubicacion={formatUbicacion(property, titulo) || undefined}
+                contexto="mapa"
+                top={8}
+                right={8}
+                size={32}
+              />
+            </FotosVistaPrevia>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{
+              fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
+              fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
+              lineHeight: 1.1,
+            }}>
+              {fullPrice}
+            </span>
+          </div>
+          <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-ink, #1a1a1a)', lineHeight: 1.3, margin: '0 0 8px' }}>
+            {titulo}
+          </h3>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
+            {area != null && area > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
+            )}
+            {(property.suite_amount || property.room_amount) > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
+            )}
+            {property.bathroom_amount > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+            )}
+          </div>
+          <button
+            onClick={() => accionesRef.current.onOpenDetail?.(property.id)}
+            style={{
+              display: 'block', width: '100%', textAlign: 'center',
+              background: '#1A5C38', color: 'white',
+              fontSize: '13px', fontWeight: 600,
+              padding: '9px 16px', borderRadius: '8px',
+              border: 'none', cursor: 'pointer',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+          >
+            Ver propiedad →
+          </button>
+        </div>
+      </Popup>}
+    </Marker>
+  )
+})
+
 // ─── Cluster icon ─────────────────────────────────────────────────────────────
 
+// El tamaño acompaña la cantidad: los grupos chicos (2 a 9) ocupan menos y ya
+// no se pisan entre sí ni tapan los nombres de las ciudades.
 function createClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount()
   const label = count > 99 ? '99+' : String(count)
+  const size = count < 10 ? 34 : count < 50 ? 40 : 46
+  const font = count < 10 ? 13 : count < 50 ? 14 : 15
 
   return L.divIcon({
     className: '',
     html: `
       <div style="
-        background:#0D3620;color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
-        font-weight:800;font-size:13px;
-        width:44px;height:44px;
+        background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
+        font-weight:800;font-size:${font}px;
+        width:${size}px;height:${size}px;
         border-radius:50%;
         display:flex;align-items:center;justify-content:center;
-        border:3px solid rgba(255,255,255,0.9);
+        border:2.5px solid var(--si-pin-borde,rgba(255,255,255,0.92));
         box-shadow:0 3px 12px rgba(0,0,0,0.3);
+        box-sizing:border-box;
         cursor:pointer;
       ">${label}</div>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   })
+}
+
+// Radio de agrupamiento: más amplio con el mapa lejos (en el celular entran
+// Roldán, Funes y Fisherton y los grupos quedaban encimados); de cerca, el de
+// siempre para que aparezcan los precios.
+function radioDeGrupo(zoom: number) {
+  return zoom <= 12 ? 64 : 50
 }
 
 // ─── Encuadre inicial fijo ───────────────────────────────────────────────────
 //
-// DEFAULT_CENTER/DEFAULT_ZOOM viven en @/lib/map-config (módulo sin leaflet)
+// DEFAULT_BOUNDS y compañía viven en @/lib/map-config (módulo sin leaflet)
 // para que PropiedadesView pueda importarlos sin romper el code-splitting.
 // Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
 // cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
 
-function InitialView() {
+// El contenedor cambia de ancho sin que cambie la ventana (divisor lista|mapa
+// de /propiedades): Leaflet solo escucha el resize de la ventana, así que sin
+// esto quedan tiles grises en el borde nuevo.
+function AutoResize() {
+  const map = useMap()
+  useEffect(() => {
+    let raf = 0
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => map.invalidateSize({ pan: false }))
+    })
+    ro.observe(map.getContainer())
+    return () => { cancelAnimationFrame(raf); ro.disconnect() }
+  }, [map])
+  return null
+}
+
+// Al entrar o salir de pantalla completa el mapa cambia de tamaño de golpe:
+// se conserva el centro (AutoResize ancla la esquina y lo que se miraba
+// quedaba corrido a un costado).
+function CentroAlCambiarTamano({ clave }: { clave: unknown }) {
+  const map = useMap()
+  const primera = useRef(true)
+  useEffect(() => {
+    if (primera.current) { primera.current = false; return }
+    // getCenter todavía usa el tamaño viejo: es el centro que se veía.
+    const centro = map.getCenter()
+    map.invalidateSize({ pan: false })
+    map.setView(centro, map.getZoom(), { animate: false })
+  }, [map, clave])
+  return null
+}
+
+function InitialView({ vista }: { vista?: ZonaMapa | null }) {
   const map = useMap()
   useEffect(() => {
     // setTimeout corto para que MapContainer termine de medirse antes de
     // invalidateSize (sino el primer render queda con tiles cortadas en flex).
     const t = setTimeout(() => {
       map.invalidateSize()
-      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+      // Al volver a abrir el mapa (celular: lista → mapa) retoma la zona que la
+      // persona estaba mirando; si no movió el mapa, el encuadre de siempre.
+      if (vista) map.setView([vista.lat, vista.lng], vista.zoom)
+      else map.fitBounds(DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES)
     }, 200)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -251,6 +533,9 @@ function MapFlyTo({ center }: { center: FlyToTarget | null }) {
     if (!center) return
     const [lat, lng] = center
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+    if (esEncuadreInicial(center)) {
+      return whenMapSized(map, () => map.flyToBounds(DEFAULT_BOUNDS, { ...DEFAULT_BOUNDS_OPCIONES, duration: 0.7 }))
+    }
     const zoom = center[2] ?? 16
     return whenMapSized(map, () => map.flyTo([lat, lng], zoom, { duration: 0.7, easeLinearity: 0.4 }))
   }, [center, map])
@@ -269,7 +554,7 @@ function MapStyles() {
       style.textContent = `
         .leaflet-marker-icon:hover { z-index: 9999 !important; }
         .leaflet-marker-icon:hover > div > div:first-child {
-          background: #2D7A4F !important;
+          background: var(--si-pin-hover, #2D7A4F) !important;
           transform: scale(1.1);
           box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
         }
@@ -395,17 +680,17 @@ function LocateButton({
           aria-pressed={nearbyActive}
           style={{
             width: 40, height: 40,
-            background: nearbyActive ? '#1A5C38' : 'white',
+            background: nearbyActive ? '#1A5C38' : 'var(--theme-surface, white)',
             borderRadius: '50%',
             boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            border: nearbyActive ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+            border: nearbyActive ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
             transition: 'background 0.15s, border 0.15s',
           }}
         >
           {loading ? (
-            <div style={{ width: 18, height: 18, border: '2px solid #e5e7eb', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+            <div style={{ width: 18, height: 18, border: '2px solid var(--theme-border, #e5e7eb)', borderTopColor: nearbyActive ? '#fff' : '#3B82F6', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
           ) : (
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={nearbyActive ? '#fff' : '#3B82F6'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="3 11 22 2 13 21 11 13 3 11" />
@@ -431,59 +716,87 @@ function LocateButton({
   )
 }
 
-// ─── Search in this zone button ──────────────────────────────────────────────
+// ─── La lista sigue al mapa ─────────────────────────────────────────────────
+//
+// Cuando la persona arrastra o hace zoom, el listado pasa a mostrar lo que
+// queda a la vista. Solo cuentan los gestos: los vuelos que hace el propio
+// mapa (encuadre inicial, búsqueda, zona, Centrar, tocar una tarjeta, el
+// autopan del popup) no recortan la lista, porque ya acompañan a los filtros.
+// Si cambia el tamaño (divisor, pantalla completa) y la lista ya seguía al
+// mapa, se recalcula con lo que entra ahora.
 
-function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => void }) {
+const GESTO_MS = 500
+
+function zonaDe(map: L.Map): ZonaMapa | null {
+  const size = map.getSize()
+  // Mapa oculto (0×0): los bordes serían un punto y la lista quedaría vacía.
+  if (size.x === 0 || size.y === 0) return null
+  const b = map.getBounds()
+  const c = map.getCenter()
+  return {
+    south: b.getSouth(), north: b.getNorth(), west: b.getWest(), east: b.getEast(),
+    lat: c.lat, lng: c.lng, zoom: map.getZoom(),
+  }
+}
+
+function ListaSigueMapa({ onZona }: { onZona: (zona: ZonaMapa, soloSiYaSeguia: boolean) => void }) {
   const map = useMap()
-
-  // Listen for external refresh trigger (from bottom refresh button)
+  const onZonaRef = useRef(onZona)
+  onZonaRef.current = onZona
   useEffect(() => {
-    const handler = () => onSearch(map.getBounds())
-    window.addEventListener('si-refresh-bounds', handler)
-    return () => window.removeEventListener('si-refresh-bounds', handler)
-  }, [map, onSearch])
-
-  // Desktop-only: show "Buscar en esta zona" button on map move
-  const [visible, setVisible] = useState(false)
-  const initial = useRef(true)
-
-  useEffect(() => {
-    const handler = () => {
-      if (initial.current) { initial.current = false; return }
-      setVisible(true)
+    const el = map.getContainer()
+    let presionado = false
+    let ultimoGesto = 0
+    let autopan = false
+    let deUsuario = false
+    let tResize: ReturnType<typeof setTimeout> | undefined
+    // Botones propios (Centrar, satélite) y popups no son navegar el mapa.
+    // El zoom de Leaflet son <a>, así que sí cuenta.
+    const esControl = (t: EventTarget | null) => t instanceof Element && !!t.closest('button, .leaflet-popup')
+    const onDown = (e: PointerEvent) => { if (!esControl(e.target)) presionado = true }
+    const onUp = () => { if (presionado) { presionado = false; ultimoGesto = Date.now() } }
+    const onInput = (e: Event) => { if (!esControl(e.target)) ultimoGesto = Date.now() }
+    const onAutopan = () => { autopan = true }
+    const onMoveStart = () => {
+      deUsuario = !autopan && (presionado || Date.now() - ultimoGesto < GESTO_MS)
+      autopan = false
     }
-    map.on('moveend', handler)
-    return () => { map.off('moveend', handler) }
+    const onMoveEnd = () => {
+      if (!deUsuario) return
+      deUsuario = false
+      const z = zonaDe(map)
+      if (z) onZonaRef.current(z, false)
+    }
+    const onResize = () => {
+      clearTimeout(tResize)
+      tResize = setTimeout(() => {
+        const z = zonaDe(map)
+        if (z) onZonaRef.current(z, true)
+      }, 250)
+    }
+    el.addEventListener('pointerdown', onDown, true)
+    window.addEventListener('pointerup', onUp, true)
+    window.addEventListener('pointercancel', onUp, true)
+    el.addEventListener('wheel', onInput, { capture: true, passive: true })
+    el.addEventListener('keydown', onInput, true)
+    map.on('autopanstart', onAutopan)
+    map.on('movestart', onMoveStart)
+    map.on('moveend', onMoveEnd)
+    map.on('resize', onResize)
+    return () => {
+      clearTimeout(tResize)
+      el.removeEventListener('pointerdown', onDown, true)
+      window.removeEventListener('pointerup', onUp, true)
+      window.removeEventListener('pointercancel', onUp, true)
+      el.removeEventListener('wheel', onInput, true)
+      el.removeEventListener('keydown', onInput, true)
+      map.off('autopanstart', onAutopan)
+      map.off('movestart', onMoveStart)
+      map.off('moveend', onMoveEnd)
+      map.off('resize', onResize)
+    }
   }, [map])
-
-  if (!visible) return null
-
-  return (
-    <div className="hidden md:block" style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
-      <button
-        onClick={() => { onSearch(map.getBounds()); setVisible(false) }}
-        style={{
-          background: 'white',
-          color: '#1f2937',
-          fontSize: 13,
-          fontWeight: 600,
-          padding: '8px 16px',
-          borderRadius: 50,
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-        </svg>
-        Buscar en esta zona
-      </button>
-    </div>
-  )
+  return null
 }
 
 // ─── Zona fly-to ────────────────────────────────────────────────────────────
@@ -494,9 +807,18 @@ function SearchZoneButton({ onSearch }: { onSearch: (bounds: L.LatLngBounds) => 
 // maxZoom 15 evita acercarse de más cuando hay pocos puntos pegados.
 // Fallback al centroide de la zona si las propiedades no tienen coords.
 
-function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty[] }) {
+function ZonaFlyTo({ zona, properties, vistaPropiaRef }: {
+  zona: Zona
+  properties: TokkoProperty[]
+  /** true si la persona ya eligió qué mirar moviendo el mapa: no se la saca. */
+  vistaPropiaRef: React.MutableRefObject<boolean>
+}) {
   const map = useMap()
   useEffect(() => {
+    // Con la lista siguiendo al mapa, re-encuadrar al cambiar un filtro dejaba
+    // el mapa en un lugar y la lista en otro: los filtros nuevos se ven dentro
+    // de la vista que eligió la persona.
+    if (vistaPropiaRef.current) return
     const coords = properties
       .filter(p => p.geo_lat && p.geo_long)
       .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
@@ -522,7 +844,37 @@ function ZonaFlyTo({ zona, properties }: { zona: Zona; properties: TokkoProperty
     }
     // Guarda anti-NaN: no volar si el mapa está oculto (tamaño 0); esperar resize.
     return whenMapSized(map, doFly)
-  }, [map, zona, properties])
+  }, [map, zona, properties, vistaPropiaRef])
+  return null
+}
+
+// ─── Encuadre por búsqueda ──────────────────────────────────────────────────
+//
+// Al escribir en el buscador el mapa acompaña: cuando la persona deja de tipear
+// (600 ms) encuadra los resultados. Si la búsqueda se borra no se mueve, y la
+// primera búsqueda de la URL la cubre ZonaFlyTo/InitialView.
+
+function EncuadreBusqueda({ busqueda, properties }: { busqueda: string; properties: TokkoProperty[] }) {
+  const map = useMap()
+  const propsRef = useRef(properties)
+  propsRef.current = properties
+  const primera = useRef(true)
+  useEffect(() => {
+    if (primera.current) { primera.current = false; return }
+    if (!busqueda.trim()) return
+    let limpiar: (() => void) | undefined
+    const t = setTimeout(() => {
+      const coords = propsRef.current
+        .map(p => [parseFloat(p.geo_lat!), parseFloat(p.geo_long!)] as [number, number])
+        .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng))
+      if (!coords.length) return
+      limpiar = whenMapSized(map, () => {
+        if (coords.length === 1) map.flyTo(coords[0]!, 15, { duration: 0.8 })
+        else map.flyToBounds(L.latLngBounds(coords), { padding: [50, 50], maxZoom: 15, duration: 0.8 })
+      })
+    }, 600)
+    return () => { clearTimeout(t); limpiar?.() }
+  }, [map, busqueda])
   return null
 }
 
@@ -601,16 +953,17 @@ function SatelliteToggle({ satellite, setSatellite, manualRef }: {
         aria-pressed={satellite}
         style={{
           width: 40, height: 40,
-          background: satellite ? '#1A5C38' : 'white',
+          background: satellite ? '#1A5C38' : 'var(--theme-surface, white)',
           borderRadius: '50%',
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-          border: satellite ? '1px solid #1A5C38' : '1px solid #e5e7eb',
+          border: satellite ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: satellite ? '#fff' : 'var(--theme-muted, #374151)',
           cursor: 'pointer',
           transition: 'background 0.15s, border 0.15s',
         }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={satellite ? '#fff' : '#374151'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 22 8.5 12 15 2 8.5 12 2" />
           <polyline points="2 15.5 12 22 22 15.5" />
         </svg>
@@ -627,17 +980,33 @@ interface Props {
   onDeselect?: () => void
   onOpenDetail?: (id: number) => void
   flyToCenter: FlyToTarget | null
-  onBoundsSearch?: (bounds: L.LatLngBounds) => void
+  /** La persona movió el mapa (o cambió su tamaño y la lista ya lo seguía): el listado muestra esa zona. */
+  onZonaChange?: (zona: ZonaMapa, soloSiYaSeguia: boolean) => void
+  /** Zona que la persona eligió moviendo el mapa (null si no lo movió). */
+  zonaDelMapa?: ZonaMapa | null
+  /** Pantalla completa: al cambiar, el mapa conserva el centro. */
+  pantallaCompleta?: boolean
   activeZona?: Zona | null
   onMapMove?: () => void
   /** Notifica al padre las coords del usuario tras un click en "Centrar". Activa modo cercanía. */
   onNearbyOrigin?: (lat: number, lng: number) => void
   /** Si true, el botón "Centrar" muestra estado activo (modo cercanía). */
   nearbyActive?: boolean
+  /** Texto buscado: al cambiar, el mapa encuadra los resultados. */
+  busqueda?: string
 }
 
-export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onBoundsSearch, activeZona, onMapMove, onNearbyOrigin, nearbyActive }: Props) {
+export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onZonaChange, zonaDelMapa, pantallaCompleta, activeZona, onMapMove, onNearbyOrigin, nearbyActive, busqueda }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  // Con el dedo se hace zoom pellizcando (como en Mapas del iPhone): los +/-
+  // de Leaflet medían 30 px y solo sumaban ruido en la esquina.
+  const tactil = esTactil()
+  // Los pines leen las acciones de acá: así sus handlers no cambian de
+  // identidad en cada render del padre (y el memo de PinPropiedad aguanta).
+  const accionesRef = useRef<AccionesPin>({ onSelect, onDeselect, onOpenDetail })
+  accionesRef.current = { onSelect, onDeselect, onOpenDetail }
+  const vistaPropiaRef = useRef(false)
+  vistaPropiaRef.current = zonaDelMapa != null
   const [satellite, setSatellite] = useState(false)
   // true una vez que el usuario eligió capa a mano: el auto-switch deja de decidir
   const satManualRef = useRef(false)
@@ -649,13 +1018,15 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
   [properties])
 
   const { standalone, devGroups } = useMemo(() => groupByDevelopment(mapped), [mapped])
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM)
+  const devCerca = zoom >= DEV_ZOOM_CERCA
+  const devIcons = useMemo(() => new Map(devGroups.map(g => [g.devId, devCerca ? createDevPill(g.devName) : createDevCircle()])), [devGroups, devCerca])
 
-  const craneIcon = useMemo(() => createCraneIcon(), [])
 
   return (
     <MapContainer
-      center={DEFAULT_CENTER}
-      zoom={DEFAULT_ZOOM}
+      bounds={DEFAULT_BOUNDS}
+      boundsOptions={DEFAULT_BOUNDS_OPCIONES}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
@@ -683,163 +1054,78 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           />
         </>
       ) : (
-        <TileLayer
-          key="base"
-          url={VOYAGER_TILES.url}
-          attribution={VOYAGER_TILES.attribution}
-          maxNativeZoom={VOYAGER_TILES.maxNativeZoom}
-          maxZoom={20}
-        />
+        <CapaCalles maxZoom={20} />
       )}
-      <ZoomControl position="bottomright" />
+      {!tactil && <ZoomControl position="bottomright" />}
       <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <SatelliteToggle satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
-      <InitialView />
+      <InitialView vista={zonaDelMapa} />
+      <CentroAlCambiarTamano clave={pantallaCompleta} />
+      <AutoResize />
       <MapFlyTo center={flyToCenter} />
       <MapStyles />
+      <ZoomWatcher onZoom={setZoom} />
       <LocateButton onNearbyOrigin={onNearbyOrigin} nearbyActive={nearbyActive} />
-      {onBoundsSearch && <SearchZoneButton onSearch={onBoundsSearch} />}
-      {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} />}
+      {onZonaChange && <ListaSigueMapa onZona={onZonaChange} />}
+      {activeZona && <ZonaFlyTo zona={activeZona} properties={mapped} vistaPropiaRef={vistaPropiaRef} />}
+      <EncuadreBusqueda busqueda={busqueda ?? ''} properties={mapped} />
       {onMapMove && <MapMoveListener onMove={onMapMove} />}
 
       {/* Legend — hidden on mobile */}
-      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'white', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'var(--theme-surface, white)', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
-          <span style={{ color: '#666' }}>Propiedad</span>
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin, #1A5C38)', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+          <span style={{ color: 'var(--theme-muted, #666)' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 20V8l7-6 7 6v12"/></svg>
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin-grupo, #0D3620)', color: 'var(--si-pin-texto, #fff)', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
           </div>
-          <span style={{ color: '#666' }}>Emprendimiento</span>
+          <span style={{ color: 'var(--theme-muted, #666)' }}>Emprendimiento</span>
         </div>
       </div>
 
       <MarkerClusterGroup
         chunkedLoading
-        maxClusterRadius={50}
+        maxClusterRadius={radioDeGrupo}
         spiderfyOnMaxZoom
         showCoverageOnHover={false}
         iconCreateFunction={createClusterIcon}
       >
         {/* Standalone properties */}
-        {standalone.map(property => {
-          const lat = parseFloat(property.geo_lat!)
-          const lng = parseFloat(property.geo_long!)
-          const isSelected = property.id === selectedId
-          const isHovered = property.id === hoveredId
-          const priceLabel = shortPrice(property)
-          const photo = getMainPhoto(property)
-          const fullPrice = formatPrice(property)
-          const typeName = propertyTypeLabelById(property.type?.id)
-          const area = getTotalSurface(property)
-
-          return (
-            <Marker
-              key={property.id}
-              position={[lat, lng]}
-              icon={createPriceBubble(priceLabel, isSelected, isHovered)}
-              zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
-              eventHandlers={{
-                click: () => onSelect(property.id),
-                popupclose: () => onDeselect?.(),
-              }}
-            >
-              {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
-                <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
-                  {photo && (
-                    <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={photo}
-                        alt={property.publication_title || property.address}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                      />
-                      {typeName && (
-                        <span style={{
-                          position: 'absolute', top: '8px', left: '8px',
-                          background: 'rgba(26,92,56,0.85)', color: '#fff',
-                          fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                          letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
-                        }}>
-                          {typeName}
-                        </span>
-                      )}
-                      <PropertyShareButton
-                        propertyId={property.id}
-                        slug={generatePropertySlug(property)}
-                        title={property.publication_title || property.address || ''}
-                        priceLabel={fullPrice}
-                        top={8}
-                        right={8}
-                        size={32}
-                      />
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span style={{
-                      fontSize: '22px', fontWeight: 800, color: '#1A5C38',
-                      fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
-                      lineHeight: 1.1,
-                    }}>
-                      {fullPrice}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.3, margin: '0 0 8px' }}>
-                    {property.publication_title || property.address}
-                  </h3>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#4b5563', marginBottom: '12px' }}>
-                    {area != null && area > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{area}</span> m²</span>
-                    )}
-                    {(property.suite_amount || property.room_amount) > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
-                    )}
-                    {property.bathroom_amount > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: '#0a0a0a' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => onOpenDetail?.(property.id)}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'center',
-                      background: '#1A5C38', color: 'white',
-                      fontSize: '13px', fontWeight: 600,
-                      padding: '9px 16px', borderRadius: '8px',
-                      border: 'none', cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-                  >
-                    Ver propiedad →
-                  </button>
-                </div>
-              </Popup>}
-            </Marker>
-          )
-        })}
+        {standalone.map(property => (
+          <PinPropiedad
+            key={property.id}
+            property={property}
+            isSelected={property.id === selectedId}
+            isHovered={property.id === hoveredId}
+            isMobile={isMobile}
+            accionesRef={accionesRef}
+          />
+        ))}
       </MarkerClusterGroup>
 
-      {/* Development markers — outside cluster group */}
+      {/* Development markers — outside cluster group. Lejos van por debajo de
+          los grupos: si se cruzan, el número del grupo queda a la vista. */}
       {devGroups.map(g => (
         <Marker
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
-          icon={craneIcon}
-          zIndexOffset={500}
+          icon={devIcons.get(g.devId)!}
+          zIndexOffset={devCerca ? 500 : -1000}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
-            <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1A5C38', display: 'block', marginBottom: 4 }}>
+            <div style={{ width: '230px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", padding: '2px 0' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--theme-accent, #1A5C38)', display: 'block', marginBottom: 4 }}>
                 Emprendimiento
               </span>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a', margin: '0 0 6px' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--theme-ink, #1a1a1a)', margin: '0 0 6px' }}>
                 {g.devName}
               </h3>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#1A5C38', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-accent, #1A5C38)', fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", marginBottom: 8 }}>
                 Desde {g.minPrice}
               </div>
-              <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#666', marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--theme-muted, #666)', marginBottom: 12 }}>
                 <span>{g.units.length} unidad{g.units.length !== 1 ? 'es' : ''}</span>
                 {g.dormRange && <span>{g.dormRange}</span>}
               </div>

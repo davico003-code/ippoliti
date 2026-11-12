@@ -92,7 +92,17 @@ export interface AjusteMensual {
 // Se mantiene async para no tocar la firma que esperan los consumidores.
 export async function getAjusteMensual(hoy: Date = new Date()): Promise<AjusteMensual> {
   const [anioBase, mesBase] = MES_BASE.split('-').map(Number)
-  const meses = (hoy.getFullYear() - anioBase) * 12 + (hoy.getMonth() + 1 - mesBase)
+  // Mes calendario en Argentina: el server corre en UTC y desde las 21 h del
+  // último día ya aplicaba el 2% del mes siguiente.
+  const [anioHoy, mesHoy] = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+  })
+    .format(hoy)
+    .split('-')
+    .map(Number)
+  const meses = (anioHoy - anioBase) * 12 + (mesHoy - mesBase)
   if (meses <= 0) return { factor: 1, mes: MES_BASE }
 
   const factor = Math.pow(1 + TASA_MENSUAL, meses)

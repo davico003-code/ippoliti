@@ -2,7 +2,7 @@ import type { Barrio } from "@/lib/barrios";
 import {
   Flag, Trophy, CircleDot, Square, Waves, Droplet, Droplets, Sun, Home,
   UtensilsCrossed, Dumbbell, Baby, Tent, Shield, Zap, Flame, Trees, Bike,
-  Briefcase, Sailboat, Anchor, CheckCircle2, type LucideIcon,
+  Briefcase, Sailboat, Anchor, ShoppingCart, Bath, CheckCircle2, type LucideIcon,
 } from "lucide-react";
 
 // Amenities y espacios comunes: chips blancos con ícono verde. Reemplaza las
@@ -14,7 +14,7 @@ const P = "var(--font-poppins), 'Poppins', system-ui, sans-serif";
 const ICONOS: Record<string, LucideIcon> = {
   Flag, Trophy, CircleDot, Square, Waves, Droplet, Droplets, Sun, Home,
   UtensilsCrossed, Dumbbell, Baby, Tent, Shield, Zap, Flame, Trees, Bike,
-  Briefcase, Sailboat, Anchor,
+  Briefcase, Sailboat, Anchor, ShoppingCart, Bath,
 };
 
 const MAX_CHIPS = 20;

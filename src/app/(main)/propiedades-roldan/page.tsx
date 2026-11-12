@@ -26,7 +26,7 @@ function filterSaleRoldan(properties: TokkoProperty[]): TokkoProperty[] {
     const loc = (p.location?.short_location ?? p.location?.name ?? '').toLowerCase()
     const addr = (p.fake_address ?? p.address ?? '').toLowerCase()
     const inRoldan = `${loc} ${addr}`.includes('roldan') || `${loc} ${addr}`.includes('roldán')
-    const isSale = p.operations?.[0]?.operation_type === 'Sale'
+    const isSale = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return inRoldan && isSale
   })
 }

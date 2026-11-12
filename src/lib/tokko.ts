@@ -1,6 +1,8 @@
+import { condicionesTemporario, type PrecioTemporario, type TemporadaFeed } from './temporarios';
 import { normalizeArWhatsapp } from './phone'
 import { normalizarTitulo } from './titulo'
 import { corregirTipo } from './correcciones'
+import { conFotosFijas, esFotoR2 } from './fotos-fijas';
 // SECURITY: la API key de Tokko es SERVER-ONLY (process.env.TOKKO_API_KEY).
 // Se eliminó el fallback a NEXT_PUBLIC_TOKKO_API_KEY (se inlineaba en el bundle
 // del cliente). Para fetches desde el cliente, usar el proxy /api/propiedades.
@@ -22,6 +24,8 @@ export interface TokkoPhoto {
   order: number;
   original: string;
   thumb: string;
+  /** Anchos ya achicados en R2 (Hilo, 22-oct-2026): URL del de 1920. Ver lib/fotos-fijas.ts. */
+  r2?: string;
 }
 
 export interface TokkoPrice {
@@ -33,8 +37,13 @@ export interface TokkoPrice {
 
 export interface TokkoOperation {
   operation_id: number;
-  operation_type: 'Sale' | 'Rent';
+  /** 'Temporary rent' = alquiler temporario (feed de HILO desde 24-sep-2026). */
+  operation_type: 'Sale' | 'Rent' | 'Temporary rent';
   prices: TokkoPrice[];
+  /** Título del aviso de ESTA operación (feed de HILO, solo en venta+alquiler). */
+  title?: string | null;
+  /** Solo 'Temporary rent': valores y condiciones cargados en HILO (26-sep-2026). */
+  temporada?: TemporadaFeed | null;
 }
 
 export interface TokkoPropertyType {
@@ -103,8 +112,17 @@ export interface TokkoProperty {
   geo_long: string | null;
   web_price: boolean;
   is_starred_on_web: boolean;
+  /** Loop de la portada (Hilo, solo destacadas que lo tienen). Ver PortadaViva. */
+  portada_viva?: string | null;
+  /** Baja de precio reciente (Hilo, 22-oct-2026: solo las que bajaron en los
+   *  últimos 90 días, ≥ 2 %). La usa la tele de la oficina ("Bajó USD X"). */
+  rebaja?: { anterior: number; moneda: string; fecha: string } | null;
   status: number;
   deleted_at: string | null;
+  /** Última edición de la propiedad en Hilo (ISO). Solo la usa el sitemap (lastmod). */
+  last_update?: string | null;
+  /** Alta de la propiedad (ISO, viene en el detalle). Va al datePosted del JSON-LD. */
+  created_at?: string | null;
   tags: TokkoTag[];
   videos: TokkoVideo[];
   property_condition: string | null;
@@ -126,6 +144,14 @@ export interface TokkoProperty {
   // propiedad (Vercel Blob) si fue generado en /admin/audio. Populado por
   // enrichCardsWithAudio() en los endpoints que sirven listados al cliente.
   audioUrl?: string | null;
+  /** Agente que atiende (nombre + foto). Lo manda el listado de HILO para la
+   *  pastilla de las tarjetas; undefined = el feed no lo trajo (se pide aparte). */
+  agente?: { name: string; picture: string } | null;
+  /** Barrio cerrado según HILO (0230; null = no se sabe). Tokko no lo manda. */
+  barrio_cerrado?: boolean | null;
+  /** Comodidades tildadas en HILO ("pool", "pileta comun", "parrilla"…);
+   *  undefined = el feed no las trajo. El buscador filtra "con pileta" con esto. */
+  comodidades?: string[];
 }
 
 export interface TokkoMeta {
@@ -189,10 +215,14 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
       order: ph.order,
       original: ph.original,
       thumb: ph.thumb,
+      ...(ph.r2 ? { r2: ph.r2 } : {}),
     })),
     operations: (p.operations ?? []).map((op) => ({
       operation_id: op.operation_id,
       operation_type: op.operation_type,
+      ...(op.title ? { title: normalizarTitulo(op.title) } : {}),
+      // Temporario: valores y condiciones de HILO (no perderlos al sanear).
+      ...(op.temporada ? { temporada: op.temporada } : {}),
       prices: (op.prices ?? []).map((pr) => ({
         currency: pr.currency,
         is_promotional: pr.is_promotional,
@@ -220,6 +250,7 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
     is_starred_on_web: p.is_starred_on_web,
     status: p.status,
     deleted_at: p.deleted_at,
+    ...(p.created_at ? { created_at: p.created_at } : {}),
     tags: (p.tags ?? []).map((t) => ({ id: t.id, name: t.name, type: t.type })),
     videos: (p.videos ?? []).map((v) => ({
       id: v.id,
@@ -251,6 +282,12 @@ export function sanitizeProperty(p: TokkoProperty): TokkoProperty {
           picture: p.producer.picture ?? null,
         }
       : null,
+    // undefined = el feed no lo trajo (Tokko / HILO viejo) → la tarjeta lo pide aparte.
+    ...(p.agente !== undefined ? { agente: p.agente } : {}),
+    ...(p.barrio_cerrado != null ? { barrio_cerrado: p.barrio_cerrado } : {}),
+    ...(Array.isArray(p.comodidades) ? { comodidades: p.comodidades } : {}),
+    ...(p.portada_viva ? { portada_viva: p.portada_viva } : {}),
+    ...(p.rebaja ? { rebaja: p.rebaja } : {}),
   });
 }
 
@@ -283,28 +320,65 @@ export function getProducerName(property: TokkoProperty): string {
   return property.producer?.name?.trim() || FALLBACK_PRODUCER_NAME
 }
 
+// Las propiedades que caen en la línea central de ventas (las de David, que es
+// broker, y las sin captador) ROTAN: el botón pasa por /w/ficha/<id> y Hilo
+// elige al agente de turno de la sucursal, con el mismo reparto que los anuncios
+// (David, 21-oct-2026: "que les llegue directamente a ellos", no a su WhatsApp).
+// Lo de un agente sigue yendo directo a su WhatsApp.
+export function rotaPorTurno(property: TokkoProperty): boolean {
+  return getProducerWhatsappNumber(property) === FALLBACK_WA_NUMBER && Number(property.id) > 0
+}
+
+// `saludo` lleva el nombre de quien atiende; si rota, lo pone Hilo ({agente}).
+function urlConsultaWhatsapp(property: TokkoProperty, armarTexto: (saludo: string) => string): string {
+  if (rotaPorTurno(property)) {
+    return `/w/ficha/${property.id}?text=${encodeURIComponent(armarTexto('{agente}'))}`
+  }
+  const text = armarTexto(getProducerName(property))
+  return `https://wa.me/${getProducerWhatsappNumber(property)}?text=${encodeURIComponent(text)}`
+}
+
 // Construye el wa.me con mensaje pre-armado dirigido al productor real.
 export function buildPropertyWhatsappUrl(property: TokkoProperty, slug: string): string {
-  const number = getProducerWhatsappNumber(property)
-  const name = getProducerName(property)
   const address = property.fake_address || property.address || ''
   const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
-  const text = `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  return urlConsultaWhatsapp(property, (name) => `Hola ${name}, te escribo por la propiedad ${address}${code}.\n\n${url}`)
+}
+
+// Pedido de visita ("Agendar visita" de la ficha): el chat se abre con el agente
+// que Hilo le asignó al lead (agendar-visita devuelve `agente`). Este número es
+// el RESPALDO si Hilo no contesta: la línea de la ficha (el captador; las de
+// David y las sin captador, la central). Antes iba SIEMPRE a la central salvo
+// alquileres de Roldán, y le llegaban a David hasta las de otros agentes.
+export function numeroVisitaWhatsapp(property: TokkoProperty): string {
+  return getProducerWhatsappNumber(property)
+}
+
+// Botón "Llamar" de la ficha: el MISMO número que su WhatsApp (el captador; las
+// propiedades de David → su WhatsApp), así la línea de consultas es una sola —
+// igual que en MELI y Argenprop. Antes estaba fijo al (341) 334-0916, la línea
+// de WhatsApp que Meta bloqueó el 3-sep.
+export function getProducerCallHref(property: TokkoProperty): string {
+  return `tel:+${getProducerWhatsappNumber(property)}`
+}
+
+export function getProducerPhoneDisplay(property: TokkoProperty): string {
+  const d = getProducerWhatsappNumber(property).replace(/^549/, '')
+  if (d.length !== 10) return d
+  return d.startsWith('11')
+    ? `(11) ${d.slice(2, 6)}-${d.slice(6)}`
+    : `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
 }
 
 // Variante para propiedades sin precio publicado (web_price: false): mismo
 // número (productor real con fallback al general) y misma estructura de
 // mensaje que buildPropertyWhatsappUrl, pero pidiendo el precio.
 export function buildPriceConsultWhatsappUrl(property: TokkoProperty, slug: string): string {
-  const number = getProducerWhatsappNumber(property)
-  const name = getProducerName(property)
   const address = property.fake_address || property.address || ''
   const code = property.reference_code ? ` (cod ${property.reference_code})` : ''
   const url = `https://siinmobiliaria.com/propiedades/${slug}`
-  const text = `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+  return urlConsultaWhatsapp(property, (name) => `Hola ${name}! Quiero consultar el precio de la propiedad ${address}${code}.\n\n${url}`)
 }
 
 export function generatePropertySlug(property: TokkoProperty): string {
@@ -369,15 +443,33 @@ export function operacionPrincipal(
   return ops.find((op) => (op.prices ?? []).some((p) => p.price > 0)) ?? ops[0];
 }
 
+/**
+ * Pone al frente la operación que el visitante está buscando (filtro Venta /
+ * Alquiler del listado, o `?operacion=` en la ficha). Las cards, el mapa, el
+ * sheet y la ficha eligen operación con `operacionPrincipal`, que prefiere la
+ * que tiene precio cargado: con la buscada primero, una propiedad mixta se
+ * comporta como una de ESA operación (precio principal, cartel, costos de
+ * ingreso) y la otra queda de secundaria. Si la buscada vino SIN precio, la
+ * vista queda solo con ella para que la otra no le gane ("VENTA · USD 450.000"
+ * dentro del listado de alquileres). La propiedad original no se muta.
+ */
+export function priorizarOperacion<T extends Pick<TokkoProperty, 'operations'>>(
+  property: T,
+  operationType: TokkoOperation['operation_type'] | null,
+): T {
+  if (!operationType || !property.operations?.length) return property;
+  const selected = property.operations.find((op) => op.operation_type === operationType);
+  if (!selected) return property;
+  if (property.operations[0] === selected && property.operations.length === 1) return property;
+  const conPrecio = (selected.prices ?? []).some((p) => p.price > 0);
+  if (!conPrecio) return { ...property, operations: [selected] };
+  return { ...property, operations: [selected, ...property.operations.filter((op) => op !== selected)] };
+}
+
 export function getOperationType(property: TokkoProperty): string {
   const op = operacionPrincipal(property);
   if (!op) return '';
-  const type = op.operation_type;
-  if (type === 'Sale') return 'Venta';
-  if (type === 'Rent') return 'Alquiler';
-  const raw = String(type).toLowerCase();
-  if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
-  return String(type);
+  return operacionEnEspanol(op.operation_type);
 }
 
 // Color canónico del badge de operación. Fuente única de verdad: antes esta
@@ -387,7 +479,9 @@ export function getOperationType(property: TokkoProperty): string {
 //   David) · resto (permutas, etc.) → violeta.
 export function operationBadgeColor(operation: string): string {
   if (operation === 'Venta') return '#1A5C38';
-  if (operation.startsWith('Alquiler')) return '#991B1B';
+  // Rojo franco, no bordó (David, 14-sep-2026: #991B1B y #B91C1C le seguían
+  // pareciendo bordó). Sigue por debajo del rojo de marca #F40009.
+  if (operation.startsWith('Alquiler')) return '#DC2626';
   return '#7c3aed';
 }
 
@@ -434,8 +528,29 @@ export function ocultarPrecioOportunidad<T extends Pick<TokkoProperty, 'id' | 'w
 // precio formateado, o null cuando corresponde "Consultar precio": la
 // propiedad está tildada "Sin Precio" en Tokko (web_price: false — la API
 // igual manda el monto en operations, NO exponerlo) o no tiene precio cargado.
+type ConDescripcion = Partial<Pick<TokkoProperty, 'description' | 'description_only' | 'rich_description'>>;
+
+export function esTemporario(property: Pick<TokkoProperty, 'operations'>): boolean {
+  return operacionPrincipal(property)?.operation_type === 'Temporary rent';
+}
+
+/**
+ * Precios del temporario ("ARS 900.000 / quincena", "ARS 1.500.000 / mes"):
+ * salen de los renglones "Quincena:" / "Mes:" de la descripción (ver
+ * lib/temporarios.ts); sin ellos, el precio de la operación, tomado por mes.
+ */
+export function preciosTemporario(
+  property: Pick<TokkoProperty, 'operations' | 'web_price'> & ConDescripcion,
+): PrecioTemporario[] {
+  if (property.web_price === false) return [];
+  const op = (property.operations ?? []).find((o) => o.operation_type === 'Temporary rent');
+  const p = op?.prices?.[0];
+  const precioFeed = p && p.price > 0 ? `${p.currency} ${p.price.toLocaleString('es-AR')}` : null;
+  return condicionesTemporario(getDescription(property), op?.temporada, precioFeed).precios;
+}
+
 export function mostrarPrecio(
-  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+  property: Pick<TokkoProperty, 'operations' | 'web_price'> & ConDescripcion,
 ): string | null {
   if (property.web_price === false) return null;
   // Misma operación que elige getOperationType, para que el precio y el cartel
@@ -445,15 +560,113 @@ export function mostrarPrecio(
   if (!op.prices || op.prices.length === 0) return null;
   const p = op.prices[0];
   if (!p.price || p.price === 0) return null;
+  if (op.operation_type === 'Temporary rent') {
+    // La lista liviana del feed no trae descripción: sin ella no se sabe si el
+    // monto es por quincena o por mes, así que va sin período (no inventarlo).
+    // Desde que HILO manda `temporada` (también en la lista liviana) el período es seguro.
+    const conTexto = Boolean(op.temporada || property.description || property.description_only || property.rich_description);
+    const t = conTexto ? preciosTemporario(property)[0] : null;
+    if (t) return `${t.texto} / ${t.periodo}`;
+    return `${p.currency} ${p.price.toLocaleString('es-AR')}`;
+  }
   const formatted = p.price.toLocaleString('es-AR');
   const suffix = op.operation_type === 'Rent' ? '/mes' : '';
   return `${p.currency} ${formatted}${suffix ? ' ' + suffix : ''}`;
 }
 
 export function formatPrice(
-  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+  property: Pick<TokkoProperty, 'operations' | 'web_price'> & ConDescripcion,
 ): string {
   return mostrarPrecio(property) ?? 'Consultar precio';
+}
+
+function operacionEnEspanol(type: TokkoOperation['operation_type']): string {
+  if (type === 'Sale') return 'Venta';
+  if (type === 'Rent') return 'Alquiler';
+  if (type === 'Temporary rent') return 'Alquiler temporario';
+  const raw = String(type).toLowerCase();
+  if (raw.includes('temporary') || raw.includes('vacation')) return 'Alquiler temporario';
+  return String(type);
+}
+
+/**
+ * Reescribe la operación dentro de un título ("… en alquiler …" → "… en venta
+ * …"). Espejo de `tituloParaOperacion` de HILO: es el respaldo para cuando el
+ * feed todavía no trae `operations[].title`.
+ */
+function tituloParaOperacion(title: string, operationType: TokkoOperation['operation_type']): string {
+  const target =
+    operationType === 'Rent' ? 'en alquiler' : operationType === 'Temporary rent' ? 'en alquiler temporario' : 'en venta';
+  const patrones: RegExp[] = [
+    /\ben\s+venta\s+y\s+alquiler\b/i,
+    /\ben\s+venta\s+o\s+permuta\b/i,
+    /\ba\s+la\s+venta\b/i,
+    /\ben\s+venta\b/i,
+    /\ben\s+alquiler\b/i,
+  ];
+  for (const re of patrones) {
+    if (re.test(title)) return title.replace(re, target);
+  }
+  return title;
+}
+
+/**
+ * El título que se MUESTRA de una propiedad. Las que están en venta y alquiler
+ * aparecen una sola vez en la web, pero cada operación tiene su título (David,
+ * 21-sep-2026): se muestra el de la operación principal, que es la que el
+ * visitante está mirando si vino de un filtro (`priorizarOperacion`).
+ *
+ * OJO: es solo para mostrar. El slug/URL sigue saliendo de `publication_title`.
+ */
+export function tituloVisible(
+  property: Pick<TokkoProperty, 'publication_title' | 'operations'>,
+): string {
+  const base = property.publication_title ?? '';
+  const op = operacionPrincipal(property);
+  if (!op) return base;
+  if (op.title?.trim()) return op.title.trim();
+  const tipos = new Set(
+    (property.operations ?? [])
+      .filter((o) => (o.prices?.[0]?.price ?? 0) > 0)
+      .map((o) => o.operation_type),
+  );
+  return tipos.size > 1 ? tituloParaOperacion(base, op.operation_type) : base;
+}
+
+/**
+ * Todas las operaciones publicadas CON precio, para las propiedades que están
+ * en venta y alquiler a la vez: la ficha y la card muestran los dos valores
+ * (pedido de David, 21-sep-2026). La primera es siempre la misma que eligen
+ * `operacionPrincipal`/`mostrarPrecio`, así el precio grande no cambia. Vacío
+ * cuando la propiedad no publica precio ("Sin Precio" / oportunidad).
+ */
+export function preciosPorOperacion(
+  property: Pick<TokkoProperty, 'operations' | 'web_price'>,
+): { operacion: string; precio: string }[] {
+  if (property.web_price === false) return [];
+  const principal = operacionPrincipal(property);
+  const ops = (property.operations ?? []).filter((op) => (op.prices?.[0]?.price ?? 0) > 0);
+  const vistas = new Set<string>();
+  return ops
+    .sort((a, b) => (a === principal ? -1 : b === principal ? 1 : 0))
+    .filter((op) => {
+      // Una sola línea por tipo de operación (el feed puede repetirlas).
+      if (vistas.has(op.operation_type)) return false;
+      vistas.add(op.operation_type);
+      return true;
+    })
+    .map((op) => {
+      const p = op.prices[0];
+      // Temporario de HILO: el precio de la operación es por quincena.
+      const suffix =
+        op.operation_type === 'Temporary rent'
+          ? op.temporada ? ' / quincena' : ''
+          : op.operation_type === 'Rent' ? ' /mes' : '';
+      return {
+        operacion: operacionEnEspanol(op.operation_type),
+        precio: `${p.currency} ${p.price.toLocaleString('es-AR')}${suffix}`,
+      };
+    });
 }
 
 // Superficie cubierta principal (en m²), parseando el string de la API
@@ -462,12 +675,21 @@ export function getRoofedArea(property: TokkoProperty): number | null {
   return v > 0 ? v : null;
 }
 
+// Superficie total = cubierta + semicubierta (David, 22-oct-2026). Si la total
+// cargada falta, es más chica que esa suma o es igual al lote (dato sucio que
+// viene de Tokko), manda la suma: antes la ficha decía "Sup. total" con la
+// cubierta sola (213 en vez de 300) o con el terreno.
 export function getTotalSurface(property: TokkoProperty): number | null {
   const total = parseFloat(property.total_surface);
-  if (total > 0) return total;
   const roofed = parseFloat(property.roofed_surface);
-  if (roofed > 0) return roofed;
+  const semi = parseFloat(property.semiroofed_surface);
   const surface = parseFloat(property.surface);
+  const construida = Math.round(((roofed > 0 ? roofed : 0) + (semi > 0 ? semi : 0)) * 100) / 100;
+  if (construida > 0) {
+    const totalCreible = total > 0 && total >= construida - 0.5 && total !== surface;
+    return totalCreible ? total : construida;
+  }
+  if (total > 0) return total;
   if (surface > 0) return surface;
   return null;
 }
@@ -498,19 +720,6 @@ export function isMonoambiente(property: TokkoProperty): boolean {
     typeName === 'departamento' ||
     typeName === 'depto';
   return isApartment && property.suite_amount === 0 && (property.room_amount ?? 0) <= 1;
-}
-
-// Formato de ubicación legible: "Santa Fe | San Lorenzo | Roldan" → "Roldan, San Lorenzo"
-export function formatLocation(property: TokkoProperty): string {
-  const loc = property.location;
-  if (!loc) return property.fake_address || property.address;
-  // short_location: "Santa Fe | San Lorenzo | Roldan"
-  const parts = loc.short_location?.split('|').map((s) => s.trim()) || [];
-  if (parts.length >= 2) {
-    // Mostrar las últimas dos partes (ciudad y departamento)
-    return parts.slice(-2).reverse().join(', ');
-  }
-  return loc.name || property.fake_address || property.address;
 }
 
 // ─── Traducciones inglés → español ──────────────────────────────────────────
@@ -820,7 +1029,9 @@ const BOILERPLATE = [
 ];
 
 // Devuelve la descripción limpia (texto plano, sin HTML, sin boilerplate)
-export function getDescription(property: TokkoProperty): string {
+export function getDescription(
+  property: Partial<Pick<TokkoProperty, 'description' | 'description_only' | 'rich_description'>>,
+): string {
   const raw = property.description || property.description_only || property.rich_description || '';
   // Muchas descripciones vienen como HTML (<p>, <div>, <br>, <li>). Eliminar los
   // tags a secas dejaba TODO pegado en un bloque denso: primero convertimos los
@@ -879,6 +1090,23 @@ function isHiloSource(): boolean {
 }
 const HILO_BASE = process.env.HILO_FEED_URL || 'https://meethilo.com';
 
+// ─── Tags del Data Cache ─────────────────────────────────────────────────────
+// 'tokko-properties' es el tag del LISTADO: cae con cada edición en HILO
+// (/api/revalidate) para que home, listado y landings muestren el cambio al
+// instante. El DETALLE de una propiedad ya no lo lleva: antes sí, y cada
+// edición de UNA propiedad invalidaba las ~265 fichas juntas — la siguiente
+// visita a cada una esperaba la regeneración (~1,7 s en vez de ~0,3 s).
+// Ahora una ficha cae solo con su propio tag `tokko-property-{id}` (HILO manda
+// el id en cada edición) o con CACHE_TAG_DETALLE, que usan los refrescos manuales
+// "de todo" (panel de agentes / admin).
+export const CACHE_TAG_LISTA = 'tokko-properties';
+export const CACHE_TAG_DETALLE = 'tokko-property-detail';
+// Listado en una entrada de cache aparte, para lo que la FICHA deriva de las
+// demás propiedades (título único, banner del edificio). Se renueva sola cada
+// hora; no cae con cada edición.
+export const CACHE_TAG_LISTA_ESTABLE = 'tokko-properties-estable';
+export const cacheTagPropiedad = (id: number | string) => `tokko-property-${id}`;
+
 export async function getPropertyCount(): Promise<number> {
   if (isHiloSource()) {
     const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=1`, {
@@ -906,36 +1134,86 @@ export async function getPropertyCount(): Promise<number> {
 
 async function hiloGetPropertyById(id: number): Promise<TokkoProperty> {
   const res = await fetch(`${HILO_BASE}/api/public/propiedades/${id}`, {
-    next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${id}`] },
+    next: { revalidate: 3600, tags: [CACHE_TAG_DETALLE, cacheTagPropiedad(id)] },
   });
   if (res.status === 404) throw new Error(`Property ${id} not found`);
   if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
   return ocultarPrecioOportunidad((await res.json()) as TokkoProperty);
 }
 
+// El feed de lista completo pesa ~1,6 MB (309 propiedades, oct-2026) y el Data
+// Cache guarda el cuerpo en base64 (+33 %): pasaba los 2 MB ("items over 2MB can
+// not be cached") y CADA visita al listado le volvía a pedir todo a HILO (48
+// veces en una hora; ~1,2 s antes de la primera tarjeta). Se pide en páginas de
+// FEED_PAGINA, cada una su propia entrada de cache con las mismas tags, así que
+// la revalidación por tag las tira juntas. Las primeras FEED_INICIALES van en
+// paralelo (un solo viaje para el que llega después de una edición); más
+// páginas solo si el feed las tiene.
+const FEED_PAGINA = 100;
+const FEED_INICIALES = 4;
+const FEED_TOPE = 1000;
+
+/** El feed de lista completo de HILO, pedido en páginas que entran en el Data
+ *  Cache. `next`/`headers` van iguales a cada página (ver hiloGetProperties). */
+export async function hiloFeedCompleto(
+  next: { revalidate: number; tags: string[] },
+  headers?: Record<string, string>,
+): Promise<TokkoListResponse> {
+  const pedir = async (offset: number): Promise<TokkoListResponse> => {
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${FEED_PAGINA}&offset=${offset}`, { headers, next });
+    if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+    return (await res.json()) as TokkoListResponse;
+  };
+  const offsetsDe = (desde: number, hasta: number) =>
+    Array.from({ length: Math.max(0, Math.ceil((hasta - desde) / FEED_PAGINA)) }, (_, i) => desde + i * FEED_PAGINA);
+  const iniciales = await Promise.all(offsetsDe(0, FEED_INICIALES * FEED_PAGINA).map(pedir));
+  const total = iniciales[0].meta?.total_count ?? 0;
+  if (total > FEED_TOPE) console.warn(`[hilo] feed de ${total} propiedades: se leen las primeras ${FEED_TOPE} — subir FEED_TOPE`);
+  const paginas = [...iniciales, ...(await Promise.all(offsetsDe(FEED_INICIALES * FEED_PAGINA, Math.min(total, FEED_TOPE)).map(pedir)))];
+  // HILO ordena por última edición: si dos páginas salen de momentos distintos
+  // (cada una vence por su cuenta), una propiedad puede venir dos veces (se
+  // descarta) o quedar en el borde y faltar. Si las cuentas no cierran, esta
+  // visita lee el feed entero como antes (no entra en cache, pero nunca falta nada).
+  const vistas = new Set<number>();
+  const objects: TokkoProperty[] = [];
+  for (const o of paginas.flatMap((p) => p.objects ?? [])) {
+    if (vistas.has(o.id)) continue;
+    vistas.add(o.id);
+    objects.push(o);
+  }
+  const coherente = paginas.every((p) => (p.meta?.total_count ?? total) === total) && objects.length >= Math.min(total, FEED_TOPE);
+  if (!coherente) {
+    console.warn(`[hilo] feed por páginas descuadrado (${objects.length} de ${total}): leo el feed entero`);
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${FEED_TOPE}`, { headers, next });
+    if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
+    return (await res.json()) as TokkoListResponse;
+  }
+  return { meta: { limit: objects.length, offset: 0, total_count: objects.length, next: null, previous: null }, objects };
+}
+
 async function hiloGetProperties(params?: {
-  operation?: 'Sale' | 'Rent';
+  operation?: TokkoOperation['operation_type'];
   typeId?: number;
   limit?: number;
   offset?: number;
   fetchAll?: boolean;
-}): Promise<TokkoListResponse> {
+}, estable = false): Promise<TokkoListResponse> {
   // El feed HILO no filtra server-side, así que SIEMPRE traemos el feed completo
-  // (UNA sola entry de cache reutilizada por todos los callers) y filtramos +
+  // (las mismas entradas de cache, por páginas, para todos los callers) y filtramos +
   // paginamos acá. Ignoramos fetchAll para el fetch upstream: filtrar/paginar
   // sobre un subconjunto truncado daría total_count mentiroso y perdería
   // propiedades (p.ej. filtrar Rent sobre los primeros 50 del feed).
-  const UPSTREAM_CAP = 1000;
-  const res = await fetch(`${HILO_BASE}/api/public/propiedades?limit=${UPSTREAM_CAP}`, {
-    next: { revalidate: 3600, tags: ['tokko-properties'] },
-  });
-  if (!res.ok) throw new Error(`Hilo feed error: ${res.status} ${res.statusText}`);
-  const data = (await res.json()) as TokkoListResponse;
+  // `estable`: mismo feed, otra entrada del Data Cache (el header entra en la
+  // clave de cache de Next; el feed lo ignora) con un tag que no cae en cada
+  // edición. Ver CACHE_TAG_LISTA_ESTABLE.
+  const data = estable
+    ? await hiloFeedCompleto({ revalidate: 3600, tags: [CACHE_TAG_LISTA_ESTABLE] }, { 'x-si-cache': 'estable' })
+    : // 5 min y no 1 h: HILO guarda su catálogo 60 s en memoria sin limpiarlo al
+      // editar, así que la recarga que dispara /api/revalidate puede traer el de
+      // antes de la edición; con 300 s se corrige solo (y nadie espera: se sirve
+      // lo guardado mientras se refresca).
+      await hiloFeedCompleto({ revalidate: 300, tags: [CACHE_TAG_LISTA] });
   let objects = data.objects ?? [];
-  const feedTotal = data.meta?.total_count ?? objects.length;
-  if (feedTotal > UPSTREAM_CAP || objects.length >= UPSTREAM_CAP) {
-    console.warn(`[hilo] feed truncado: recibidas ${objects.length}/${feedTotal} — subir UPSTREAM_CAP o paginar`);
-  }
   // El filtrado por operación/tipo lo hacemos acá (tenemos los ids de Tokko en type.id).
   if (params?.operation) {
     objects = objects.filter((o) => (o.operations || []).some((op) => op.operation_type === params.operation));
@@ -948,12 +1226,54 @@ async function hiloGetProperties(params?: {
   const limit = params?.limit ?? total;
   return {
     meta: { limit, offset, total_count: total, next: null, previous: null },
-    objects: objects.slice(offset, offset + limit).map(ocultarPrecioOportunidad),
+    // Fotos con URL fija (/fotos/…) en TODAS las listas: tarjetas, landings,
+    // home, Similares, mapa, kiosco. Ver lib/fotos-fijas.ts.
+    objects: objects.slice(offset, offset + limit).map((o) => conFotosFijas(ocultarPrecioOportunidad(o))),
   };
 }
 
+/**
+ * El listado completo desde una entrada de cache que NO se invalida con cada
+ * edición en HILO (se renueva sola cada hora). Es para lo que una ficha deriva
+ * de las OTRAS propiedades: si usara getProperties(), la ficha quedaría atada
+ * al tag del listado y cada edición de cualquier propiedad la regeneraría.
+ * Para listados que tienen que mostrar el cambio al instante: getProperties().
+ */
+export async function getPropertiesEstable(): Promise<TokkoListResponse> {
+  if (isHiloSource()) return hiloGetProperties(undefined, true);
+  return getProperties();
+}
+
+/**
+ * Las que vendimos NOSOTROS (HILO decide: no entran las que vendió un colega o
+ * el dueño), sin precios. Para dejar la placa "Vendida" donde estaba la tarjeta
+ * (Barrios privados, David 22-oct-2026). Mismo tag que el listado: cae con cada
+ * cambio de estado en HILO, así la placa aparece en cuanto se marca la venta.
+ * Nunca tira: si el feed falla, no hay placas y el resto sigue.
+ */
+export async function getPropiedadesVendidas(): Promise<TokkoProperty[]> {
+  if (!isHiloSource()) return [];
+  try {
+    const res = await fetch(`${HILO_BASE}/api/public/propiedades/vendidas`, {
+      next: { revalidate: 3600, tags: [CACHE_TAG_LISTA] },
+    });
+    if (!res.ok) throw new Error(`Hilo vendidas: ${res.status} ${res.statusText}`);
+    const data = (await res.json()) as { objects?: TokkoProperty[] };
+    // Sin conFotosFijas: /fotos/<id>/… busca la foto entre las PUBLICADAS y una
+    // vendida ya no está (404). Va la copia de R2 si la hay; si no, la firmada
+    // de HILO, que dura semanas.
+    return (data.objects ?? []).map((o) => ({
+      ...o,
+      photos: (o.photos ?? []).map((f) => (esFotoR2(f.r2) ? { ...f, image: f.r2 } : f)),
+    }));
+  } catch (err) {
+    console.warn('[hilo] vendidas no disponibles:', err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
 export async function getProperties(params?: {
-  operation?: 'Sale' | 'Rent';
+  operation?: TokkoOperation['operation_type'];
   typeId?: number;
   limit?: number;
   offset?: number;
@@ -970,7 +1290,7 @@ export async function getProperties(params?: {
     url.searchParams.set('offset', String(offset));
 
     if (params?.operation) {
-      const opId = params.operation === 'Sale' ? 1 : 2;
+      const opId = params.operation === 'Sale' ? 1 : params.operation === 'Rent' ? 2 : 3;
       url.searchParams.set('operation_types', `[${opId}]`);
     }
 
@@ -1052,7 +1372,7 @@ export async function getPropertyById(id: number): Promise<TokkoProperty> {
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(url, {
-        next: { revalidate: 3600, tags: ['tokko-properties', `tokko-property-${id}`] },
+        next: { revalidate: 3600, tags: [CACHE_TAG_DETALLE, cacheTagPropiedad(id)] },
       });
 
       if (res.status === 404) {

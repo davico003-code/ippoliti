@@ -1,138 +1,165 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import CardMediaButtons from '@/components/CardMediaButtons'
+import FotosDeslizables from '@/components/FotosDeslizables'
 import {
   getFeaturedProperties,
   generatePropertySlug,
   getMainPhoto,
+  getAllPhotos,
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   getPropertyCount,
   esOportunidadConsultanos,
+  propertyTypeLabelById,
   type TokkoProperty,
+  tituloVisible,
 } from '@/lib/tokko'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
+import EncabezadoSeccion from './EncabezadoSeccion'
+import OportunidadConsultanos from './OportunidadConsultanos'
+import TextoConNumeros from './TextoConNumeros'
+import CaraAgenteCard, { CARA_AGENTE_CELU, espacioCaraAgente } from './CaraAgenteCard'
+import { ArrowRight } from 'lucide-react'
+import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 
 // Badge basado en operation_type real de Tokko
 function getBadge(p: TokkoProperty): { label: string; bg: string } {
   const op = getOperationType(p)
-  if (op.startsWith('Alquiler')) return { label: 'ALQUILER', bg: operationBadgeColor(op) }
-  return { label: 'VENTA', bg: operationBadgeColor('Venta') }
+  if (op.startsWith('Alquiler')) return { label: 'Alquiler', bg: operationBadgeColor(op) }
+  return { label: 'Venta', bg: operationBadgeColor('Venta') }
 }
 
 export default async function SeleccionCarousel() {
-  let properties: TokkoProperty[] = []
-  let totalCount = 0
-  try {
-    properties = await getFeaturedProperties(8)
-  } catch {
-    // Tokko API no disponible — seguimos rendering la sección con el CTA.
-  }
-  try {
-    totalCount = await getPropertyCount()
-  } catch {
-    // ok — usamos fallback en el CTA
-  }
+  // Destacadas y total A LA VEZ (antes en serie). Si el feed no responde,
+  // la sección sigue con el CTA y su texto de respaldo.
+  const [properties, totalCount] = await Promise.all([
+    getFeaturedProperties(8).catch((): TokkoProperty[] => []),
+    getPropertyCount().catch(() => 0),
+  ])
+  const agentes = await getAgentesPorPropiedad(properties)
 
   return (
-    <section className="px-5 pt-4 pb-6">
-      <h2
-        className="font-raleway font-black text-[22px] leading-tight"
-        style={{ color: '#111' }}
-      >
-        Nuestra selección
-      </h2>
-      <p className="font-poppins text-gray-500 mt-0.5 text-[13px]">
-        Elegidas con criterio, no por algoritmo.
-      </p>
+    <section className="px-5 pt-8 pb-8">
+      <EncabezadoSeccion
+        titulo="Nuestra selección"
+        bajada="Elegidas con criterio, no por algoritmo."
+      />
 
       {/* Carrusel */}
       <div
-        className="mt-3 -mx-5 px-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
+        className="mt-5 -mx-5 px-5 scroll-pl-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2"
         style={{ scrollbarWidth: 'none' }}
       >
         {properties.map((p, i) => {
           const slug = generatePropertySlug(p)
-          const photo = getMainPhoto(p)
+          // Portada primero (la misma que se veía sola) y después el resto en orden.
+          const portada = getMainPhoto(p)
+          const fotos = portada ? [portada, ...getAllPhotos(p).filter(f => f !== portada)] : []
           const price = formatPrice(p)
-          const roofed = getRoofedArea(p)
+          // Superficie TOTAL (cubierta + semicubierta), como el resto de las tarjetas.
+          const total = getTotalSurface(p)
           const land = isLand(p)
           const beds = p.suite_amount ?? p.room_amount
           const baths = p.bathroom_amount
           const address = p.fake_address || p.address
-          const location = p.location?.name || ''
+          const direccion = formatDireccionCompleta(p, address, ' | ')
+          const typeName = propertyTypeLabelById(p.type?.id)
           const badge = getBadge(p)
+          // Con agente, su cara va a la derecha sobre el borde de la foto:
+          // precio y datos le dejan lugar, la dirección pasa por debajo y se
+          // lee entera, y la flecha se va (la cara invita a entrar).
+          const agente = agentes.get(p.id)
+          const espacio = agente ? espacioCaraAgente(CARA_AGENTE_CELU) : null
 
           const specs: string[] = []
           if (!land && beds != null && beds > 0) specs.push(`${beds} dorm`)
           if (!land && baths != null && baths > 0) specs.push(`${baths} baño${baths > 1 ? 's' : ''}`)
-          if (roofed != null && roofed > 0) specs.push(`${roofed} m²`)
-          if (land) {
-            const lot = getLotSurface(p)
-            if (lot != null && lot > 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
+          if (!land && total != null && total > 0) specs.push(`${total.toLocaleString('es-AR')} m²`)
+          const lot = getLotSurface(p)
+          if (lot != null && lot > 0) {
+            if (land) specs.push(`${lot.toLocaleString('es-AR')} m²`)
+            else if (lot !== total) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
           }
 
           return (
             <Link
               key={p.id}
               href={`/propiedades/${slug}`}
-              className="min-w-[82%] snap-start rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100 block"
+              className="min-w-[88%] snap-start bg-white block"
               style={{ textDecoration: 'none' }}
             >
-              <div
-                className="relative aspect-video bg-gray-100"
+              <div className="relative">
+              {/* Fotos con flechas siempre visibles: la tarjeta vive en un
+                  carrusel que se desliza de costado, así que acá no hay swipe
+                  de fotos (se pelearían el gesto). */}
+              <FotosDeslizables
+                images={fotos}
+                alt={tituloVisible(p) || address}
+                // priority se queda (en el celu la primera tarjeta está arriba
+                // del pliegue), pero este árbol está oculto en la compu: con
+                // "88vw" a secas el preload bajaba ahí la foto de 1920 px en
+                // prioridad alta sin pintarla nunca. Con 1px la compu resuelve
+                // a la variante mínima (mismo truco que la portada del hero).
+                sizes="(max-width: 767px) 88vw, 1px"
+                priority={i === 0}
+                swipe={false}
+                flechasSiempre
+                puntos={agente ? 'izquierda' : 'centro'}
+                className="aspect-video"
+                portadaViva={p.portada_viva}
               >
-                {photo ? (
-                  <Image
-                    src={photo}
-                    alt={p.publication_title || address}
-                    fill
-                    className="object-cover"
-                    sizes="82vw"
-                    priority={i === 0}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
-                )}
-                {badge && (
+                {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
+                <div className="absolute top-3 left-3 z-10 flex gap-1.5" style={{ transform: 'translateZ(0)' }}>
                   <span
-                    className="absolute top-3 left-3 text-white text-[11px] font-bold px-2.5 py-1 rounded-md tracking-wider font-poppins"
+                    className="text-white text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway"
                     style={{ background: badge.bg }}
                   >
                     {badge.label}
                   </span>
-                )}
+                  {typeName && (
+                    <span className="text-[12px] font-semibold leading-none px-3.5 py-2 rounded-full font-raleway text-gray-900 bg-white/[0.94]">
+                      {typeName}
+                    </span>
+                  )}
+                </div>
                 {/* Play + like juntos, arriba-derecha. audioUrl no viene
                     enriquecido acá (home ISR) → CardMediaButtons lo resuelve
                     client-side por lote. */}
-                <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3" />
+                <CardMediaButtons propertyId={p.id} size={40} className="absolute top-3 right-3 z-10" />
+              </FotosDeslizables>
+              <CaraAgenteCard agente={agente} size={CARA_AGENTE_CELU} />
               </div>
-              <div className="p-3.5">
+              <div className="px-0.5 pt-2.5 pb-1 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
                 {esOportunidadConsultanos(p.id) ? (
-                  <div className="flex items-center gap-2">
-                    <span className="font-poppins font-extrabold text-[10.5px] uppercase tracking-wider text-gray-900 rounded-md px-2 py-1 whitespace-nowrap" style={{ background: '#fbce07' }}>
-                      Oportunidad
-                    </span>
-                    <span className="font-poppins font-bold text-[14px] text-white rounded-full px-3.5 py-1.5 whitespace-nowrap" style={{ background: '#1A5C38' }}>
-                      Consultanos →
-                    </span>
-                  </div>
+                  <OportunidadConsultanos />
                 ) : (
                 <p className="font-poppins font-black text-[22px] text-gray-900 tracking-tight leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {price}
                 </p>
                 )}
+                {/* Raleway con los números en Poppins (regla de la casa: Poppins
+                    solo para números, nunca la frase entera). */}
                 {specs.length > 0 && (
-                  <p className="font-poppins text-[13px] text-gray-700 mt-0.5 font-medium">
-                    {specs.join(' · ')}
+                  <p className="font-raleway text-[13px] text-gray-700 mt-0.5 font-medium">
+                    <TextoConNumeros texto={specs.join(' · ')} />
                   </p>
                 )}
-                <p className="font-poppins text-[12px] text-gray-500 mt-1">
-                  {address}{location ? `, ${location}` : ''}
+                </div>
+                <p className="font-raleway text-[12px] text-gray-500 mt-1 font-medium">
+                  <TextoConNumeros texto={direccion || address || ''} />
                 </p>
+                </div>
+                {!agente && (
+                  <span className="flex-shrink-0 w-10 h-10 rounded-full border-[1.5px] border-gray-200 flex items-center justify-center text-gray-900" aria-hidden="true">
+                    <ArrowRight size={17} strokeWidth={2} />
+                  </span>
+                )}
               </div>
             </Link>
           )
@@ -151,9 +178,13 @@ export default async function SeleccionCarousel() {
             </svg>
           </div>
           <p className="font-raleway font-bold text-base text-gray-900">Ver todas</p>
-          <p className="font-poppins text-[12px] text-gray-500 mt-1">
-            +{totalCount || 219} propiedades
-          </p>
+          {/* Solo el número real: antes, si el conteo fallaba, inventaba
+              "+219". Sin dato, alcanza con "Ver todas". */}
+          {totalCount > 0 && (
+            <p className="font-raleway text-[12px] text-gray-500 mt-1">
+              <span className="font-numeric">{totalCount.toLocaleString('es-AR')}</span> propiedades
+            </p>
+          )}
         </Link>
       </div>
     </section>

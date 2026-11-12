@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import TrackPageView from '@/components/recursos/TrackPageView'
 import RecursosCTA from '@/components/recursos/RecursosCTA'
@@ -91,6 +91,11 @@ const collectionJsonLd = {
     },
     {
       '@type': 'WebPage',
+      name: 'Análisis comercial de Funes',
+      url: 'https://siinmobiliaria.com/recursos/analisis-comercial',
+    },
+    {
+      '@type': 'WebPage',
       name: 'Índices y mercado en vivo',
       url: 'https://siinmobiliaria.com/informes',
     },
@@ -99,7 +104,7 @@ const collectionJsonLd = {
 
 const STYLES = `
   .rr-page {
-    background: #ffffff;
+    background: var(--background);
     font-family: var(--font-raleway), Raleway, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -116,7 +121,7 @@ const STYLES = `
     align-items: start;
   }
   .rr-intro {
-    color: #111111;
+    color: var(--foreground);
     padding-top: clamp(4px, 1vw, 8px);
   }
   .rr-eyebrow {
@@ -124,7 +129,7 @@ const STYLES = `
     font-weight: 700;
     letter-spacing: 0.17em;
     text-transform: uppercase;
-    color: #5b5b5b;
+    color: var(--tinta-mute);
     margin: 0 0 14px;
   }
   .rr-title {
@@ -135,14 +140,14 @@ const STYLES = `
     font-weight: 800;
   }
   .rr-title b {
-    color: #1a5c38;
+    color: var(--brand);
     font-weight: 800;
   }
   .rr-sub {
     margin: 18px 0 0;
     font-size: clamp(16px, 1.45vw, 19px);
     line-height: 1.55;
-    color: #4f4f4f;
+    color: var(--tinta-soft);
     max-width: 34ch;
   }
   .rr-stats {
@@ -151,13 +156,13 @@ const STYLES = `
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--line);
   }
   .rr-stat-label {
     margin-top: 6px;
     font-size: 13px;
     line-height: 1.2;
-    color: #787878;
+    color: var(--tinta-mute);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -166,7 +171,7 @@ const STYLES = `
     line-height: 1;
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: #1a5c38;
+    color: var(--brand);
   }
 
   .rr-bento {
@@ -228,6 +233,8 @@ const STYLES = `
 interface CardData {
   href: string
   title: string
+  /** Ocupa el ancho completo del bento (placa 2564x716). */
+  wide?: boolean
   image: {
     src: string
     alt: string
@@ -281,6 +288,16 @@ const CARDS: CardData[] = [
       sizes: '(max-width: 760px) calc(100vw - 28px), calc((min(100vw - 40px, 1282px) - 20px) / 2)',
     },
   },
+  {
+    href: '/recursos/analisis-comercial',
+    title: '¿Qué negocio le falta a Funes?',
+    wide: true,
+    image: {
+      src: '/recursos/placa-analisis.webp',
+      alt: 'Análisis comercial de Funes: qué negocio le falta a la ciudad',
+      sizes: 'min(100vw - 40px, 1282px)',
+    },
+  },
 ]
 
 export default function RecursosIndexPage() {
@@ -309,7 +326,7 @@ export default function RecursosIndexPage() {
               </p>
               <div className="rr-stats">
                 <div>
-                  <div className="rr-stat-value">5</div>
+                  <div className="rr-stat-value">6</div>
                   <div className="rr-stat-label">herramientas</div>
                 </div>
                 <div>
@@ -326,7 +343,7 @@ export default function RecursosIndexPage() {
             <div className="rr-bento" aria-label="Herramientas y guías">
               <ResourceCard card={feature} featured priority />
               {rest.map((card) => (
-                <ResourceCard key={card.href} card={card} />
+                <ResourceCard key={card.href} card={card} featured={card.wide} />
               ))}
             </div>
           </section>

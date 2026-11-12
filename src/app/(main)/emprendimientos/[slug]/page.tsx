@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { MapPin, Building2, Banknote, ArrowLeft, CheckCircle2, Phone, MessageCircle, Calendar, Map as MapIcon } from 'lucide-react'
+import { ArrowLeft, MessageCircle } from 'lucide-react'
 import {
   getDevelopments,
   getDevelopmentById,
@@ -10,43 +10,37 @@ import {
   getDevIdFromSlug,
   getDevAllPhotos,
   getDevMainPhoto,
+  absoluteDevPhotoUrl,
   getConstructionStatus,
   translateDevType,
-  translateTag,
   getDevUnits,
   type Development,
   type DevUnit,
 } from '@/lib/developments'
-import DevUnitsSection from '@/components/DevUnitsSection'
-import ShareButtons from '@/components/ShareButtons'
-import VisitWidget from '@/components/VisitWidget'
+import { getDockGarden } from '@/lib/brickfy'
+import { filasDesdeBrickfy, filasDesdeCrm, type UnidadFila } from '@/lib/unidadesFilas'
+import { VERS_LOGO, type Marca } from '@/components/landing/MarcaDesarrollador'
+import EmprendimientoFunnel from '@/components/emprendimiento/EmprendimientoFunnel'
 import BotonVolver from '@/components/BotonVolver'
 import HeroAerea from '@/components/distrito-roldan/HeroAerea'
+import { seccionesDockGarden } from '@/components/dockgarden/Confianza'
+import type { FunnelSecciones } from '@/components/emprendimiento/EmprendimientoFunnel'
 
 // Sitio dedicado del tour 360° de Distrito Roldán (botón del hero).
 const TOUR_360_EXTERNO = 'https://distritoroldan360.com'
-import { distritoFontVars, montserrat } from '@/components/distrito-roldan/fonts'
-import SeccionIntro from '@/components/distrito-roldan/SeccionIntro'
+import { distritoFontVars } from '@/components/distrito-roldan/fonts'
+import SeccionLaCuenta from '@/components/distrito-roldan/SeccionLaCuenta'
 import SeccionPlanoLotes from '@/components/distrito-roldan/SeccionPlanoLotes'
 import SeccionRenders from '@/components/distrito-roldan/SeccionRenders'
 import SeccionGaleriaBarrio from '@/components/distrito-roldan/SeccionGaleriaBarrio'
-import SeccionAvancesObra from '@/components/distrito-roldan/SeccionAvancesObra'
+import SeccionObra from '@/components/distrito-roldan/SeccionObra'
 import SeccionUbicacion from '@/components/distrito-roldan/SeccionUbicacion'
 import SeccionServicios from '@/components/distrito-roldan/SeccionServicios'
 import SeccionCtaFinanciacion from '@/components/distrito-roldan/SeccionCtaFinanciacion'
+import FabLotes from '@/components/distrito-roldan/FabLotes'
 import { getClienteFormatted } from '@/lib/clientes'
 import { getPropertyById, type TokkoProperty, formatPrice, generatePropertySlug, getMainPhoto, translatePropertyType, getTotalSurface } from '@/lib/tokko'
-// PropertyMap (leaflet) se carga vía PropertyMapLazy ("use client"): dynamic
-// ssr:false desde un Server Component no code-splittea en Next 14 y leaflet
-// terminaba en el First Load JS de esta ruta.
-import PropertyMapLazy from '@/components/PropertyMapLazy'
-import PhotoGalleryLazy from '@/components/PhotoGalleryLazy'
-import NearbyPlacesLazy from '@/components/NearbyPlacesLazy'
-
-// PhotoGallery y NearbyPlaces se cargan vía wrappers Lazy ("use client"):
-// dynamic ssr:false desde un Server Component no code-splittea en Next 14.
-
-
+import { conFotosFijas } from '@/lib/fotos-fijas'
 export const revalidate = 21600
 
 interface Props {
@@ -87,7 +81,74 @@ const DEV_SEO: Record<
   67178: {
     title: 'Distrito Roldán | Lotes Residenciales y Comerciales en Roldán, Ruta 9',
     description:
-      'Distrito Roldán: barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Financiación 30% + 24 cuotas fijas en dólares.',
+      'Distrito Roldán: barrio abierto con 180 lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario. Residenciales con 30% + 24 cuotas fijas en dólares.',
+  },
+}
+
+// Contacto propio por emprendimiento (keyed por ID de Tokko). Sin entrada, el
+// número general. 26-sep-2026 (David): la pauta de Dock Garden manda a esta
+// landing y sus consultas las atiende Carolina Echen.
+type DevContacto = { whatsapp: string; telefono: string; telefonoLabel: string }
+const DEV_CONTACTO: Record<number, DevContacto> = {
+  67173: { whatsapp: '5493416422945', telefono: '+5493416422945', telefonoLabel: '(341) 642-2945' },
+}
+
+// Secciones propias que se intercalan en el funnel (keyed por ID de Tokko).
+// Dock Garden: trayectoria de VERS, tipologías, terminaciones y qué hay cerca,
+// todo de la presentación oficial del desarrollador (lib/dockgarden.ts).
+const DEV_SECCIONES: Record<number, (ctx: { whatsapp: string }) => Promise<FunnelSecciones>> = {
+  67173: seccionesDockGarden,
+}
+
+// Imágenes propias de la landing por emprendimiento (keyed por ID de Tokko).
+// fotosLimpias: fragmento del nombre del archivo en el CRM → versión sin el
+// logo estampado del desarrollador (renders nuevos o el mismo render recortado).
+const DEV_LANDING: Record<
+  number,
+  {
+    hero: string
+    proyecto?: string
+    ubicacion?: string
+    /** og:image en JPEG 1200x630 (WhatsApp no renderiza bien webp). */
+    og?: string
+    /** Lista de precios viva del desarrollador (Brickfy) en vez de las unidades del CRM. */
+    listaDesarrollador?: () => Promise<UnidadFila[] | null>
+    fotosLimpias?: Record<string, string>
+    /** Última tanda de fotos reales de la obra (la más nueva reemplaza a la anterior). */
+    avances?: { fecha: string; fotos: string[] }
+    /** Marca detrás del proyecto, en el hero (regla: toda landing la muestra). */
+    marcas?: Marca[]
+  }
+> = {
+  // Dock Garden — Aldea Fisherton
+  67173: {
+    og: '/og-dockgarden.jpg',
+    marcas: [{ rol: 'Un proyecto de', nombre: 'Estudio VERS', logo: { ...VERS_LOGO, className: 'h-9 w-auto sm:h-11' } }],
+    // Brickfy tiene todas las unidades reales con torre, piso, plano y precio
+    // al día; el CRM solo una parte. Misma fuente que /dockgarden.
+    listaDesarrollador: async () => {
+      const data = await getDockGarden()
+      return data ? filasDesdeBrickfy(data.units) : null
+    },
+    hero: '/images/dockgarden/render-frente.webp',
+    proyecto: '/images/dockgarden/render-amenities.webp',
+    ubicacion: '/images/dockgarden/aerea-fisherton.webp',
+    avances: {
+      fecha: 'Septiembre 2026',
+      fotos: Array.from({ length: 7 }, (_, i) => `/images/dockgarden/obra-2026-09/${String(i + 1).padStart(2, '0')}.webp`),
+    },
+    fotosLimpias: {
+      '67173_9377506084': '/images/dockgarden/render-frente.webp',
+      '67173_2866677624': '/images/dockgarden/render-amenities.webp',
+      '67173_9538025828': '/images/dockgarden/interior-04.webp',
+      '67173_9030628622': '/images/dockgarden/interior-05.webp',
+      '67173_3730031188': '/images/dockgarden/interior-06.webp',
+      '67173_7880761121': '/images/dockgarden/interior-07.webp',
+      '67173_4037633902': '/images/dockgarden/interior-08.webp',
+      '67173_7118392677': '/images/dockgarden/interior-09.webp',
+      '67173_7625859200': '/images/dockgarden/interior-10.webp',
+      '67173_9665924367': '/images/dockgarden/aerea-fisherton.webp',
+    },
   },
 }
 
@@ -96,6 +157,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const id = getDevIdFromSlug(params.slug)
     const dev = await getDevelopmentById(id)
     const override = DEV_SEO[dev.id]
+    const ogLimpia = DEV_LANDING[dev.id]?.og
+    const ogImage = ogLimpia ? `https://siinmobiliaria.com${ogLimpia}` : absoluteDevPhotoUrl(getDevMainPhoto(dev))
     const desc =
       override?.description ??
       (dev.description?.replace(/<[^>]*>/g, '').slice(0, 160) || dev.publication_title)
@@ -109,7 +172,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       openGraph: {
         title: override?.title ?? `${dev.name} | SI INMOBILIARIA`,
         description: desc,
-        images: getDevMainPhoto(dev) ? [{ url: getDevMainPhoto(dev)! }] : [],
+        images: ogImage ? [{ url: ogImage }] : [],
       },
     }
   } catch {
@@ -149,8 +212,25 @@ export default async function DevelopmentPage({ params }: Props) {
     notFound()
   }
 
-  const photos = getDevAllPhotos(dev)
-  const mainPhoto = photos[0] || null
+  // Fotos del CRM, con las que traen el sello del desarrollador reemplazadas
+  // por su versión limpia. Las que no están en el mapa pasan tal cual, así una
+  // foto nueva cargada en el CRM aparece sola.
+  const landing = DEV_LANDING[dev.id]
+  const fotosCrm = getDevAllPhotos(dev).map(url => {
+    const limpia = Object.entries(landing?.fotosLimpias ?? {}).find(([hash]) => url.includes(hash))
+    return limpia ? limpia[1] : url
+  })
+  // La galería abre con lo que todavía no se vio: las imágenes que ya ocupan el
+  // hero, "El proyecto" y "Ubicación" pasan al final (siguen en el visor).
+  const yaVistas = new Set([landing?.hero, landing?.proyecto, landing?.ubicacion].filter(Boolean))
+  const photos = landing
+    ? [
+        ...fotosCrm.filter(f => !yaVistas.has(f) && f.startsWith('/')),
+        ...fotosCrm.filter(f => !yaVistas.has(f) && !f.startsWith('/')),
+        ...fotosCrm.filter(f => yaVistas.has(f)),
+      ]
+    : fotosCrm
+  const mainPhoto = fotosCrm[0] || null
   const status = getConstructionStatus(dev.construction_status)
   const typeName = translateDevType(dev.type?.name || '')
   const locationName = dev.location?.full_location?.split('|').slice(-2).map(s => s.trim()).reverse().join(', ') || dev.location?.name || dev.address
@@ -168,7 +248,8 @@ export default async function DevelopmentPage({ params }: Props) {
   ]
 
   const whatsappText = encodeURIComponent(`Hola! Quiero información sobre ${displayName}`)
-  const whatsappUrl = `https://wa.me/5493413340916?text=${whatsappText}`
+  const contacto = DEV_CONTACTO[dev.id]
+  const whatsappUrl = `https://wa.me/${contacto?.whatsapp ?? '5493413340916'}?text=${whatsappText}`
 
   const isDistrito = dev.id === 67178
 
@@ -183,7 +264,24 @@ export default async function DevelopmentPage({ params }: Props) {
           .catch(() => [] as Development[]),
       ])
 
-  const mainPhotoUrl = getDevMainPhoto(dev)
+  // Lista de precios: la del desarrollador si el emprendimiento la tiene (y
+  // responde); si no, las unidades del CRM. Cuando una fila del desarrollador
+  // coincide en dormitorios y precio con una unidad del CRM, hereda su ficha.
+  const filasCrm = filasDesdeCrm(units, `${displayName} ${dev.location?.name || ''}`)
+  const filasDev = (await landing?.listaDesarrollador?.().catch(() => null)) ?? null
+  const fichasLibres = [...filasCrm]
+  const filas: UnidadFila[] = filasDev?.length
+    ? filasDev.map(f => {
+        const i = fichasLibres.findIndex(c => c.dorms === f.dorms && c.precio === f.precio && c.precio > 0)
+        return i >= 0 ? { ...f, href: fichasLibres.splice(i, 1)[0].href } : f
+      })
+    : filasCrm
+
+  const secciones = await DEV_SECCIONES[dev.id]?.({ whatsapp: contacto?.whatsapp ?? '5493413340916' }).catch(() => undefined)
+
+  const mainPhotoUrl = landing?.og
+    ? `https://siinmobiliaria.com${landing.og}`
+    : absoluteDevPhotoUrl(getDevMainPhoto(dev))
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
@@ -203,7 +301,7 @@ export default async function DevelopmentPage({ params }: Props) {
   // botón que abre el sitio dedicado.
   // Distrito Roldán (67178): rediseño con secciones de marca.
   return (
-    <div className={`min-h-screen bg-gray-50 ${isDistrito ? distritoFontVars : ''}`}>
+    <div className={`min-h-screen ${isDistrito ? `dr-tema ${distritoFontVars}` : 'bg-gray-50'}`}>
       {/* Con el Navbar global oculto en Distrito, este acceso mantiene una salida
           clara hacia el listado de emprendimientos. */}
       {isDistrito && <BotonVolver />}
@@ -216,316 +314,55 @@ export default async function DevelopmentPage({ params }: Props) {
       {/* Hero — en 67178, la aérea del barrio con los dos accesos que busca la
           visita: el tour 360° (externo) y la disponibilidad de lotes con
           precios. El tour dejó de ser el hero: ahora es uno de los dos botones.
-          En el resto de los emprendimientos sigue la imagen con título y badges. */}
+          El resto de los emprendimientos usa el funnel genérico a ancho completo. */}
       {isDistrito ? (
         <HeroAerea
           tourUrl={TOUR_360_EXTERNO}
           disponibilidadUrl="/distrito-roldan-precios"
           titulo="Distrito Roldán"
-          bajada="Lotes residenciales y comerciales sobre Ruta 9 y María Auxiliadora, con financiación propia y una ubicación conectada con Roldán, Funes y Rosario."
+          bajada="Lotes residenciales y comerciales sobre Ruta 9, a minutos de Funes y Rosario, con financiación propia del desarrollo."
         />
-      ) : mainPhoto ? (
-        <div className="relative w-full h-[60vh] md:h-[75vh]">
-          <Image src={mainPhoto} alt={displayName} fill className="object-cover" sizes="100vw" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex flex-wrap gap-2 mb-3">
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-[#1A5C38] text-white uppercase tracking-wide">
-                  {typeName}
-                </span>
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-white/90 text-[#1A5C38] uppercase tracking-wide">
-                  {status}
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-2 drop-shadow-md">{displayName}</h1>
-              {dev.publication_title && dev.publication_title !== dev.name && (
-                <p className="text-white/80 text-lg font-medium">{dev.publication_title}</p>
-              )}
-              <div className="flex items-center gap-2 mt-3 text-white/70">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm font-medium">{locationName}</span>
-              </div>
-            </div>
-          </div>
-        </div>
       ) : (
-        <div className="bg-[#1A5C38] text-white py-20 px-4 text-center">
-          <h1 className="text-4xl font-black">{displayName}</h1>
-        </div>
+        <EmprendimientoFunnel
+          dev={dev}
+          slug={params.slug}
+          displayName={displayName}
+          typeName={typeName}
+          status={status}
+          locationName={locationName}
+          lineas={paragraphs}
+          photos={photos}
+          media={{ hero: landing?.hero ?? mainPhoto, proyecto: landing?.proyecto, ubicacion: landing?.ubicacion, avances: landing?.avances, marcas: landing?.marcas }}
+          filas={filas}
+          otherDevs={otherDevs}
+          whatsappUrl={whatsappUrl}
+          contacto={contacto}
+          secciones={secciones}
+        />
       )}
 
-      {/* Secciones de marca de Distrito Roldán (solo 67178), full-width entre
-          el hero y el contenido estándar (Unidades / Video / Galería). */}
+      {/* Secciones de marca de Distrito Roldán (solo 67178). Orden (22-oct-2026):
+          cómo se paga → la obra hoy y en 2027 → los lotes → el plano para
+          elegir → servicios → ubicación → cierre. */}
       {isDistrito && (
         <>
-          <SeccionIntro />
+          <SeccionLaCuenta />
+          <SeccionObra />
           <SeccionRenders />
           {/* El nombre va escrito acá y no desde el CRM, que lo tiene sin tilde. */}
           <SeccionGaleriaBarrio fotos={photos} proyecto="Distrito Roldán" />
           <SeccionPlanoLotes tourUrl={TOUR_360_EXTERNO} />
-          <SeccionAvancesObra />
           <SeccionServicios />
           <SeccionUbicacion />
         </>
       )}
 
-      {!isDistrito && (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className={`grid grid-cols-1 gap-10 ${isDistrito ? '' : 'lg:grid-cols-3'}`}>
-          {/* Left column — full width en 67178 (sin sidebar) */}
-          <div className={isDistrito ? 'space-y-8' : 'lg:col-span-2 space-y-8'}>
-
-            {/* Key specs grid — oculto en 67178 (lo reemplaza la card del Intro) */}
-            {!isDistrito && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                  <Building2 className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Tipología</p>
-                  <p className="text-sm font-bold text-gray-900">{typeName}</p>
-                </div>
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                  <Calendar className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Estado</p>
-                  <p className="text-sm font-bold text-gray-900">{status}</p>
-                </div>
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                  <Banknote className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Financiación</p>
-                  <p className="text-sm font-bold text-gray-900">{dev.financing_details || 'Consultar'}</p>
-                </div>
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
-                  <MapPin className="w-5 h-5 text-[#1A5C38] mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Ubicación</p>
-                  <p className="text-sm font-bold text-gray-900">{dev.location?.name || 'Consultar'}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Units section — before description */}
-            <DevUnitsSection
-              units={units}
-              devName={displayName}
-              whatsappUrl={whatsappUrl}
-              location={dev.location?.name}
-              pageUrl={`https://siinmobiliaria.com/emprendimientos/${params.slug}`}
-            />
-
-            {/* Description — oculto en 67178 (el Intro trae su propio lead) */}
-            {!isDistrito && paragraphs.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Sobre el emprendimiento</h2>
-                <div className="space-y-4">
-                  {paragraphs.map((p, i) => (
-                    <p key={i} className="text-gray-700 leading-relaxed">{p}</p>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Video — oculto en 67178 (se quitó la sección de video) */}
-            {!isDistrito && dev.videos && dev.videos.length > 0 && (() => {
-              const video = dev.videos[0]
-              const embedUrl = video.provider === 'youtube' && video.player_url
-                ? (video.player_url.startsWith('https://www.youtube.com/embed/')
-                    ? video.player_url
-                    : `https://www.youtube.com/embed/${video.video_id}`)
-                : null
-              if (!embedUrl) return null
-              return (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Video</h2>
-                  <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
-                    <iframe
-                      src={embedUrl}
-                      title={video.title || displayName}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full"
-                    />
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* Photo gallery with lightbox */}
-            {photos.length > 1 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Galería
-                  <span className="text-gray-400 text-sm font-normal ml-2 font-numeric">{photos.length} fotos</span>
-                </h2>
-                <PhotoGalleryLazy photos={photos} alt={displayName} />
-              </div>
-            )}
-
-            {/* Tags / amenities — oculto en 67178 (lo reemplaza SeccionServicios) */}
-            {!isDistrito && dev.tags && dev.tags.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Servicios y amenities</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {dev.tags.filter(tag => tag.name !== 'Venta directa' && tag.name !== 'Direct sale').map(tag => (
-                    <div key={tag.id} className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle2 className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-                      {translateTag(tag.name)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Lugares cercanos — oculto en 67178 (lo reemplaza SeccionUbicacion) */}
-            {!isDistrito && dev.geo_lat && dev.geo_long && (
-              <NearbyPlacesLazy lat={dev.geo_lat} lng={dev.geo_long} />
-            )}
-
-            {/* Location map — oculto en 67178 (lo reemplaza SeccionUbicacion) */}
-            {!isDistrito && dev.geo_lat && dev.geo_long && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Ubicación</h2>
-                <PropertyMapLazy
-                  lat={dev.geo_lat}
-                  lng={dev.geo_long}
-                  address={dev.fake_address || dev.address}
-                />
-                <div className="flex items-center gap-2 mt-4 text-gray-600 text-sm">
-                  <MapPin className="w-4 h-4 text-[#1A5C38] flex-shrink-0" />
-                  <span>{dev.fake_address || dev.address}{locationName ? `, ${locationName}` : ''}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right column — Contact (same as property page). Oculta en 67178:
-              el contacto vive en el FAB + la CTA verde de cierre. */}
-          {!isDistrito && (
-          <div className="space-y-4">
-            <div className="sticky top-24 space-y-4">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                {/* WhatsApp */}
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#25D366] hover:bg-[#1ea952] text-white rounded-xl font-bold text-sm transition-colors mb-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Consultar por WhatsApp
-                </a>
-
-                {/* Call */}
-                <a
-                  href="tel:+5493412101694"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-colors hover:bg-gray-50 mb-4"
-                >
-                  <Phone className="w-5 h-5" />
-                  Llamar <span className="font-numeric">(341) 210-1694</span>
-                </a>
-
-                <hr className="border-gray-100 mb-4" />
-
-                {/* Agent card */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${isDistrito ? montserrat.className : ''}`}>
-                    DF
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-bold text-gray-900 block">David Flores</span>
-                    <span className="text-xs text-gray-400">Mat. N° 0621</span>
-                  </div>
-                  <span className="text-[10px] font-semibold text-[#1A5C38] bg-[#e8f5ee] px-2 py-0.5 rounded-full uppercase">Agente</span>
-                </div>
-
-                <hr className="border-gray-100" />
-
-                {/* Share — sin placaHref: el flujo de placa para emprendimientos
-                    necesita su propio adapter de datos (otro ticket). */}
-                <ShareButtons
-                  slug={`emprendimientos/${params.slug}`}
-                  title={displayName}
-                />
-
-                {(isDistrito || dev.financing_details) && (
-                  <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-100">
-                    <p className="text-xs text-[#1A5C38] font-bold uppercase tracking-wider mb-1">Financiación</p>
-                    <p className="text-[#1A5C38] font-bold text-sm">
-                      {isDistrito ? 'Entrega 30% + 24 cuotas fijas en dólares' : dev.financing_details}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Visit widget */}
-              <VisitWidget
-                propertyId={dev.id}
-                propertyTitle={displayName}
-                propertyUrl={`https://siinmobiliaria.com/emprendimientos/${params.slug}`}
-                source="emprendimiento"
-              />
-            </div>
-          </div>
-          )}
-        </div>
-
-        {/* Other developments — oculto en 67178 */}
-        {!isDistrito && otherDevs.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Otros emprendimientos</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {otherDevs.map(d => {
-                const photo = getDevMainPhoto(d)
-                const slug = generateDevSlug(d)
-                return (
-                  <Link key={d.id} href={`/emprendimientos/${slug}`}
-                    className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all">
-                    <div className="relative h-48 bg-gray-100 overflow-hidden">
-                      {photo && <Image src={photo} alt={d.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="33vw" />}
-                    </div>
-                    <div className="p-4">
-                      <p className="text-xs font-bold text-[#1A5C38] uppercase tracking-wider mb-1">{translateDevType(d.type?.name || '')}</p>
-                      <h3 className="font-bold text-gray-900">{d.name}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{d.location?.name || d.address}</p>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Back — oculto en 67178 (ya está el BotonVolver fijo arriba) */}
-        {!isDistrito && (
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <Link href="/emprendimientos" className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#15472c] font-bold transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Volver a emprendimientos
-            </Link>
-          </div>
-        )}
-      </div>
-      )}
-
       {/* CTA financiación — cierre full-width, solo Distrito Roldán */}
       {isDistrito && <SeccionCtaFinanciacion />}
 
-      {/* FAB dedicado — solo 67178 (el global se oculta acá).
-          06-sep-2026: antes abría WhatsApp al celular del corredor. Esa consulta
-          no quedaba en Hilo, no rotaba entre los agentes y no se medía. Ahora
-          lleva al plano, que es donde vive el pedido por lote ("Consultar por
-          este lote" → Hilo → rota → aviso + tarea a 15 min). El cliente igual
-          termina hablando por WhatsApp, pero con el lote y su cuota adentro.
-          data-fab-whatsapp: lo esconde la hoja del lote del plano cuando se abre
-          (globals.css + SeccionPlanoLotes), para no taparla. */}
-      {isDistrito && (
-        <Link
-          href="/distrito-roldan-precios"
-          data-fab-whatsapp
-          aria-label="Ver lotes y precios"
-          className="fixed bottom-5 right-5 z-50 flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#B35E21] px-5 text-sm font-bold text-white shadow-[0_4px_14px_rgba(179,94,33,0.45)] transition-transform hover:scale-105 hover:bg-[#9d4f18]"
-        >
-          <MapIcon className="h-5 w-5" aria-hidden />
-          Ver lotes y precios
-        </Link>
-      )}
+      {/* FAB dedicado — solo 67178 (el global se oculta acá). Lleva al plano
+          y se esconde donde repite otro botón o tapa contenido (FabLotes). */}
+      {isDistrito && <FabLotes href="/distrito-roldan-precios" />}
     </div>
   )
 }
@@ -545,7 +382,7 @@ async function ManualClientePage({ cliente }: { cliente: import('@/lib/clientes'
     await Promise.allSettled(
       allIds.map(async id => {
         try {
-          propsMap[id] = await getPropertyById(id)
+          propsMap[id] = conFotosFijas(await getPropertyById(id))
         } catch {}
       })
     )

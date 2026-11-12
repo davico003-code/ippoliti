@@ -1,107 +1,154 @@
 export const revalidate = 21600
 
 import Link from 'next/link'
-import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 import HeroVideo from '@/components/HeroVideo'
 import EmprendimientosHome from '@/components/EmprendimientosHome'
 import HorizontalCarousel from '@/components/HorizontalCarousel'
 import HeroMobile from '@/components/home/HeroMobile'
 import SeleccionCarousel from '@/components/home/SeleccionCarousel'
 import CardMediaButtons from '@/components/CardMediaButtons'
+import FotosDeslizables from '@/components/FotosDeslizables'
 import { esDiaDePartido } from '@/lib/mundial'
 import ProyectosCarousel from '@/components/home/ProyectosCarousel'
 import GuiaSection from '@/components/home/GuiaSection'
 import ConfianzaSection from '@/components/home/ConfianzaSection'
 import GuiaDesktop from '@/components/home/GuiaDesktop'
 import ConfianzaDesktop from '@/components/home/ConfianzaDesktop'
+import MundoSiHome from '@/components/home/MundoSiHome'
+import EncabezadoSeccion from '@/components/home/EncabezadoSeccion'
+import OportunidadConsultanos from '@/components/home/OportunidadConsultanos'
+import TextoConNumeros from '@/components/home/TextoConNumeros'
+import CaraAgenteCard, { CARA_AGENTE_COMPU, espacioCaraAgente } from '@/components/home/CaraAgenteCard'
+import { getAgentesPorPropiedad } from '@/lib/agentes-por-propiedad'
 import {
   getFeaturedProperties,
+  getProperties,
+  sanitizeProperty,
   generatePropertySlug,
   getMainPhoto,
+  getAllPhotos,
   formatPrice,
   getOperationType,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
   esOportunidadConsultanos,
+  propertyTypeLabelById,
   type TokkoProperty,
 } from '@/lib/tokko'
+import { formatDireccionCompleta } from '@/lib/ubicacion'
+import { construirIndice } from '@/lib/busqueda-propiedades'
+import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 
 const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
+// Margen izquierdo del carrusel = el del contenido de la home (1440 px con
+// --pad adentro: 24 px en tablet, 40 px en compu).
+const CARRUSEL_IZQ = 'max(var(--pad), calc((100vw - 1440px) / 2 + var(--pad)))'
 
 // ─── Featured Properties Section ─────────────────────────────────────────────
 
 async function FeaturedPropertiesSection() {
   let properties: TokkoProperty[] = []
   try {
-    properties = await getFeaturedProperties(6)
+    properties = await getFeaturedProperties(8)
   } catch {
     // Tokko API no disponible — seguimos rendering la sección con el CTA.
   }
+
+  const agentes = await getAgentesPorPropiedad(properties)
 
   // Día de partido: la primera card se destaca (borde celeste + glow + chapa).
   const matchday = esDiaDePartido()
   const renderCard = (property: TokkoProperty, destacada = false) => {
     const slug = generatePropertySlug(property)
-    const photo = getMainPhoto(property)
+    // Portada primero (la misma que se veía sola) y después el resto en orden.
+    const portada = getMainPhoto(property)
+    const fotos = portada ? [portada, ...getAllPhotos(property).filter(f => f !== portada)] : []
     const price = formatPrice(property)
     const operation = getOperationType(property)
-    const roofed = getRoofedArea(property)
+    // Superficie TOTAL (cubierta + semicubierta), como en toda pieza pública.
+    const total = getTotalSurface(property)
     const land = isLand(property)
     const mono = isMonoambiente(property)
     const beds = property.suite_amount ?? property.room_amount
     const baths = property.bathroom_amount
     const address = property.fake_address || property.address
-    const location = property.location?.short_location || property.location?.name || ''
+    const direccion = formatDireccionCompleta(property, address, ' | ')
+    const typeName = propertyTypeLabelById(property.type?.id)
+    // Con agente, su cara va a la derecha sobre el borde de la foto: precio y
+    // datos le dejan lugar y la flecha se va (la cara invita a entrar).
+    const agente = agentes.get(property.id)
+    const espacio = agente ? espacioCaraAgente(CARA_AGENTE_COMPU) : null
     const specs: { num: string; unit: string }[] = []
     if (!land && mono) specs.push({ num: '', unit: 'Monoambiente' })
     else if (!land && beds != null && beds > 0) specs.push({ num: String(beds), unit: ' dorm' })
     if (!land && baths != null && baths > 0) specs.push({ num: String(baths), unit: ` baño${baths > 1 ? 's' : ''}` })
-    if (roofed != null && roofed > 0) specs.push({ num: String(roofed), unit: ' m²' })
-    if (land) { const lot = getLotSurface(property); if (lot != null && lot > 0) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' }) }
+    if (!land && total != null && total > 0) specs.push({ num: total.toLocaleString('es-AR'), unit: ' m²' })
+    const lot = getLotSurface(property)
+    if (lot != null && lot > 0) {
+      if (land) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m²' })
+      else if (lot !== total) specs.push({ num: lot.toLocaleString('es-AR'), unit: ' m² lote' })
+    }
 
     return (
       <Link
         key={property.id}
         href={`/propiedades/${slug}`}
-        className="prop-card block overflow-hidden flex-shrink-0 snap-start rounded-xl bg-white border-0"
+        className="prop-card block flex-shrink-0 snap-start bg-white border-0"
         style={{
           textDecoration: 'none',
           position: 'relative',
-          width: 'clamp(300px, 88vw, 380px)',
-          minWidth: 300,
-          border: destacada ? '2px solid #75AADB' : undefined,
-          boxShadow: destacada
-            ? '0 0 0 4px rgba(117,170,219,0.22), 0 10px 28px rgba(117,170,219,0.35)'
-            : '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06)',
-          transition: 'box-shadow 200ms',
+          // Más grandes y a todo el ancho: se ven ~2,5 tarjetas por pantalla.
+          width: 'clamp(320px, calc((100vw - 110px) / 2.6), 640px)',
+          minWidth: 320,
         }}
       >
-        <div className="relative w-full bg-gray-100 overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
-          {photo ? (
-            <Image src={photo} alt={property.publication_title || address} fill
-              className="object-cover prop-card-img" sizes="340px" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">Sin foto</div>
-          )}
-          {operation && (
-            <span style={{
-              position: 'absolute', top: 10, left: 10,
-              background: operationBadgeColor(operation),
-              color: '#fff', fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
-              textTransform: 'uppercase', padding: '3px 10px', borderRadius: 6,
-            }}>
-              {operation}
-            </span>
-          )}
+        {/* Sin recuadro, como /propiedades: foto con las 4 esquinas redondeadas
+            sobre blanco. El destaque de día de partido va en la foto. */}
+        <div className="relative">
+        {/* Las fotos se pasan acá mismo, sin entrar (flechas al pasar el
+            mouse), igual que en /propiedades. */}
+        <FotosDeslizables
+          images={fotos}
+          alt={property.publication_title || address}
+          sizes="(min-width: 768px) 42vw, 90vw"
+          imgClassName="prop-card-img"
+          puntos={agente ? 'izquierda' : 'centro'}
+          className="aspect-[16/9]"
+          style={destacada ? { boxShadow: '0 0 0 2px #75AADB, 0 0 0 6px rgba(117,170,219,0.22)' } : undefined}
+          portadaViva={property.portada_viva}
+        >
+          {/* Badges como en /propiedades: operación (color) + tipo (blanco) */}
+          <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 10, display: 'flex', gap: 6, transform: 'translateZ(0)' }}>
+            {operation && (
+              <span style={{
+                background: operationBadgeColor(operation),
+                color: '#fff', fontFamily: RALEWAY, fontWeight: 600, fontSize: 12,
+                lineHeight: 1, padding: '8px 14px', borderRadius: 9999,
+              }}>
+                {operation}
+              </span>
+            )}
+            {typeName && (
+              <span style={{
+                background: 'rgba(255,255,255,0.9)', color: '#0a0a0a',
+                fontFamily: RALEWAY, fontWeight: 600, fontSize: 12,
+                lineHeight: 1, padding: '8px 14px', borderRadius: 9999,
+                backdropFilter: 'blur(2px)',
+              }}>
+                {typeName}
+              </span>
+            )}
+          </div>
           {destacada && (
             <span style={{
-              position: 'absolute', top: 10, right: 10,
+              position: 'absolute', top: 10, right: 10, zIndex: 10,
               background: '#75AADB', color: '#0d3a5c',
-              fontFamily: POPPINS, fontWeight: 700, fontSize: 11,
+              fontFamily: RALEWAY, fontWeight: 700, fontSize: 12,
               padding: '3px 10px', borderRadius: 6,
               boxShadow: '0 2px 8px rgba(0,0,0,0.18)', whiteSpace: 'nowrap',
             }}>
@@ -111,60 +158,70 @@ async function FeaturedPropertiesSection() {
           {/* Play + like juntos, arriba-derecha (oculto en la card "destacada"
               de día de partido, que ya usa ese rincón para la chapa). */}
           {!destacada && (
-            <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5" />
+            <CardMediaButtons propertyId={property.id} size={36} className="absolute top-2.5 right-2.5 z-10" />
           )}
+        </FotosDeslizables>
+        <CaraAgenteCard agente={agente} size={CARA_AGENTE_COMPU} />
         </div>
-        <div style={{ padding: '10px 14px' }}>
+        <div style={{ padding: '10px 2px 4px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={espacio ? { paddingRight: espacio.derecha, minHeight: espacio.abajo - 10 } : undefined}>
+          {/* El mismo par del celu (un solo componente para los dos árboles). */}
           {esOportunidadConsultanos(property.id) ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 6px' }}>
-              <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10.5, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '4px 9px', whiteSpace: 'nowrap' }}>
-                Oportunidad
-              </span>
-              <span style={{ fontFamily: POPPINS, fontWeight: 700, fontSize: 14, background: '#1A5C38', color: '#fff', borderRadius: 999, padding: '6px 15px', whiteSpace: 'nowrap' }}>
-                Consultanos →
-              </span>
-            </div>
+            <OportunidadConsultanos style={{ margin: '0 0 6px' }} />
           ) : (
-          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#1d1d1f', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
+          <p style={{ fontFamily: POPPINS, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', margin: '0 0 4px', lineHeight: 1.2, fontSize: 22 }}>
             {price}
           </p>
           )}
+          {/* La línea en Raleway y solo los números en Poppins (regla de la
+              casa: nunca Poppins en texto corrido). Igual en la dirección. */}
           {specs.length > 0 && (
-            <p style={{ fontFamily: POPPINS, fontSize: 14, color: '#1d1d1f', margin: '0 0 4px', fontWeight: 400 }}>
+            <p style={{ fontFamily: RALEWAY, fontSize: 14, color: 'var(--foreground)', margin: '0 0 4px', fontWeight: 500 }}>
               {specs.map((s, i) => (
                 <span key={i}>
                   {i > 0 && ' · '}
-                  <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
+                  <span style={{ fontFamily: POPPINS, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{s.num}</span>
                   {s.unit}
                 </span>
               ))}
             </p>
           )}
-          <p style={{ fontFamily: POPPINS, fontSize: 13, color: '#767676', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
-            {address}{location ? `, ${location}` : ''}
+          </div>
+          <p style={{ fontFamily: RALEWAY, fontSize: 13, color: 'var(--tinta-mute)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+            <TextoConNumeros texto={direccion || address || ''} />
           </p>
+          </div>
+          {!agente && <span className="prop-card-arrow" aria-hidden="true"><ArrowRight size={18} strokeWidth={2} /></span>}
         </div>
       </Link>
     )
   }
 
   return (
-    <section className="home-section bg-white" style={{ padding: 0 }}>
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-4 md:pt-5 md:pb-6">
-        {/* Header row */}
-        <div className="flex items-end justify-between">
-          <h2 className="text-2xl md:text-3xl tracking-tight" style={{ fontFamily: RALEWAY, fontWeight: 800, color: '#111827', lineHeight: 1.2, margin: 0 }}>
-            Nuestra selección
-          </h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-2 mt-0.5" style={{ fontFamily: RALEWAY }}>
-          Elegidas con criterio, no por algoritmo.
-        </p>
-
-        {/* Carousel — fallback al CTA si no hay properties */}
+    <section className="home-section bg-white [--pad:24px] lg:[--pad:40px]" style={{ padding: 0 }}>
+      <div className="max-w-[1440px] mx-auto px-[var(--pad)] pt-14">
+        <EncabezadoSeccion
+          titulo="Nuestra selección"
+          bajada="Elegidas con criterio, no por algoritmo."
+          className="mb-7"
+        />
+      </div>
+      {/* Carrusel a todo el ancho: la primera tarjeta alineada con el título,
+          la anterior asomando a la izquierda y la fila hasta el borde derecho
+          (David, 18-oct: "por defecto mostralo así full width"). La que asoma
+          es la última de la selección, pasada adelante: así la primera nunca
+          queda cortada. */}
+      <div className="pb-12">
         {properties.length > 0 ? (
-          <HorizontalCarousel>
-            {properties.map((p, i) => renderCard(p, matchday && i === 0))}
+          <HorizontalCarousel
+            className="flex gap-5 overflow-x-auto snap-x snap-mandatory py-2 pb-3 scrollbar-none"
+            style={{ paddingLeft: CARRUSEL_IZQ, paddingRight: 24, scrollPaddingLeft: CARRUSEL_IZQ }}
+            arrancarEn={properties.length > 2 ? 1 : undefined}
+            arrastrable
+          >
+            {(properties.length > 2 ? [properties[properties.length - 1], ...properties.slice(0, -1)] : properties)
+              .map(p => renderCard(p, matchday && p === properties[0]))}
             <Link
               href="/propiedades"
               className="flex-shrink-0 self-center snap-start flex items-center justify-center rounded-full border-2 border-[#1A5C38] bg-white px-7 py-3.5 font-semibold text-sm text-[#1A5C38] hover:bg-[#1A5C38] hover:text-white transition-colors duration-200"
@@ -226,15 +283,29 @@ export const metadata = {
 
 // ─── Home Page ────────────────────────────────────────────────────────────────
 
+/** Zonas que hoy tienen propiedades: las únicas que sugiere el buscador. Si el
+ *  listado no responde, el buscador sugiere todas (como antes). */
+async function zonasVivas(): Promise<string[] | undefined> {
+  try {
+    const data = await getProperties()
+    return idsDeZonasVivas(construirIndice((data.objects ?? []).map(sanitizeProperty)))
+  } catch (err) {
+    console.error('[home] zonas vivas:', err instanceof Error ? err.message : err)
+    return undefined
+  }
+}
+
 export default async function Home() {
+  const vivas = await zonasVivas()
   return (
     <>
       <h1 className="sr-only">Propiedades y servicios inmobiliarios en Funes, Roldán y Rosario</h1>
       {/* ═══ MOBILE (<md) — Nuevo diseño Zillow-style ═══ */}
       <div className="md:hidden">
-        <HeroMobile />
+        <HeroMobile vivas={vivas} />
         <SeleccionCarousel />
         <ProyectosCarousel />
+        <MundoSiHome />
         <GuiaSection />
         <ConfianzaSection />
         {/* Footer: lo provee FooterWrapper (footer blanco global, responsive). */}
@@ -244,11 +315,13 @@ export default async function Home() {
       <div className="hidden md:block">
         <style dangerouslySetInnerHTML={{ __html: `
           @media (hover: hover) {
-            .prop-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.08) !important; }
-            .prop-card:hover .prop-card-img { transform: scale(1.05); }
+            .prop-card:hover .prop-card-img { transform: scale(1.03); }
           }
           .prop-card-img { transition: transform 400ms ease-out; }
-          .prop-card { transition: box-shadow 300ms, transform 300ms; }
+          .prop-card-arrow { flex-shrink: 0; width: 42px; height: 42px; border-radius: 9999px; border: 1.5px solid #e5e5e5; display: flex; align-items: center; justify-content: center; color: #1d1d1f; transition: background 200ms, color 200ms, border-color 200ms; }
+          @media (hover: hover) {
+            .prop-card:hover .prop-card-arrow { background: #1A5C38; border-color: #1A5C38; color: #fff; }
+          }
           .home-section { padding: 32px 24px; }
           .nosotros-grid { gap: 56px; }
           @media (max-width: 1024px) {
@@ -257,9 +330,10 @@ export default async function Home() {
           }
         ` }} />
 
-        <HeroVideo />
+        <HeroVideo vivas={vivas} />
         <FeaturedPropertiesSection />
         <EmprendimientosHome />
+        <MundoSiHome />
         <GuiaDesktop />
         <ConfianzaDesktop />
       </div>

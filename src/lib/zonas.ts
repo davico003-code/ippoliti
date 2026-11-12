@@ -7,6 +7,12 @@ export interface Zona {
   bounds?: { north: number; south: number; east: number; west: number }
   poligono?: [number, number][]
   aliases?: string[]
+  /** Cómo se ofrece y se escribe en el buscador cuando el nombre solo confunde:
+   *  "Vida" es también el comienzo de Vida Lagoon, Vida Club de Campo, Vida Green… */
+  etiqueta?: string
+  /** Nombres de ubicación que SON esta zona y solo ellos. Buscada por su
+   *  etiqueta compara el barrio del aviso entero ("Vida" no es "Vida Lagoon"). */
+  nombresExactos?: string[]
 }
 
 // ─── FUNES ──────────────────────────────────────────────────────────────────────
@@ -110,6 +116,20 @@ const FUNES: Zona[] = [
     aliases: [],
   },
   {
+    // El barrio Vida a secas (Rossetti), Av. Illia casi Rosario: en Tokko "Barrio
+    // Vida" o "Vida". Los otros también se llaman Vida (Lagoon, Club de Campo,
+    // Green, Jardín): "Vida" sola los trae a todos; esta zona es SOLO este barrio
+    // (David, 8-nov-2026: "la opción de buscar Vida, barrio cerrado").
+    id: 'funes-vida',
+    nombre: 'Vida',
+    ciudad: 'Funes',
+    tipo: 'barrio_cerrado',
+    centro: { lat: -32.9315, lng: -60.7947 },
+    aliases: ['Barrio Vida', 'Vida Barrio Cerrado'],
+    etiqueta: 'Vida (barrio cerrado)',
+    nombresExactos: ['Vida', 'Barrio Vida'],
+  },
+  {
     // Vida 3 — Rossetti Desarrollos, 150 ha noroeste Funes, límite Roldán
     id: 'funes-vida-lagoon',
     nombre: 'Vida Lagoon',
@@ -125,7 +145,7 @@ const FUNES: Zona[] = [
     ciudad: 'Funes',
     tipo: 'barrio_cerrado',
     centro: { lat: -32.9320, lng: -60.7830 },
-    aliases: ['Vida', 'Vida Club', 'Vida 1', 'Vida I', 'Barrio Vida'],
+    aliases: ['Vida', 'Vida Club', 'Vida 1', 'Vida I'],
   },
   {
     // Vida 2 — Rossetti Desarrollos, zona norte Funes, Mitre y Colonos de Funes
@@ -234,11 +254,12 @@ const FUNES: Zona[] = [
     aliases: [],
   },
   {
+    // Es de Roldán y abierto (David, 6-oct-2026); el id queda por compatibilidad.
     id: 'funes-cotos-alameda',
     nombre: 'Cotos de la Alameda',
-    ciudad: 'Funes',
-    tipo: 'barrio_cerrado',
-    centro: { lat: -32.9240, lng: -60.8270 },
+    ciudad: 'Roldán',
+    tipo: 'barrio',
+    centro: { lat: -32.9070, lng: -60.8760 },
     aliases: ['Cotos', 'Alameda'],
   },
   {
@@ -414,14 +435,6 @@ const ROSARIO: Zona[] = [
     tipo: 'barrio',
     centro: { lat: -32.9320, lng: -60.7080 },
     aliases: ['Fisherton Rosario'],
-  },
-  {
-    id: 'rosario-fisherton-r',
-    nombre: 'Fisherton R',
-    ciudad: 'Rosario',
-    tipo: 'barrio',
-    centro: { lat: -32.9280, lng: -60.7150 },
-    aliases: [],
   },
   {
     id: 'rosario-lourdes',
@@ -670,13 +683,23 @@ const ROSARIO: Zona[] = [
 
 export const ZONAS: Zona[] = [...FUNES, ...ROLDAN, ...ROSARIO]
 
+/** Lo que se escribe en el buscador al elegir la zona (la etiqueta, si la tiene). */
+export const nombreBuscable = (z: Zona): string => z.etiqueta ?? z.nombre
+
+/** El detalle a la derecha de la sugerencia: la ciudad, y "Country" si es cerrado
+ *  (salvo que la etiqueta ya lo diga). */
+export const detalleZona = (z: Zona): string =>
+  z.tipo === 'barrio_cerrado' && !z.etiqueta ? `${z.ciudad} · Country` : z.ciudad
+
 // ─── BÚSQUEDA ───────────────────────────────────────────────────────────────────
 
 function normalize(s: string): string {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 }
 
-export function buscarZonas(query: string, max = 8): Zona[] {
+/** `vivas`: ids de las zonas que hoy tienen propiedades (lib/zonas-vivas.ts).
+ *  Sin eso se sugerían zonas que daban "No encontramos" (25 de 79, 25-oct). */
+export function buscarZonas(query: string, max = 8, vivas?: ReadonlySet<string>): Zona[] {
   const q = normalize(query.trim())
   if (q.length < 2) return []
 
@@ -684,6 +707,7 @@ export function buscarZonas(query: string, max = 8): Zona[] {
   const scored: { zona: Zona; score: number }[] = []
 
   for (const zona of ZONAS) {
+    if (vivas && !vivas.has(zona.id)) continue
     const nombre = normalize(zona.nombre)
     const ciudad = normalize(zona.ciudad)
     const aliasNorm = (zona.aliases ?? []).map(normalize)

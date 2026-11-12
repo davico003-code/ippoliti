@@ -72,7 +72,10 @@ export async function POST(req: Request) {
   // ── Rate limit por fingerprint+propertyId (1 voto / 24h), si viene ───────
   const fingerprint = req.headers.get('x-fingerprint')?.trim()
   if (fingerprint) {
-    const fpKey = `feedback:rl:fp:${fingerprint}:${propertyId}`
+    // Fichas sin id de propiedad (propertyId 0: armadas desde Hilo o
+    // externas) comparten la lista del 0 → el tope va por ficha, no por "0",
+    // si no un colega que votó una no podía votar ninguna otra en 24 h.
+    const fpKey = `feedback:rl:fp:${fingerprint}:${propertyId || `ficha:${slug}`}`
     const set = await redis.set(fpKey, choice, { nx: true, ex: FP_WINDOW })
     if (set === null) {
       return NextResponse.json({ error: 'already_voted' }, { status: 429 })

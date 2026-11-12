@@ -3,7 +3,7 @@
 // al filtrar por dormitorios o precio); esta página las muestra juntas.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MapPin } from 'lucide-react'
@@ -16,6 +16,8 @@ import {
   getMainPhoto,
   type Edificio,
 } from '@/lib/edificios'
+import { fotoAbsoluta } from '@/lib/fotos-fijas'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 import {
   getRoofedArea,
   getTotalSurface,
@@ -27,7 +29,7 @@ import {
 export const revalidate = 3600
 
 const BASE = 'https://siinmobiliaria.com'
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = '#1A5C38'
 
 async function cargarEdificios(): Promise<Edificio[]> {
@@ -58,15 +60,15 @@ export async function generateMetadata({
   }. Fotos, plantas y valores actualizados. SI INMOBILIARIA.`
   const url = `${BASE}/edificios/${edificio.slug}`
   return {
-    title: `${title} | SI INMOBILIARIA`,
-    description,
+    title: tituloConMarca(title),
+    description: recortarDescripcion(description),
     alternates: { canonical: url },
     openGraph: {
       title,
       description,
       url,
       siteName: 'SI INMOBILIARIA',
-      images: [edificio.foto ?? '/og-image.jpg'],
+      images: [fotoAbsoluta(edificio.foto) ?? '/og-image.jpg'],
       type: 'website',
     },
   }
@@ -86,7 +88,7 @@ export default async function EdificioPage({ params }: { params: { slug: string 
     address: { '@type': 'PostalAddress', streetAddress: edificio.direccion, addressLocality: edificio.ciudad },
     numberOfAvailableAccommodationUnits: edificio.unidades.length,
     url: `${BASE}/edificios/${edificio.slug}`,
-    ...(edificio.foto ? { image: edificio.foto } : {}),
+    ...(edificio.foto ? { image: fotoAbsoluta(edificio.foto) } : {}),
     ...(edificio.lat && edificio.lon
       ? { geo: { '@type': 'GeoCoordinates', latitude: edificio.lat, longitude: edificio.lon } }
       : {}),
@@ -180,7 +182,7 @@ export default async function EdificioPage({ params }: { params: { slug: string 
                         u.bathroom_amount > 0
                           ? `${u.bathroom_amount} baño${u.bathroom_amount > 1 ? 's' : ''}`
                           : null,
-                        cubierta ? `${cubierta} m²` : null,
+                        cubierta ? `${cubierta.toLocaleString('es-AR')} m²` : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}

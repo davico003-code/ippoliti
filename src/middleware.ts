@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose'
 import { Redis } from '@upstash/redis'
+import { destinoDeBaja, type DatosBaja } from '@/lib/propiedad-baja'
 
 const SECRET = new TextEncoder().encode(process.env.AGENT_JWT_SECRET || '')
 const COOKIE_NAME = 'si_agent_token'
@@ -33,6 +34,122 @@ async function getBlogRedirects(): Promise<Record<string, string>> {
   }
 }
 
+// ── Fichas de propiedades dadas de baja ─────────────────────────────────
+// /propiedades/{id}-{slug} de una propiedad que ya no está publicada respondía
+// 200 con "Propiedad no encontrada" (el notFound() de esa ruta no llega a
+// cambiar el estado). Acá, antes de renderizar: 301 al listado más parecido
+// (misma operación + tipo + localidad) o 410 si no hay con qué armarlo.
+// NUNCA se redirige por sospecha: solo cuando la propiedad no está en el
+// listado publicado Y Hilo responde 404 por ESA propiedad. Si falta cualquiera
+// de las dos señales (Hilo caído, lista vacía), la ficha sigue de largo.
+// /consulta/{id}-{slug} (la landing de los anuncios) pasa por lo mismo: cuando
+// la casa se vende y el anuncio sigue activo un par de días, cada clic pago
+// caía en un 404 genérico en vez de en las casas parecidas.
+const FICHA_RE = /^\/(?:propiedades|consulta)\/([^/]+)$/
+const HILO_BASE = (process.env.HILO_FEED_URL || 'https://meethilo.com').replace(/\/$/, '')
+const IDS_TTL_MS = 300_000
+const IDS_MAX_MS = 3_600_000
+const FICHA_TTL_MS = 300_000
+
+let _ids: { set: Set<number>; ts: number } | null = null
+let _idsIntento = 0
+// Lo que Hilo dijo de cada id que no está en la lista: publicada, o dada de baja (con sus datos, si los manda).
+const _fichas = new Map<number, { viva: boolean; baja: DatosBaja | null; ts: number }>()
+
+/**
+ * Los ids publicados hoy, o null si no hay una lista sana (no se pudo pedir, o
+ * vino vacía, y la última buena tiene más de una hora). Sin lista NO se
+ * redirige nada: hacen falta las dos señales —no está en el listado Y Hilo
+ * responde 404 por ella— para dar de baja una URL.
+ */
+async function idsPublicados(origin: string): Promise<Set<number> | null> {
+  const ahora = Date.now()
+  if (_ids && ahora - _ids.ts < IDS_TTL_MS) return _ids.set
+  // Un intento cada 15 s como mucho, aunque falle.
+  if (ahora - _idsIntento > 15_000) {
+    _idsIntento = ahora
+    try {
+      // 4 s: en frío (instancia nueva + función dormida) con 2,5 s no llegaba y la ficha dada de baja pasaba con 200.
+      const res = await fetch(`${origin}/api/propiedades/ids`, { signal: AbortSignal.timeout(4000) })
+      const data = res.ok ? ((await res.json()) as { ids?: number[] }) : null
+      if (Array.isArray(data?.ids) && data.ids.length > 0) _ids = { set: new Set(data.ids), ts: ahora }
+    } catch {
+      // se sigue con la última lista buena, si no es vieja
+    }
+  }
+  return _ids && ahora - _ids.ts < IDS_MAX_MS ? _ids.set : null
+}
+
+/** null = dejar pasar la ficha. */
+async function fichaDadaDeBaja(request: NextRequest, slug: string): Promise<NextResponse | null> {
+  if ((process.env.DATA_SOURCE || '').toLowerCase() !== 'hilo') return null
+  // El mismo criterio que getIdFromSlug: el número del principio.
+  const id = parseInt(slug.split('-')[0], 10)
+  if (Number.isNaN(id)) return noEncontrada(request)
+  const publicados = await idsPublicados(request.nextUrl.origin)
+  if (!publicados || publicados.has(id)) return null
+
+  let ficha = _fichas.get(id)
+  if (!ficha || Date.now() - ficha.ts > FICHA_TTL_MS) {
+    try {
+      const res = await fetch(`${HILO_BASE}/api/public/propiedades/${id}`, { signal: AbortSignal.timeout(3000) })
+      if (res.ok) {
+        // Publicada (y todavía no está en la lista): se recuerda para no preguntar en cada visita.
+        ficha = { viva: true, baja: null, ts: Date.now() }
+      } else if (res.status === 404) {
+        const data = (await res.json().catch(() => null)) as { baja?: DatosBaja | null } | null
+        ficha = { viva: false, baja: data?.baja ?? null, ts: Date.now() }
+      } else {
+        return null
+      }
+    } catch {
+      return null
+    }
+    if (_fichas.size > 2000) _fichas.clear()
+    _fichas.set(id, ficha)
+  }
+  if (ficha.viva) return null
+  const destino = destinoDeBaja(ficha.baja, slug)
+  if (!destino) return yaNoEsta(request)
+  // max-age corto: si la propiedad vuelve a publicarse, el navegador no se queda con el redirect.
+  return NextResponse.redirect(new URL(destino, request.url), { status: 301, headers: { 'Cache-Control': 'public, max-age=3600' } })
+}
+
+// Página que solo hace notFound(): el "no encontrada" del sitio ("Esta página
+// no existe · la propiedad puede haber sido vendida", con el link al listado).
+const RUTA_NO_ENCONTRADA = '/no-encontrada'
+
+/** 404 con la página "no encontrada" del sitio. */
+function noEncontrada(request: NextRequest): NextResponse {
+  const url = request.nextUrl.clone()
+  url.pathname = RUTA_NO_ENCONTRADA
+  url.search = ''
+  return NextResponse.rewrite(url)
+}
+
+/**
+ * 410 (Gone) con la misma página. Un rewrite no deja cambiar el estado (sale
+ * 404), así que se pide la página y se devuelve con 410. Si no se puede pedir
+ * (un preview protegido), va un HTML mínimo: el estado es lo que importa.
+ */
+async function yaNoEsta(request: NextRequest): Promise<NextResponse> {
+  const headers = { 'Content-Type': 'text/html; charset=utf-8', 'X-Robots-Tag': 'noindex', 'Cache-Control': 'public, max-age=0, must-revalidate' }
+  try {
+    const res = await fetch(new URL(RUTA_NO_ENCONTRADA, request.url), { signal: AbortSignal.timeout(3000) })
+    if (res.status === 404 && (res.headers.get('content-type') ?? '').includes('text/html')) {
+      return new NextResponse(res.body, { status: 410, headers })
+    }
+  } catch {
+    // sigue al HTML mínimo
+  }
+  return new NextResponse(
+    '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Esta propiedad ya no está disponible | SI INMOBILIARIA</title></head>' +
+      '<body style="font-family:system-ui,sans-serif;max-width:32rem;margin:18vh auto;padding:0 24px;text-align:center;color:#121A15"><h1 style="font-size:1.6rem">Esta propiedad ya no está disponible</h1>' +
+      '<p style="color:#5B6B62">Puede haber sido vendida o alquilada.</p><p><a href="/propiedades" style="color:#17613C;font-weight:700">Ver las propiedades disponibles</a></p></body></html>',
+    { status: 410, headers },
+  )
+}
+
 // Hosts neutros que sirven la ficha white-label. Se rewrite-an internamente al
 // route group (neutral)/v/[slug]. Cualquier path que no matchee el patrón de
 // slug se rewrite-a a /v/__nf__ que dispara not-found.tsx neutro.
@@ -45,6 +162,12 @@ const SLUG_RE = /^\/[A-Za-z0-9]{8}$/
 // (.svg, -96x96.png) se sirve estático desde public/ = logo SI; WhatsApp hace
 // fallback a ese path ignorando el <link> de la página. Reescribimos al icono neutro.
 const NEUTRAL_ICON_RE = /^\/(favicon\.ico|favicon\.svg|favicon-96x96\.png|apple-touch-icon\.png|icon\.png)$/
+
+// La Ronda Funes Roldán (propiedades compartidas entre inmobiliarias colegas):
+// página estática en public/ronda + sus rutas /api/ronda/*. Vive en el dominio
+// neutro; si alguien la abre desde siinmobiliaria.com, se lo manda para allá.
+const SI_HOSTS = new Set(['siinmobiliaria.com', 'www.siinmobiliaria.com'])
+const esPaginaRonda = (pathname: string) => pathname === '/ronda' || pathname.startsWith('/ronda/')
 
 export async function middleware(request: NextRequest) {
   const host = (request.headers.get('host') || '').toLowerCase().split(':')[0]
@@ -61,6 +184,8 @@ export async function middleware(request: NextRequest) {
     // Endpoints API permitidos en el dominio neutro (ficha white-label):
     // - /api/audio/check        → el AudioPlayer consulta si hay audio cacheado
     // - /api/colega/feedback    → feedback anónimo de colegas
+    // - /api/colega/compartida  → cuenta los toques en "Compartir" de la ficha
+    // - /api/cercanos           → la fila "Cerca" de la ficha (CercaChips)
     // - /api/image-proxy        → fotos de avisos externos (Argenprop bloquea el
     //                             hotlink; HeroGallery/OG las piden por acá). Sin
     //                             esta excepción caían en not-found y la ficha
@@ -69,10 +194,13 @@ export async function middleware(request: NextRequest) {
     if (
       pathname === '/api/audio/check' ||
       pathname === '/api/colega/feedback' ||
+      pathname === '/api/colega/compartida' ||
+      pathname === '/api/cercanos' ||
       pathname === '/api/image-proxy'
     ) {
       return NextResponse.next()
     }
+    if (esPaginaRonda(pathname) || pathname.startsWith('/api/ronda/')) return NextResponse.next()
     if (SLUG_RE.test(pathname)) {
       const slug = pathname.slice(1)
       const url = request.nextUrl.clone()
@@ -88,6 +216,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
+  if (SI_HOSTS.has(host) && esPaginaRonda(pathname)) {
+    return NextResponse.redirect(`https://${process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'}/ronda`, 308)
+  }
+
   // ── Blog: 301 de notas borradas (soft-delete vía blog:redirects) ───────
   if (pathname.startsWith('/blog/')) {
     const slug = pathname.slice('/blog/'.length)
@@ -100,6 +232,13 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(target, 301)
       }
     }
+  }
+
+  // ── Fichas de propiedades dadas de baja: 301 al listado parecido o 410 ──
+  const ficha = FICHA_RE.exec(pathname)
+  if (ficha) {
+    const respuesta = await fichaDadaDeBaja(request, ficha[1])
+    if (respuesta) return respuesta
   }
 
   // ── siinmobiliaria.com: lógica original de protección /agentes/* ───────

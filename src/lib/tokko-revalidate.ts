@@ -6,8 +6,8 @@
 //   - Vercel CDN edge cache: revalidatePath() sobre los API routes con
 //     Cache-Control public s-maxage los marca como stale.
 //   - Redis Upstash: SCAN+DEL para borrar 'barrios:propiedades:*' (cache
-//     custom de getPropiedadesByBarrio, TTL 1h). NO toca audio:* ni
-//     ficha:* (otros subsistemas).
+//     viejo de getPropiedadesByBarrio: ya no se escribe desde el 22-oct-2026,
+//     queda para limpiar restos). NO toca audio:* ni ficha:* (otros subsistemas).
 //
 // La usan dos endpoints con auth distinta:
 //   - /api/admin/revalidate-propiedades  → header x-team-code (SI_TEAM_CODE)
@@ -15,10 +15,13 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redis } from '@/lib/redis'
+import { CACHE_TAG_LISTA, CACHE_TAG_DETALLE, CACHE_TAG_LISTA_ESTABLE } from '@/lib/tokko'
 
-// 'tokko-properties' es el tag base que llevan TODAS las pages que llaman
-// getProperties(), así que invalidarlo destraba el listado entero.
-const TAGS = ['tokko-properties']
+// Refresco manual "de todo": el tag del listado (lo llevan todas las pages que
+// llaman getProperties()) + el de los detalles (todas las fichas) + el listado
+// estable que usan las fichas. Las ediciones puntuales desde HILO van por
+// /api/revalidate y solo tiran el listado y la ficha editada.
+const TAGS = [CACHE_TAG_LISTA, CACHE_TAG_DETALLE, CACHE_TAG_LISTA_ESTABLE]
 
 // API routes con Cache-Control: s-maxage que cachea Vercel Edge — el
 // revalidateTag por sí solo no limpia esa capa, hay que pasar el path.

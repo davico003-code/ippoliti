@@ -4,6 +4,9 @@
 
 export type TipoTasacion = 'casa' | 'lote' | 'depto'
 
+/** ¿Cuándo pensás vender? (27-sep-2026) — el filtro de intención del vendedor. */
+export type PlazoVenta = 'ya' | 'meses' | 'averiguo'
+
 export type Ciudad = 'Funes' | 'Roldán' | 'Rosario' | string
 
 export interface BarrioTasacion {
@@ -82,4 +85,6 @@ export interface TasacionLead {
   lng: number | null
   utm: UtmTasacion | null
   paginaUrl: string
+  /** Cuándo piensa vender. null en pedidos del flujo viejo con rango. */
+  plazo: PlazoVenta | null
 }

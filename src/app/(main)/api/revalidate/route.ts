@@ -1,9 +1,20 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
+import {
+  CACHE_TAG_LISTA,
+  CACHE_TAG_DETALLE,
+  CACHE_TAG_LISTA_ESTABLE,
+  cacheTagPropiedad,
+} from '@/lib/tokko'
+import { avisarCambioDeFicha, type ResultadoIndexNow } from '@/lib/indexnow'
 
 export const dynamic = 'force-dynamic'
 
 const DEFAULT_PATHS = ['/', '/propiedades', '/emprendimientos']
-const DEFAULT_TAGS = ['tokko-properties']
+const DEFAULT_TAGS = [CACHE_TAG_LISTA]
+// Sin propertyId (ni slug de blog, ni tags explícitos) el pedido es "refrescá
+// todo": ahí sí caen todas las fichas. Con propertyId —lo que manda HILO en
+// cada edición— cae el listado y SOLO la ficha de esa propiedad.
+const TAGS_TODO = [CACHE_TAG_LISTA, CACHE_TAG_DETALLE, CACHE_TAG_LISTA_ESTABLE]
 
 type Body = {
   paths?: string[]
@@ -34,14 +45,20 @@ export async function POST(req: Request) {
     body = {}
   }
 
+  const tienePropiedad =
+    body.propertyId !== undefined && body.propertyId !== null && String(body.propertyId).length > 0
   const pathsRaw = body.paths?.length ? body.paths : DEFAULT_PATHS
-  const tagsRaw = body.tags?.length ? body.tags : DEFAULT_TAGS
+  const tagsRaw = body.tags?.length
+    ? body.tags
+    : tienePropiedad || body.slug
+      ? DEFAULT_TAGS
+      : TAGS_TODO
 
   const extraPaths: string[] = []
   const extraTags: string[] = []
-  if (body.propertyId !== undefined && body.propertyId !== null && String(body.propertyId).length > 0) {
+  if (tienePropiedad) {
     extraPaths.push(`/propiedades/${body.propertyId}`)
-    extraTags.push(`tokko-property-${body.propertyId}`)
+    extraTags.push(cacheTagPropiedad(body.propertyId as string | number))
   }
   // Compat blog: si vino slug, revalida la página de blog
   if (body.slug) {
@@ -69,6 +86,12 @@ export async function POST(req: Request) {
     }
   }
 
+  // Hilo llama acá en cada alta, edición y cambio de estado (vendida, reservada,
+  // baja): se le avisa también a Bing/IndexNow para que la relea en minutos.
+  // Va después de revalidar, así lee la ficha ya fresca. Nunca tira.
+  let indexnow: ResultadoIndexNow | null = null
+  if (tienePropiedad) indexnow = await avisarCambioDeFicha(body.propertyId as string | number)
+
   if (errors.length > 0) {
     return Response.json(
       { revalidated: false, errors, paths, tags },
@@ -82,6 +105,7 @@ export async function POST(req: Request) {
     tags,
     propertyId: body.propertyId ?? null,
     slug: body.slug ?? null,
+    indexnow,
     timestamp: new Date().toISOString(),
   })
 }

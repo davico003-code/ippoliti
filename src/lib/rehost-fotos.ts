@@ -18,7 +18,7 @@ const CONCURRENCY = 5
 // El store de BLOB_READ_WRITE_TOKEN es PRIVADO (put con access:'public' tira).
 // Usamos el store público del blog (mismo que las portadas de notas), con
 // prefijo propio `fichas-externas/`. Override opcional: FICHAS_BLOB_TOKEN.
-function blobToken(): string | undefined {
+export function blobToken(): string | undefined {
   return process.env.FICHAS_BLOB_TOKEN || process.env.BLOG_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN
 }
 

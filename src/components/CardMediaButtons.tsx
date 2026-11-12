@@ -1,22 +1,19 @@
 'use client'
 
-// Cluster de acciones sobre la foto de una card: play (escuchar resumen) + like
-// discreto, JUNTOS en el extremo superior derecho. Tamaño configurable (`size`)
-// para que sea proporcional a cada card.
+// Acción sobre la foto de una card: play (escuchar resumen) en el extremo
+// superior derecho. Tamaño configurable (`size`) para que sea proporcional a
+// cada card. El corazón de "me gusta" se retiró (14-sep-2026): nunca fue
+// pedido para las tarjetas.
 //
 // audioUrl:
 //   - string  → hay audio conocido server-side (ej. listado enriquecido).
-//   - null    → se sabe que NO hay audio (no se muestra el play).
+//   - null    → se sabe que NO hay audio (no se muestra nada).
 //   - undefined → no se conoce; se resuelve client-side por lote
 //     (/api/audio/urls) — caso home "Nuestra selección" (ISR, sin Redis en render).
-//
-// El play solo aparece si hay audio. El like se auto-oculta si el flag de
-// feedback está off (LikeHeart).
 
 import { useEffect, useState } from 'react'
 import { PlayAudioButton } from '@/components/audio/AudioPlayerProvider'
 import { fetchAudioUrl } from '@/components/audio/audioUrlStore'
-import LikeHeart from '@/components/feedback/LikeHeart'
 
 export default function CardMediaButtons({
   propertyId,
@@ -27,7 +24,7 @@ export default function CardMediaButtons({
   propertyId: number
   audioUrl?: string | null
   size?: number
-  /** Posición del cluster sobre la foto. */
+  /** Posición del botón sobre la foto. */
   className?: string
 }) {
   const known = audioUrl !== undefined
@@ -44,12 +41,11 @@ export default function CardMediaButtons({
     }
   }, [propertyId, known])
 
+  if (!resolvedUrl) return null
+
   return (
-    <div className={`${className} flex items-center`} style={{ gap: Math.round(size * 0.18) }}>
-      {resolvedUrl && (
-        <PlayAudioButton propertyId={propertyId} audioUrl={resolvedUrl} size={size} className="" />
-      )}
-      <LikeHeart propertyId={propertyId} size={size} className="" />
+    <div className={`${className} flex items-center`}>
+      <PlayAudioButton propertyId={propertyId} audioUrl={resolvedUrl} size={size} className="" />
     </div>
   )
 }

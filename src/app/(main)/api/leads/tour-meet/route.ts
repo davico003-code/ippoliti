@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
+import { rateLimit } from '@/lib/feedback'
+
+// Mismo tope que /api/leads: leads:all es el panel de respaldo y no puede crecer para siempre.
+const TOPE_LEADS_ALL = 4999
 
 function getRedis(): Redis {
   return new Redis({
@@ -16,7 +20,16 @@ interface TourMeetPayload {
   userAgent?: string
 }
 
+// Es un clic hacia WhatsApp, sin nombre ni teléfono: queda solo como rastro en
+// Redis y NO va a Hilo (serían consultas anónimas en el inbox). Con el mismo
+// rate limit que /api/leads y sin propiedad no se guarda nada: antes un loop de
+// POST {} enterraba los leads reales del panel de respaldo.
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+  if (!(await rateLimit(ip, 'tour-meet', 6, 60))) {
+    return NextResponse.json({ error: 'Demasiados envíos seguidos. Esperá un momento y reintentá.' }, { status: 429 })
+  }
+
   let body: TourMeetPayload = {}
   try {
     body = (await request.json()) as TourMeetPayload
@@ -24,9 +37,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid json' }, { status: 400 })
   }
 
+  const propertyId = Number(body.propertyId)
+  if (!Number.isInteger(propertyId) || propertyId <= 0) {
+    return NextResponse.json({ error: 'Falta la propiedad.' }, { status: 400 })
+  }
+
   const lead = {
     tipo: 'tour-meet',
-    propertyId: body.propertyId ?? null,
+    propertyId,
     propertyTitle: (body.propertyTitle ?? '').toString().slice(0, 200),
     propertyPrice: (body.propertyPrice ?? '').toString().slice(0, 80),
     propertyUrl: (body.propertyUrl ?? '').toString().slice(0, 400),
@@ -37,8 +55,9 @@ export async function POST(request: NextRequest) {
   try {
     const redis = getRedis()
     const ts = Date.now()
-    await redis.set(`lead:tour-meet:${ts}:${lead.propertyId ?? 'na'}`, JSON.stringify(lead))
+    await redis.set(`lead:tour-meet:${ts}:${lead.propertyId}`, JSON.stringify(lead))
     await redis.lpush('leads:all', JSON.stringify(lead))
+    await redis.ltrim('leads:all', 0, TOPE_LEADS_ALL)
   } catch (err) {
     console.error('[leads/tour-meet] Redis error:', err)
   }

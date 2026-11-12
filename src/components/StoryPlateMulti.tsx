@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { Instagram } from 'lucide-react'
+import { haptico } from '@/lib/haptico'
 
 export interface StoryPlateMultiProps {
   photos: string[]
@@ -63,51 +64,6 @@ function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
   ctx.rect(x, y, w, h)
   ctx.clip()
   ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih)
-  ctx.restore()
-}
-
-function drawContain(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
-  const sc = Math.min(w / img.width, h / img.height)
-  const iw = img.width * sc
-  const ih = img.height * sc
-  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih)
-}
-
-/**
- * Conserva la foto completa cuando el formato original obligaría a recortar
- * más de 12 %. El fondo desenfocado mantiene la placa a sangre sin ocultar la
- * arquitectura; para diferencias menores usamos cover porque el recorte es
- * visualmente imperceptible.
- */
-function drawAdaptivePhoto(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-) {
-  const imageRatio = img.width / img.height
-  const frameRatio = w / h
-  const visibleRatio = Math.min(imageRatio / frameRatio, frameRatio / imageRatio)
-
-  if (visibleRatio >= 0.88) {
-    drawCover(ctx, img, x, y, w, h)
-    return
-  }
-
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(x, y, w, h)
-  ctx.clip()
-  ctx.fillStyle = '#0F2419'
-  ctx.fillRect(x, y, w, h)
-  ctx.globalAlpha = 0.72
-  ctx.filter = 'blur(24px)'
-  drawCover(ctx, img, x - 18, y - 18, w + 36, h + 36)
-  ctx.filter = 'none'
-  ctx.globalAlpha = 1
-  drawContain(ctx, img, x, y, w, h)
   ctx.restore()
 }
 
@@ -655,18 +611,30 @@ async function drawSplitCard(
 
   const bandH = FIXED_BAND_H
 
-  // Banda fija centrada en el medio del canvas. Fotos superior e inferior
-  // simétricas (785 px cada una con BAND_CENTER_Y=960 y FIXED_BAND_H=350).
-  const BAND_CENTER_Y = 960
-  const BAND_TOP = Math.round(BAND_CENTER_Y - bandH / 2)
-  const TOP_H = BAND_TOP
+  // La banda se corre apenas según el formato de las fotos: la más apaisada gana
+  // un poco de ancho visible. El corrimiento tiene tope para que arriba y abajo
+  // sigan siendo dos mitades parejas; con dos fotos del mismo formato quedan
+  // exactamente en 785 px cada una.
+  const PHOTOS_H = H - bandH
+  const HALF_H = PHOTOS_H / 2
+  const MAX_SHIFT = 80
+  const wantedH = (img: HTMLImageElement | null) => (img ? W * img.height / img.width : HALF_H)
+  const want1 = wantedH(photo1)
+  const want2 = wantedH(photo2)
+  const TOP_H = Math.round(Math.min(
+    HALF_H + MAX_SHIFT,
+    Math.max(HALF_H - MAX_SHIFT, PHOTOS_H * want1 / (want1 + want2)),
+  ))
+  const BAND_TOP = TOP_H
   const BOT_START = BAND_TOP + bandH
   const BOT_H = H - BOT_START
 
-  if (photo1) drawAdaptivePhoto(ctx, photo1, 0, 0, W, TOP_H)
+  // Siempre a sangre: la foto llena su espacio y, si es muy ancha, se recortan
+  // los laterales. Nada de franjas desenfocadas arriba y abajo.
+  if (photo1) drawCover(ctx, photo1, 0, 0, W, TOP_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, 0, W, TOP_H) }
 
-  if (photo2) drawAdaptivePhoto(ctx, photo2, 0, BOT_START, W, BOT_H)
+  if (photo2) drawCover(ctx, photo2, 0, BOT_START, W, BOT_H)
   else { ctx.fillStyle = '#1a3028'; ctx.fillRect(0, BOT_START, W, BOT_H) }
 
   const topShade = ctx.createLinearGradient(0, 0, 0, TOP_H * 0.18)
@@ -852,12 +820,43 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
+type PackItem = { name: string; blob: Blob }
+type PackListo = { items: PackItem[]; files: File[] }
+
+const aArchivos = (items: PackItem[]) => items.map(item => new File([item.blob], item.name, { type: item.blob.type }))
+
+/** Celu con hoja de compartir que acepta archivos (iPhone/Android). En la compu se descarga. */
+function puedeCompartirArchivos(): boolean {
+  try {
+    const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean }
+    if (typeof nav.share !== 'function' || typeof nav.canShare !== 'function') return false
+    if (!window.matchMedia('(pointer: coarse)').matches) return false
+    return nav.canShare({ files: [new File([''], 'placa.png', { type: 'image/png' })] })
+  } catch {
+    return false
+  }
+}
+
 export default function StoryPlateMulti(props: StoryPlateMultiProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const previewSequenceRef = useRef(0)
   const [generating, setGenerating] = useState(false)
   const [previewing, setPreviewing] = useState(true)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  // iPhone (25-oct): navigator.share tiene que ser lo PRIMERO del toque. Antes
+  // se llamaba después de renderizar y bajar fotos (varios await): iOS lo
+  // rechazaba y el agente terminaba con un .zip en Archivos que Instagram no
+  // abre. Ahora los archivos se preparan ANTES y el toque solo comparte.
+  // Placa sola: se prepara sola apenas termina la vista previa (no baja nada).
+  // Con fotos/planos del pack: el primer toque las baja ("Preparando…") y el
+  // segundo comparte (no bajamos varios MB por cada foto que se elige).
+  const listoRef = useRef<PackListo | null>(null)
+  // Cuántas fotos/planos lleva el pack (lo lee la vista previa sin re-dibujar).
+  const packTotalRef = useRef(0)
+  packTotalRef.current = (props.packPhotos?.length ?? 0) + (props.packBlueprints?.length ?? 0)
+  const [listo, setListo] = useState(false)
+  const [compartible, setCompartible] = useState(false)
+  useEffect(() => { setCompartible(puedeCompartirArchivos()) }, [])
 
   const {
     photos,
@@ -938,6 +937,16 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
         target.height = H
         ctx.clearRect(0, 0, W, H)
         ctx.drawImage(source, 0, 0)
+        // La placa ya está dibujada: el PNG sale de este mismo lienzo, listo
+        // para que el toque comparta sin esperar nada. Solo si no hay pack
+        // (las fotos crudas se bajan recién cuando el agente lo pide).
+        if (packTotalRef.current > 0) return
+        source.toBlob(blob => {
+          if (!blob || sequence !== previewSequenceRef.current) return
+          const items = [{ name: `01-placa-${slug}.png`, blob }]
+          listoRef.current = { items, files: aArchivos(items) }
+          setListo(true)
+        }, 'image/png')
       })
       .catch(error => {
         if (sequence === previewSequenceRef.current) {
@@ -951,7 +960,7 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
     return () => {
       previewSequenceRef.current += 1
     }
-  }, [renderPlate])
+  }, [renderPlate, slug])
 
   const packUrls = useMemo(() => {
     const fotos = (packPhotos ?? []).slice(0, PACK_PHOTOS)
@@ -968,71 +977,98 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
     }
   }, [packPhotos, packBlueprints])
 
+  const packAlcance = packUrls.planos.length > 0 && packUrls.fotos.length === 0 ? 'plano' : 'fotos'
+
+  // Cambió la placa (fotos, layout, datos) o el pack: lo preparado ya no sirve.
+  useEffect(() => {
+    listoRef.current = null
+    setListo(false)
+  }, [renderPlate, packUrls])
+
+  /** Render + fotos del pack, numerados (la placa siempre es la primera slide). */
+  const prepararPack = useCallback(async (): Promise<PackListo | null> => {
+    const rendered = await renderPlate()
+    const blob = await new Promise<Blob | null>(resolve => rendered.toBlob(resolve, 'image/png'))
+    if (!blob) return null
+
+    // El pack va numerado para que el orden se respete tanto al guardarlo en
+    // el carrete como al abrir el zip: la placa siempre es la primera slide.
+    const items: PackItem[] = [
+      { name: `01-placa-${slug}.png`, blob },
+    ]
+
+    const [fotos, planos] = await Promise.all([
+      Promise.all(packUrls.fotos.map(fetchRawImage)),
+      Promise.all(packUrls.planos.map(fetchRawImage)),
+    ])
+
+    let n = items.length
+    fotos.forEach(foto => {
+      if (!foto) return
+      n += 1
+      items.push({
+        name: `${String(n).padStart(2, '0')}-foto-${slug}.${extFromType(foto.type)}`,
+        blob: foto,
+      })
+    })
+    planos.forEach(plano => {
+      if (!plano) return
+      n += 1
+      items.push({
+        name: `${String(n).padStart(2, '0')}-plano-${slug}.${extFromType(plano.type)}`,
+        blob: plano,
+      })
+    })
+
+    return { items, files: aArchivos(items) }
+  }, [packUrls, renderPlate, slug])
+
+  /** Compu (o sin hoja de compartir): PNG suelto, o un zip si hay pack. */
+  const descargar = useCallback(async (pack: PackListo) => {
+    if (pack.items.length === 1) {
+      triggerDownload(pack.items[0].blob, `placa-${slug}.png`)
+      return
+    }
+    const { default: JSZip } = await import('jszip')
+    const zip = new JSZip()
+    pack.items.forEach(item => zip.file(item.name, item.blob))
+    const archive = await zip.generateAsync({ type: 'blob' })
+    triggerDownload(archive, `${slug}-instagram.zip`)
+  }, [slug])
+
   const handleDownload = useCallback(async () => {
     if (generating || disabled) return
+
+    // Celu con todo preparado: la hoja de compartir es lo primero del toque.
+    // "Guardar imágenes" deja placa + fotos en el carrete, listas para Instagram.
+    const preparado = listoRef.current
+    if (preparado && compartible) {
+      haptico()
+      navigator.share({ files: preparado.files, title: 'Placa para Instagram' }).catch((e: unknown) => {
+        // Cerró la hoja: no es un error y no hay que bajarle nada (antes le
+        // bajaba igual el .zip).
+        if ((e as { name?: string })?.name === 'AbortError') return
+        void descargar(preparado)
+      })
+      return
+    }
+
     setGenerating(true)
     try {
-      const rendered = await renderPlate()
-      const blob = await new Promise<Blob | null>(resolve => rendered.toBlob(resolve, 'image/png'))
-      if (!blob) return
-
-      // El pack va numerado para que el orden se respete tanto al guardarlo en
-      // el carrete como al abrir el zip: la placa siempre es la primera slide.
-      const items: Array<{ name: string; blob: Blob }> = [
-        { name: `01-placa-${slug}.png`, blob },
-      ]
-
-      const [fotos, planos] = await Promise.all([
-        Promise.all(packUrls.fotos.map(fetchRawImage)),
-        Promise.all(packUrls.planos.map(fetchRawImage)),
-      ])
-
-      let n = items.length
-      fotos.forEach(foto => {
-        if (!foto) return
-        n += 1
-        items.push({
-          name: `${String(n).padStart(2, '0')}-foto-${slug}.${extFromType(foto.type)}`,
-          blob: foto,
-        })
-      })
-      planos.forEach(plano => {
-        if (!plano) return
-        n += 1
-        items.push({
-          name: `${String(n).padStart(2, '0')}-plano-${slug}.${extFromType(plano.type)}`,
-          blob: plano,
-        })
-      })
-
-      const files = items.map(item => new File([item.blob], item.name, { type: item.blob.type }))
-
-      // Mobile: una sola hoja de compartir con todo. "Guardar imágenes" deja
-      // placa + fotos en el carrete, listas para armar el carrusel.
-      const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean }
-      if (nav.share && nav.canShare?.({ files })) {
-        try {
-          await nav.share({ files, title: 'Placa + fotos para Instagram' })
-          return
-        } catch { /* user cancelled or permission denied; fall through */ }
-      }
-
-      // Sin placa sola no hay nada que empaquetar.
-      if (items.length === 1) {
-        triggerDownload(blob, `placa-${slug}.png`)
+      const pack = preparado ?? (await prepararPack())
+      if (!pack) return
+      listoRef.current = pack
+      setListo(true)
+      // En el celu, el segundo toque comparte (el botón pasa a "Compartir").
+      if (compartible) {
+        haptico()
         return
       }
-
-      // Desktop (o share sin soporte multi-archivo): un zip con todo.
-      const { default: JSZip } = await import('jszip')
-      const zip = new JSZip()
-      items.forEach(item => zip.file(item.name, item.blob))
-      const archive = await zip.generateAsync({ type: 'blob' })
-      triggerDownload(archive, `${slug}-instagram.zip`)
+      await descargar(pack)
     } finally {
       setGenerating(false)
     }
-  }, [disabled, generating, packUrls, renderPlate, slug])
+  }, [compartible, descargar, disabled, generating, prepararPack])
 
   return (
     <>
@@ -1072,6 +1108,7 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
           type="button"
           onClick={handleDownload}
           disabled={generating || disabled}
+          aria-busy={generating || (compartible && !listo && packUrls.total === 0 && !previewError)}
           style={{
             ...(btnStyle ?? {}),
             background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)',
@@ -1086,18 +1123,30 @@ export default function StoryPlateMulti(props: StoryPlateMultiProps) {
             <Instagram size={16} aria-hidden />
           )}
           {generating
-            ? 'Preparando pack…'
-            : packUrls.total > 0
-              ? `Descargar placa + ${packUrls.planos.length > 0 && packUrls.fotos.length === 0 ? 'plano' : 'fotos'}`
-              : (buttonLabel ?? 'Descargar placa')}
+            ? (packUrls.total > 0 ? 'Preparando pack…' : 'Generando placa…')
+            : compartible
+              ? listo
+                ? `Compartir placa${packUrls.total > 0 ? ` + ${packAlcance}` : ''}`
+                : packUrls.total > 0
+                  ? `Preparar placa + ${packAlcance}`
+                  // Si la vista previa falló no hay nada "generándose": el toque
+                  // la arma de cero (y el botón no queda mintiendo para siempre).
+                  : previewError ? (buttonLabel ?? 'Descargar placa') : 'Generando placa…'
+              : packUrls.total > 0
+                ? `Descargar placa + ${packAlcance}`
+                : (buttonLabel ?? 'Descargar placa')}
         </button>
         <p
           className="mt-2 text-center text-[11px] text-gray-400"
-          style={{ fontFamily: "'Poppins', system-ui, sans-serif" }}
+          // Raleway: es texto corrido (Poppins solo para números), y con la
+          // variable de next/font (el nombre literal caía a la letra del sistema).
+          style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
         >
-          {packUrls.total > 0
-            ? `Placa 1080×1920 + ${packUrls.label} · listo para el carrusel`
-            : 'PNG 1080×1920 · listo para Instagram Story'}
+          {compartible && listo
+            ? 'Elegí «Guardar imagen» o mandala directo a Instagram'
+            : packUrls.total > 0
+              ? `Placa 1080×1920 + ${packUrls.label} · listo para el carrusel`
+              : 'PNG 1080×1920 · listo para Instagram Story'}
         </p>
       </div>
     </>

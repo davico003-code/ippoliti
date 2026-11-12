@@ -6,7 +6,10 @@
 // Helpers puros (sin red): validación de lo que manda el navegador, cálculo
 // de la financiación y el brief que lee el agente en el inbox.
 
-import { FINANCIACION_DEFAULT, type EstadoLote, type FinanciacionTipo, type PlanoPublicado } from './plano-publicado'
+import type { EstadoLote, PlanoPublicado } from './plano-publicado'
+import { calcularFinanciacion, financiacionDe, type TipoLote } from './financiacion'
+
+export { calcularFinanciacion, type TipoLote }
 
 export type UtmLote = {
   source: string | null
@@ -14,8 +17,6 @@ export type UtmLote = {
   campaign: string | null
   content: string | null
 }
-
-export type TipoLote = 'residencial' | 'comercial'
 
 /** Objeto `lote` del contrato. Los importes van en USD enteros. */
 export type LoteLead = {
@@ -89,18 +90,6 @@ export function leerPaginaUrl(raw: unknown): string {
   return /^https?:\/\//.test(s) ? s : 'https://siinmobiliaria.com/distrito-roldan-precios'
 }
 
-/** Misma cuenta que hace el plano (public/planos/distrito-roldan.html):
- *  entrega = precio × anticipo %, cuota = (precio − entrega) / cuotas, ambas
- *  redondeadas a entero. Sin precio no hay financiación que mostrar. */
-export function calcularFinanciacion(precio: number | null, fin: FinanciacionTipo) {
-  if (precio == null) return { entrega: null, cuota: null }
-  const entregaExacta = (precio * fin.anticipoPct) / 100
-  return {
-    entrega: Math.round(entregaExacta),
-    cuota: Math.round((precio - entregaExacta) / fin.cuotas),
-  }
-}
-
 /**
  * Arma el objeto del contrato. Los números (precio, contado, medidas y por lo
  * tanto entrega y cuota) salen SOLO del plano publicado.
@@ -119,11 +108,7 @@ export function armarLoteLead(
   paginaUrl: string,
 ): LoteLead {
   const pub = plano?.lotes?.[String(cli.nro)] ?? null
-  const finPub = plano?.cfg?.financiacion?.[cli.tipo]
-  const fin: FinanciacionTipo =
-    finPub && Number.isFinite(finPub.anticipoPct) && Number.isFinite(finPub.cuotas) && finPub.cuotas > 0
-      ? finPub
-      : FINANCIACION_DEFAULT[cli.tipo]
+  const fin = financiacionDe(plano?.cfg?.financiacion?.[cli.tipo], cli.tipo)
 
   const estado: EstadoLote = pub?.estado ?? cli.estado
   // Un lote que no está a la venta no lleva precio, esté o no en el plano.

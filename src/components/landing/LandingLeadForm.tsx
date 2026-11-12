@@ -50,6 +50,7 @@ export default function LandingLeadForm({
           preferredZones: [ciudad],
           budgetMin: budgetMin ?? undefined,
           budgetMax: budgetMax ?? undefined,
+          pageUrl: window.location.href,
         }),
       })
       if (!res.ok) throw new Error('bad status')

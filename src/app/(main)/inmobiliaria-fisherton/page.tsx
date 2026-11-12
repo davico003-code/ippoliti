@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Phone, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
@@ -32,7 +32,7 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Fisherton | Casas y Propiedades | SI INMOBILIARIA',
+  title: 'Inmobiliaria en Fisherton | Casas y Propiedades',
   description: 'Casas, departamentos y terrenos en Fisherton, Rosario. Inventario vigente, tasaciones profesionales y atención desde las oficinas de SI INMOBILIARIA en Funes y Roldán.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },
@@ -159,7 +159,7 @@ export default async function Page() {
           <p className="text-green-100 text-lg mb-8">Contanos qué estás buscando y te enviamos opciones.</p>
           <div className="flex flex-wrap justify-center gap-4">
             <a href="https://wa.me/5493413340916?text=Hola!%20Estoy%20buscando%20propiedad%20en%20Fisherton" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe57] text-white font-bold rounded-xl transition-colors">WhatsApp</a>
-            <a href="tel:+5493412101694" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2"><Phone className="w-5 h-5" />(341) 210-1694</a>
+            <a href="tel:+5493413340916" className="px-8 py-4 border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2"><Phone className="w-5 h-5" />(341) 334-0916</a>
           </div>
         </div>
       </section>

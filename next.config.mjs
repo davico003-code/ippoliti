@@ -7,17 +7,19 @@ const cspReportOnly = [
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
-  "form-action 'self'",
+  // El Pixel de Meta manda eventos por <form> e <iframe> ocultos a facebook.com/tr.
+  "form-action 'self' https://www.facebook.com",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.clarity.ms https://*.clarity.ms",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
   // analytics.google.com no matchea *.google-analytics.com (dominio distinto):
   // GA4 manda /g/collect ahí y sin esta entrada quedaba como violación.
-  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org",
+  "connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com https://*.clarity.ms https://api.microlink.io https://*.supabase.co https://meethilo.com https://www.tokkobroker.com https://*.basemaps.cartocdn.com https://tile.openstreetmap.org https://tiles.openfreemap.org",
   // kuula.co (tours 360 de /dockgarden) y cloudflarestream (videos del
-  // desarrollador vía Brickfy) se embeben en iframes.
-  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://kuula.co https://*.cloudflarestream.com",
+  // desarrollador vía Brickfy) se embeben en iframes; www.google.com es el mapa
+  // embebido de /emprendimientos/fisherton-work.
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.instagram.com https://www.tiktok.com https://kuula.co https://*.cloudflarestream.com https://www.facebook.com https://www.google.com",
   "media-src 'self' blob: https://*.public.blob.vercel-storage.com https://*.supabase.co",
   "worker-src 'self' blob:",
 ].join('; ')
@@ -47,10 +49,31 @@ const nextConfig = {
         source: '/guia',
         destination: '/guia/index.html',
       },
+      // La Ronda Funes Roldán: página estática (public/ronda), como /guia.
+      {
+        source: '/ronda',
+        destination: '/ronda/index.html',
+      },
+      // Salas de la Ronda (src/lib/ronda/sala.ts): la misma pantalla, su propia grilla.
+      // Los archivos de public/ronda se sirven antes que esta regla; una sala que no existe vuelve a /ronda.
+      {
+        source: '/ronda/:sala',
+        destination: '/ronda/index.html',
+      },
     ]
   },
   async redirects() {
     return [
+      // /manifest.json no existe (el nuestro es /site.webmanifest) y Google lo
+      // pide igual: daba 404. statusCode y no `permanent` para que sea 301 (no 308).
+      { source: '/manifest.json', destination: '/site.webmanifest', statusCode: 301 },
+      // "/$" NO es un link nuestro: es el marcador de cierre de Suspense que React
+      // escribe en el script del streaming ("/$"===d) y Googlebot lo toma por una
+      // URL relativa. No se puede sacar del HTML; al menos que no figure como 404.
+      { source: '/\\$', destination: '/', statusCode: 301 },
+      // Fincazul se dio de baja de todos lados (David, 7-nov-2026): la landing se
+      // borró y la URL indexada cae en la sección, no en un 404.
+      { source: '/emprendimientos/fincazul', destination: '/emprendimientos', permanent: true },
       // Redirect vieja guía a la nueva
       {
         source: '/guia-comprador',
@@ -81,6 +104,20 @@ const nextConfig = {
         destination: '/recursos/ajuste-alquiler',
         permanent: true,
       },
+      // URLs del sitio viejo (inmobiliariaippoliti.com, que llega acá con la
+      // misma ruta): Google todavía las manda y daban 404. Van al listado con
+      // la operación y el tipo que dice la URL (sin adivinar la propiedad).
+      ...[['venta', 'venta'], ['alquiler', 'alquiler']].flatMap(([seg, op]) => [
+        { source: `/${seg}/:t(casa|casas)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=casa`, permanent: true },
+        { source: `/${seg}/:t(departamento|departamentos)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=departamento`, permanent: true },
+        { source: `/${seg}/:t(terreno|terrenos|lote|lotes)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=terreno`, permanent: true },
+        { source: `/${seg}/:t(local|locales)/:rest*`, destination: `/propiedades?operacion=${op}&tipo=local`, permanent: true },
+        { source: `/${seg}/:rest*`, destination: `/propiedades?operacion=${op}`, permanent: true },
+      ]),
+      // Selecciones viejas de Hilo (hasta 27-sep): siinmobiliaria.com/propiedad/{tokko_id}.
+      // Ese número es el id de la ficha (getIdFromSlug lee el número del principio).
+      { source: '/propiedad/:id(\\d+)', destination: '/propiedades/:id', permanent: true },
+      { source: '/propiedad/:rest*', destination: '/propiedades', permanent: true },
       // Redirect old domain to new
       {
         source: '/:path*',
@@ -103,6 +140,7 @@ const nextConfig = {
     minimumCacheTTL: 2678400,
     deviceSizes: [360, 640, 828, 1080, 1920],
     remotePatterns: [
+      { protocol: 'https', hostname: 'i.ytimg.com', pathname: '/vi/**' },
       { protocol: 'https', hostname: 'static.tokkobroker.com' },
       { protocol: 'https', hostname: 'www.tokkobroker.com' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
@@ -113,10 +151,22 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
       // Fotos servidas desde Hilo (Supabase Storage) — puente Tokko → Hilo.
       { protocol: 'https', hostname: '*.supabase.co' },
+      // Planos que Hilo sirve ya recortados (y parados para el celular).
+      { protocol: 'https', hostname: 'meethilo.com', pathname: '/api/public/plano/**' },
       // Fotos de avisos externos (Zonaprop/Navent) en fichas importadas. Se
       // sirven directo del CDN del portal (ver isExternalCdn en HeroGallery).
       { protocol: 'https', hostname: '*.zonapropcdn.com' },
       { protocol: 'https', hostname: '*.naventcdn.com' },
+      // Fotos de avisos de colegas copiadas a Cloudflare R2 por Hilo (7-oct-2026):
+      // las fichas de verficha las muestran desde ahí.
+      { protocol: 'https', hostname: 'fotos.likeprop.app' },
+      // El mismo bucket de R2 con el dominio de SI (lo que ven los clientes en verficha).
+      { protocol: 'https', hostname: 'fotos.verficha.casa' },
+      // Colegas de la Red Propia EN VIVO en la selección del cliente (Rosario):
+      // las originales pesan 1-2 MB; optimizadas, como las de Tokko.
+      { protocol: 'https', hostname: 'propia-assets-v2.nyc3.cdn.digitaloceanspaces.com' },
+      { protocol: 'https', hostname: 'propia-assets-v2.nyc3.digitaloceanspaces.com' },
+      { protocol: 'https', hostname: 'storage.googleapis.com', pathname: '/portales-prod-images/**' },
     ],
   },
 };

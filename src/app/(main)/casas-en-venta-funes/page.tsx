@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
-import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getRoofedArea } from '@/lib/tokko'
+import Image from '@/components/Imagen'
+import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getTotalSurface } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
+import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'
 
 export const revalidate = 21600
 
@@ -19,8 +20,10 @@ function filter(props: TokkoProperty[]): TokkoProperty[] {
   return props.filter(p => {
     const loc = `${p.location?.short_location ?? ''} ${p.location?.name ?? ''} ${p.fake_address ?? ''} ${p.address ?? ''}`.toLowerCase()
     const isFunes = loc.includes('funes')
-    const isCasa = (p.type?.name?.toLowerCase() ?? '').includes('casa') || (p.type?.name?.toLowerCase() ?? '').includes('house')
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const tipo = p.type?.name?.toLowerCase() ?? ''
+    // 'warehouse' contiene 'house': los galpones entraban como casas.
+    const isCasa = (tipo.includes('casa') || tipo.includes('house')) && !tipo.includes('warehouse')
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return isFunes && isCasa && isVenta
   })
 }
@@ -45,12 +48,12 @@ export default async function Page() {
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {properties.map(p => { const photo = getMainPhoto(p); const roofed = getRoofedArea(p); const beds = p.suite_amount || p.room_amount; return (
+            {properties.map(p => { const photo = getMainPhoto(p); const roofed = getTotalSurface(p); const beds = p.suite_amount || p.room_amount; return (
               <Link key={p.id} href={`/propiedades/${generatePropertySlug(p)}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all">
                 <div className="relative h-48 bg-gray-100">{photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw" />}</div>
                 <div className="p-4">
                   <p className="text-xl font-black text-gray-900 font-numeric mb-1">{formatPrice(p)}</p>
-                  <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed} m²`].filter(Boolean).join(' · ')}</p>
+                  <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed.toLocaleString('es-AR')} m²`].filter(Boolean).join(' · ')}</p>
                   <p className="text-sm text-gray-500 truncate">{p.fake_address || p.address}</p>
                 </div>
               </Link>
@@ -75,6 +78,8 @@ export default async function Page() {
           <Link href="/propiedades?location=funes" className="px-6 py-3 border-2 border-white text-white font-bold rounded-xl">Ver todas las propiedades</Link>
         </div>
       </section>
+
+      <BarriosDeLaZona zona="funes" nombre="Funes" />
 
       <section className="py-8 px-4 border-t">
         <div className="max-w-4xl mx-auto flex flex-wrap gap-3">

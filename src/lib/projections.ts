@@ -11,6 +11,8 @@
 
 import { getAudioUrlsBulk } from './audio'
 import type { TokkoProperty } from './tokko'
+import type { TemporadaFeed } from './temporarios'
+import { rasgosVerificables } from '@/lib/busqueda-propiedades'
 
 function isStaticBuild() {
   return process.env.NEXT_PHASE === 'phase-production-build'
@@ -30,11 +32,12 @@ export interface PropertyCardProjection {
   location: { name: string; short_location: string } | null
 
   operations: Array<{
-    operation_type: 'Sale' | 'Rent'
+    operation_type: 'Sale' | 'Rent' | 'Temporary rent'
     prices: Array<{
       price: number
       currency: string
     }>
+    temporada?: TemporadaFeed | null
   }>
 
   // "Sin Precio" en Tokko: si es false, formatPrice/mostrarPrecio muestran
@@ -48,6 +51,8 @@ export interface PropertyCardProjection {
   suite_amount: number
   room_amount: number
   bathroom_amount: number
+  /** Cocheras: el buscador entiende "casa con 2 cocheras". */
+  parking_lot_amount: number | null
   roofed_surface: string
   total_surface: string
   surface: string
@@ -72,6 +77,10 @@ export interface PropertyCardProjection {
   // audio generado, queda null y el card no renderiza el botón de play.
   // Se popula vía enrichCardsWithAudio() después de projectToCard().
   audioUrl: string | null
+  /** Lo que el buscador puede verificar de las comodidades (hoy: 'pileta').
+   *  Solo eso viaja al HTML, no la lista entera. undefined = sin datos. */
+  rasgos?: string[]
+  agente?: { name: string; picture: string } | null
 }
 
 export interface NearbyProperty {
@@ -112,6 +121,23 @@ function pickCardPhotos(p: TokkoProperty) {
   }))
 }
 
+// El listado /propiedades manda SOLO la portada en el HTML: las fotos 2-5 son
+// links firmados de ~490 caracteres y, por 288 propiedades, eran 700 kB de los
+// 1,6 MB del documento (el aviso de precarga de la foto principal quedaba al 76%
+// y el LCP en el celu, en 5 s). Las demás llegan después de cargar la página
+// (list-cards?fotos=extra → FotosExtraProvider), antes de que alguien deslice.
+export function conSoloPortada(card: PropertyCardProjection): PropertyCardProjection {
+  return card.photos.length > 1 ? { ...card, photos: card.photos.slice(0, 1) } : card
+}
+
+export function fotosExtraDeCards(cards: PropertyCardProjection[]): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const c of cards) {
+    if (c.photos.length > 1) out[String(c.id)] = c.photos.slice(1).map(ph => ph.image)
+  }
+  return out
+}
+
 export function projectToCard(p: TokkoProperty): PropertyCardProjection {
   return {
     id: p.id,
@@ -125,6 +151,8 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
       : null,
     operations: (p.operations ?? []).map(op => ({
       operation_type: op.operation_type,
+      // Temporario: período del precio (quincena/mes) para la tarjeta del listado.
+      ...(op.temporada ? { temporada: op.temporada } : {}),
       prices: (op.prices ?? []).map(pr => ({
         price: pr.price,
         currency: pr.currency,
@@ -136,6 +164,7 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
     suite_amount: p.suite_amount,
     room_amount: p.room_amount,
     bathroom_amount: p.bathroom_amount,
+    parking_lot_amount: p.parking_lot_amount ?? null,
     roofed_surface: p.roofed_surface,
     total_surface: p.total_surface,
     surface: p.surface,
@@ -145,6 +174,8 @@ export function projectToCard(p: TokkoProperty): PropertyCardProjection {
       ? { id: p.development.id, name: p.development.name }
       : null,
     audioUrl: null,
+    ...(Array.isArray(p.comodidades) ? { rasgos: rasgosVerificables(p.comodidades) } : {}),
+    ...(p.agente !== undefined ? { agente: p.agente } : {}),
   }
 }
 

@@ -1,0 +1,55 @@
+// El barrio de la lista de /tasaciones para un nombre del mercado que llega
+// desde una landing /tasar (?zona=Kentucky Club de Campo&ciudad=Funes). Hilo
+// rechaza un pedido sin barrioId: primero el de la lista si es el MISMO
+// nombre ("Kentucky Club de Campo" = "Kentucky"); si no, un barrio propio con
+// id `zona:` y el nombre tal cual (solo si se sabe la ciudad: Hilo también la
+// exige). Sin imports de valores.
+
+import type { BarrioTasacion } from './types'
+
+export const SIN_LISTA = 'zona:'
+
+const sinAcentos = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const ROMANOS: Record<string, string> = { i: '1', ii: '2', iii: '3', iv: '4', v: '5' }
+const RELLENO = new Set(['de', 'del', 'la', 'las', 'el', 'los', 'club', 'campo', 'country', 'barrio', 'privado', 'cerrado'])
+const palabras = (s: string) =>
+  sinAcentos(s)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .map((w, i) => (i > 0 && ROMANOS[w] ? ROMANOS[w] : w))
+    .filter((w) => !RELLENO.has(w))
+
+const mismaCiudad = (a: string, b?: string) => !b || sinAcentos(a) === sinAcentos(b)
+
+/**
+ * El de la lista que es ESE barrio: mismo nombre una vez sacado el relleno y
+ * los números romanos ("Kentucky Club de Campo" = "Kentucky", "Tierra de Sueños
+ * II" = "Tierra de Sueños 2"). Nada de "el más parecido": "Rosario" terminaba
+ * en "Rosario Golf Country Club" y "Vida Lagoon" en "Vida" (arquitecto,
+ * 8-oct). Si no es exactamente el mismo, viaja el nombre del mercado.
+ */
+export function barrioDeLaLista(barrios: BarrioTasacion[], zona: string, ciudad?: string): BarrioTasacion | null {
+  const buscado = palabras(zona).join(' ')
+  if (!buscado) return null
+  return barrios.find((b) => mismaCiudad(b.ciudad, ciudad) && palabras(b.nombre).join(' ') === buscado) ?? null
+}
+
+/** El barrio para el pedido: el de la lista, o uno propio con el nombre del mercado (solo con ciudad). */
+export function barrioParaPedido(barrios: BarrioTasacion[], zona: string, ciudad?: string): BarrioTasacion | null {
+  const deLista = barrioDeLaLista(barrios, zona, ciudad)
+  if (deLista) return deLista
+  const nombre = zona.trim().slice(0, 80)
+  const c = ciudad?.trim().slice(0, 40)
+  if (!nombre || !c) return null
+  const clave = sinAcentos(nombre)
+  return {
+    id: `${SIN_LISTA}${clave}`.slice(0, 64),
+    nombre,
+    slug: clave.replace(/[^a-z0-9]+/g, '-'),
+    ciudad: c,
+    esCerrado: null,
+    centroide: null,
+    m2Tipico: { lote: null, cubiertos: null },
+    tiene: { casas: 0, lotes: 0, deptos: 0 },
+  }
+}

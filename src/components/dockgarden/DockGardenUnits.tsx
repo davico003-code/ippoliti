@@ -1,104 +1,22 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { unitLabel, type BrickfyUnit } from '@/lib/brickfy'
+import { useMemo, useState } from 'react'
+import { fotoTarjeta, unitLabel, type BrickfyUnit } from '@/lib/brickfy'
+import ViewerModal, { type Viewer } from '@/components/ViewerModal'
 
 const RALEWAY = 'Raleway, sans-serif'
 const POPPINS = 'Poppins, sans-serif'
 
-// ── Visor modal: 360 (iframe kuula), plano/fotos (imágenes), video (CF Stream) ──
-
-type Viewer =
-  | { kind: 'tour'; title: string; urls: string[] }
-  | { kind: 'images'; title: string; urls: string[] }
-  | { kind: 'video'; title: string; url: string }
-
-function ViewerModal({ viewer, onClose }: { viewer: Viewer; onClose: () => void }) {
-  const [index, setIndex] = useState(0)
-  const urls = viewer.kind === 'video' ? [viewer.url] : viewer.urls
-  const url = urls[Math.min(index, urls.length - 1)]
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight') setIndex(i => Math.min(i + 1, urls.length - 1))
-      if (e.key === 'ArrowLeft') setIndex(i => Math.max(i - 1, 0))
-    }
-    window.addEventListener('keydown', onKey)
-    // Bloquear el scroll del body mientras el visor está abierto.
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [onClose, urls.length])
-
-  return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label={viewer.title}>
-      {/* Barra superior */}
-      <div className="flex items-center justify-between px-4 py-3 text-white">
-        <p className="text-sm font-semibold truncate pr-4" style={{ fontFamily: RALEWAY }}>
-          {viewer.title}
-          {urls.length > 1 && (
-            <span className="ml-2 text-white/50 font-numeric">{index + 1}/{urls.length}</span>
-          )}
-        </p>
-        <button
-          onClick={onClose}
-          aria-label="Cerrar"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      {/* Contenido */}
-      <div className="relative flex-1 min-h-0 px-2 pb-2 sm:px-6 sm:pb-6">
-        {viewer.kind === 'images' ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={viewer.title} className="h-full w-full object-contain" />
-        ) : (
-          <iframe
-            src={url}
-            title={viewer.title}
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen; xr-spatial-tracking"
-            allowFullScreen
-            className="h-full w-full rounded-lg border-0 bg-black"
-          />
-        )}
-
-        {/* Flechas */}
-        {urls.length > 1 && (
-          <>
-            <button
-              onClick={() => setIndex(i => Math.max(i - 1, 0))}
-              disabled={index === 0}
-              aria-label="Anterior"
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors disabled:opacity-30"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <button
-              onClick={() => setIndex(i => Math.min(i + 1, urls.length - 1))}
-              disabled={index === urls.length - 1}
-              aria-label="Siguiente"
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/30 transition-colors disabled:opacity-30"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 6l6 6-6 6"/></svg>
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── Grid de unidades con filtro por dormitorios ──
 
-export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
+export default function DockGardenUnits({ units: todas }: { units: BrickfyUnit[] }) {
   const [dormFilter, setDormFilter] = useState<number | null>(null)
   const [viewer, setViewer] = useState<Viewer | null>(null)
+
+  // Solo las que están en venta (disponibles o reservadas), igual que la lista
+  // del emprendimiento (lib/unidadesFilas.ts). Antes una vendida (01.06) salía
+  // como "Reservada" y con precio, mientras el plano de arriba decía "Vendida".
+  const units = useMemo(() => todas.filter(u => u.status === 'available' || u.status === 'reserved'), [todas])
 
   const dorms = useMemo(
     () => Array.from(new Set(units.map(u => u.bedrooms))).sort((a, b) => a - b),
@@ -148,9 +66,10 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map(u => {
           const label = unitLabel(u)
-          const reserved = u.status !== 'available'
+          const reserved = u.status === 'reserved'
           const specs = [
-            { v: `${u.coveredSurfaceM2} m²`, ok: u.coveredSurfaceM2 > 0 },
+            // Con coma decimal, como el resto de la página ("183,3 m²", no "183.3").
+            { v: `${u.coveredSurfaceM2.toLocaleString('es-AR')} m²`, ok: u.coveredSurfaceM2 > 0 },
             { v: `${u.bedrooms} dorm.`, ok: u.bedrooms > 0 },
             { v: `${u.fullBathrooms} baño${u.fullBathrooms > 1 ? 's' : ''}`, ok: u.fullBathrooms > 0 },
             { v: `${u.toilets} toil.`, ok: u.toilets > 0 },
@@ -172,7 +91,7 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                 {u.galleryImageUrls[0] && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={u.galleryImageUrls[0]}
+                    src={fotoTarjeta(u.galleryImageUrls[0])}
                     alt={label}
                     loading="lazy"
                     decoding="async"
@@ -203,9 +122,16 @@ export default function DockGardenUnits({ units }: { units: BrickfyUnit[] }) {
                   <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-gray-400" style={{ fontFamily: RALEWAY }}>
                     {label}
                   </p>
-                  <p className="shrink-0 font-numeric text-[19px] font-semibold leading-none text-[#0F3F26]" style={{ fontFamily: POPPINS, letterSpacing: '-0.01em' }}>
-                    USD {u.price.toLocaleString('es-AR')}
-                  </p>
+                  <div className="shrink-0 text-right">
+                    {u.preferencial && (
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#F40009]" style={{ fontFamily: RALEWAY }}>
+                        Valor preferencial
+                      </p>
+                    )}
+                    <p className="font-numeric text-[19px] font-semibold leading-none text-[#0F3F26]" style={{ fontFamily: POPPINS, letterSpacing: '-0.01em' }}>
+                      USD {u.price.toLocaleString('es-AR')}
+                    </p>
+                  </div>
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
                   <p className="text-[13px] font-bold text-gray-900" style={{ fontFamily: RALEWAY }}>

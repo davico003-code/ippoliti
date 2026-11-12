@@ -8,6 +8,7 @@
 
 import { NextResponse } from 'next/server'
 import { crearFicha } from '@/lib/ficha'
+import { rateLimit } from '@/lib/feedback'
 
 interface Body {
   propertyId?: number | string
@@ -29,6 +30,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })
   }
 
+  // Endpoint abierto: tope por IP para que no se puedan crear fichas sin fin.
+  if (!(await rateLimit(getClientIp(req), 'ficha-crear', 20, 60))) {
+    return NextResponse.json({ error: 'Demasiadas fichas seguidas. Probá en un minuto.' }, { status: 429 })
+  }
+
   const propertyId = Number(body.propertyId)
   if (!propertyId || Number.isNaN(propertyId)) {
     return NextResponse.json({ error: 'propertyId requerido' }, { status: 400 })
@@ -37,7 +43,7 @@ export async function POST(req: Request) {
   try {
     const result = await crearFicha({
       propertyId,
-      notas: body.notas || '',
+      notas: String(body.notas ?? '').slice(0, 500),
       ip: getClientIp(req),
       userAgent: req.headers.get('user-agent') || 'unknown',
     })

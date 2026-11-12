@@ -30,7 +30,7 @@ export default function HeroSearchBar() {
           display: "flex",
           alignItems: "center",
           gap: 8,
-          background: "#fff",
+          background: "var(--theme-surface, #fff)",
           padding: 6,
           borderRadius: 999,
           maxWidth: 520,
@@ -45,13 +45,13 @@ export default function HeroSearchBar() {
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            background: "#eef4ef",
+            background: "var(--theme-surface-soft, #eef4ef)",
             border: "none",
             borderRadius: 999,
             padding: "8px 14px 8px 12px",
             fontSize: 13,
             fontWeight: 600,
-            color: "#0a0a0a",
+            color: "var(--theme-ink, #0a0a0a)",
             cursor: "pointer",
             fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
             whiteSpace: "nowrap",
@@ -81,7 +81,7 @@ export default function HeroSearchBar() {
             paddingLeft: 4,
           }}
         >
-          <Search size={16} strokeWidth={2} style={{ color: "#777", flexShrink: 0 }} aria-hidden />
+          <Search size={16} strokeWidth={2} style={{ color: "var(--theme-subtle, #777)", flexShrink: 0 }} aria-hidden />
           <input
             type="text"
             value={search}
@@ -97,7 +97,7 @@ export default function HeroSearchBar() {
               background: "transparent",
               fontSize: 14,
               fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
-              color: "#0a0a0a",
+              color: "var(--theme-ink, #0a0a0a)",
             }}
           />
         </div>

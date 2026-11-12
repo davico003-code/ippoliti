@@ -9,6 +9,7 @@ const CACHE_TTL_MS = 60_000;
 // Caches de metadata de Redis (tombstones + overrides de imagen), 60s.
 let _redirCache: { map: Record<string, string>; ts: number } | null = null;
 let _imgCache: { map: Record<string, string>; ts: number } | null = null;
+let _creditCache: { map: Record<string, string>; ts: number } | null = null;
 const META_TTL_MS = 60_000;
 
 // Notas borradas (soft-delete): slug → URL destino del 301. Sirve de tombstone
@@ -31,6 +32,15 @@ export async function getImageOverrides(): Promise<Record<string, string>> {
   if (_imgCache && Date.now() - _imgCache.ts < META_TTL_MS) return _imgCache.map;
   const map = await hgetallCached('blog:image_override');
   _imgCache = { map, ts: Date.now() };
+  return map;
+}
+
+// Crédito de la portada cuando la foto no es propia (medios locales con los
+// que hay acuerdo, Wikimedia, municipios): slug → "Foto: InfoFunes".
+export async function getImageCredits(): Promise<Record<string, string>> {
+  if (_creditCache && Date.now() - _creditCache.ts < META_TTL_MS) return _creditCache.map;
+  const map = await hgetallCached('blog:image_credit');
+  _creditCache = { map, ts: Date.now() };
   return map;
 }
 

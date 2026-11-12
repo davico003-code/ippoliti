@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server'
 import { list, type ListBlobResultBlob } from '@vercel/blob'
 import { assertTeamCode } from '@/lib/team-auth'
 import { posts as estaticos } from '@/lib/blog'
-import { generarImagenPortada, type DatosPortada } from '@/agents/blog/writer/generar-imagen'
+import { elegirPortadaReal, type DatosPortada } from '@/agents/blog/writer/elegir-portada'
 
 export const dynamic = 'force-dynamic'
-// La generación tarda 15-60s según carga de OpenAI.
-export const maxDuration = 180
+// Elegir + bajar + optimizar la foto tarda unos segundos.
+export const maxDuration = 60
 
 interface NotaBlob {
   titulo: string
@@ -31,14 +31,14 @@ async function findBlob(slug: string): Promise<ListBlobResultBlob | null> {
   return null
 }
 
-// POST { slug } → genera la portada con IA y la deja como override (misma
-// prioridad que la subida manual). Sirve para dinámicas Y estáticas: en ambos
+// POST { slug } → elige otra portada real del banco de fotos y la deja como
+// override (misma prioridad que la subida manual). Sirve para dinámicas Y estáticas: en ambos
 // casos el override pisa la imagen por defecto en el display.
 export async function POST(req: Request) {
   const unauth = assertTeamCode(req)
   if (unauth) return unauth
 
-  let body: { slug?: string }
+  let body: { slug?: string; fotoId?: string }
   try {
     body = await req.json()
   } catch {
@@ -73,7 +73,8 @@ export async function POST(req: Request) {
     datos = { slug, titulo: est.title, bajada: est.summary, categoria: est.category }
   }
 
-  const resultado = await generarImagenPortada(datos)
+  // fotoId: foto puntual del banco (backfill curado a mano); sin él la elige Claude.
+  const resultado = await elegirPortadaReal(datos, { fotoId: body.fotoId?.trim() || undefined })
   if (!resultado.ok) {
     return NextResponse.json({ error: resultado.error }, { status: 502 })
   }

@@ -1,394 +1,198 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+// Lista de precios de un emprendimiento: filas compactas agrupadas por cantidad
+// de dormitorios. Cada fila dice dónde está la unidad, su superficie, el precio
+// y abre el plano. Recibe filas ya normalizadas (UnidadFila), así sirve igual
+// para las unidades del CRM que para la lista viva del desarrollador (Brickfy).
+
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import type { DevUnit } from '@/lib/developments'
-
-function getPhoto(u: DevUnit): string | null {
-  const photos = (u.photos || []).filter(p => !p.is_blueprint)
-  const cover = photos.find(p => p.is_front_cover)
-  // Preferir el thumb (las cards son chicas): la original full-res de Tokko
-  // pesa MB por card y se descargaban todas de una.
-  return (cover || photos[0])?.thumb || (cover || photos[0])?.image || null
-}
-
-function getDorms(u: DevUnit): number {
-  return u.suite_amount || u.room_amount || 0
-}
-
-function getArea(u: DevUnit): number {
-  return parseFloat(u.roofed_surface || u.total_surface || u.surface || '0') || 0
-}
-
-const TYPE_MAP: Record<string, string> = {
-  'Apartment': 'Departamento',
-  'House': 'Casa',
-  'Land': 'Terreno',
-  'Bussiness Premises': 'Local comercial',
-  'Business Premises': 'Local comercial',
-  'Garage': 'Cochera',
-  'Office': 'Oficina',
-  'PH': 'PH',
-  'Duplex': 'Dúplex',
-  'Local': 'Local comercial',
-  // Completado con el resto de tipos del feed para no mostrar inglés crudo.
-  'Warehouse': 'Galpón',
-  'Condo': 'Condominio',
-  'Countryside': 'Campo / Chacra',
-  'Country House': 'Casa de campo',
-  'Farm': 'Campo',
-  'Building': 'Edificio',
-  'Store': 'Local comercial',
-}
-
-function translateType(name: string): string {
-  return TYPE_MAP[name] || name
-}
-
-const RALEWAY = 'var(--font-raleway-distrito), Raleway, sans-serif'
-const POPPINS = 'var(--font-poppins), Poppins, sans-serif'
-
-// Deriva si la unidad es comercial a partir del título o la categoría.
-function isComercial(u: DevUnit): boolean {
-  const hay = `${u.publication_title || ''} ${translateType(u.type?.name || '')}`.toLowerCase()
-  return hay.includes('comercial') || hay.includes('local') || hay.includes('oficina')
-}
-
-function getUnitTitle(u: DevUnit): string {
-  // Prefer publication_title or address over reference_code
-  if (u.publication_title && !u.publication_title.match(/^[A-Z]{2,4}\d{5,}/)) return u.publication_title
-  if (u.address && u.address.trim()) return u.address
-  if (u.publication_title) return u.publication_title
-  return translateType(u.type?.name || 'Unidad')
-}
+import { ArrowRight, Map as MapIcon, Send } from 'lucide-react'
+import type { UnidadFila } from '@/lib/unidadesFilas'
+import { conCifras } from '@/components/emprendimiento/conCifras'
+import ViewerModal, { type Viewer } from '@/components/ViewerModal'
 
 interface Props {
-  units: DevUnit[]
+  filas: UnidadFila[]
   devName: string
   whatsappUrl: string
-  variant?: 'default' | 'distrito'
   location?: string
   /** URL absoluta de la página del emprendimiento — habilita "Enviar lista de precios". */
   pageUrl?: string
+  /** Teléfono que firma la lista de precios compartida; sin esto, el general. */
+  telefonoLabel?: string
 }
 
-export default function DevUnitsSection({ units, devName, whatsappUrl, variant = 'default', location, pageUrl }: Props) {
-  const isDistrito = variant === 'distrito'
-  const [activeTab, setActiveTab] = useState<number | null>(null)
+const porPrecio = (a: UnidadFila, b: UnidadFila) =>
+  (a.precio || Number.MAX_SAFE_INTEGER) - (b.precio || Number.MAX_SAFE_INTEGER)
+
+const formatPrecio = (f: UnidadFila) =>
+  f.precio > 0 ? `${f.moneda} ${f.precio.toLocaleString('es-AR')}` : 'Consultar'
+
+export default function DevUnitsSection({ filas, devName, whatsappUrl, location, pageUrl, telefonoLabel = '(341) 334-0916' }: Props) {
+  const [viewer, setViewer] = useState<Viewer | null>(null)
 
   // Link wa.me SIN número: abre WhatsApp con la lista completa de precios ya
-  // redactada y deja elegir el destinatario. Se arma desde las units vivas de
-  // Tokko, así la lista nunca queda desactualizada.
+  // redactada y deja elegir el destinatario. Se arma desde las filas vivas, así
+  // la lista nunca queda desactualizada.
   const priceListHref = useMemo(() => {
-    if (!pageUrl) return null
-    const rows = units
-      .map(u => {
-        const p = u.operations?.[0]?.prices?.[0]
-        return { u, price: p?.price || 0, currency: p?.currency || 'USD' }
-      })
-      .sort((a, b) => (a.price || Number.MAX_SAFE_INTEGER) - (b.price || Number.MAX_SAFE_INTEGER))
-    if (!rows.some(r => r.price > 0)) return null
-
-    // El encabezado ya nombra el emprendimiento: si el título termina en
-    // "en <emprendimiento/zona>" se recorta para que cada línea quede corta.
-    const ctx = `${devName} ${location || ''}`.toLowerCase()
-    const lines = rows.map(({ u, price, currency }) => {
-      const area = getArea(u)
-      let title = getUnitTitle(u)
-      const m = title.match(/^(.*\S)\s+en\s+(.+)$/i)
-      if (m && m[2].toLowerCase().split(/[\s,]+/).some(w => w.length > 3 && ctx.includes(w))) {
-        title = m[1]
-      }
-      const parts = [title, ...(area > 0 && !title.includes('m²') ? [`${area} m²`] : [])]
-      const precio = price > 0 ? `*${currency} ${price.toLocaleString('es-AR')}*` : 'Consultar'
-      return `▪️ ${parts.join(' · ')} — ${precio}`
+    if (!pageUrl || !filas.some(f => f.precio > 0)) return null
+    const lines = filas.slice().sort(porPrecio).map(f => {
+      const parts = [f.etiqueta, ...(f.m2 > 0 && !f.etiqueta.includes('m²') ? [`${f.m2.toLocaleString('es-AR')} m²`] : [])]
+      return `▪️ ${parts.join(' · ')} — ${f.precio > 0 ? `*${formatPrecio(f)}*${f.preferencial ? ' (valor preferencial)' : ''}` : 'Consultar'}`
     })
     const msg = [
       `*Lista de precios — ${devName}*${location && !devName.toLowerCase().includes(location.toLowerCase()) ? ` (${location})` : ''}`,
-      `${rows.length} unidad${rows.length !== 1 ? 'es' : ''} en venta:`,
+      `${filas.length} unidad${filas.length !== 1 ? 'es' : ''} en venta:`,
       '',
       ...lines,
       '',
       `Más info y fotos: ${pageUrl}`,
-      'SI INMOBILIARIA · (341) 210-1694',
+      `SI INMOBILIARIA · ${telefonoLabel}`,
     ].join('\n')
     return `https://wa.me/?text=${encodeURIComponent(msg)}`
-  }, [units, devName, location, pageUrl])
+  }, [filas, devName, location, pageUrl, telefonoLabel])
 
-  // Build available tabs from real data
-  const tabs = useMemo(() => {
-    const dormCounts = new Map<number, number>()
-    for (const u of units) {
-      const d = getDorms(u)
-      dormCounts.set(d, (dormCounts.get(d) || 0) + 1)
-    }
-    const sorted = Array.from(dormCounts.keys()).sort((a, b) => a - b)
-    return sorted.map(d => ({
-      value: d,
-      label: d === 0 ? 'Monoambiente' : `${d} Dormitorio${d > 1 ? 's' : ''}`,
-      count: dormCounts.get(d) || 0,
-    }))
-  }, [units])
+  // Un grupo por cantidad de dormitorios, cada uno de menor a mayor precio.
+  const grupos = useMemo(() => {
+    const map = new Map<number, UnidadFila[]>()
+    for (const f of filas) map.set(f.dorms, [...(map.get(f.dorms) || []), f])
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([dorms, items]) => ({ dorms, items: items.sort(porPrecio) }))
+  }, [filas])
 
-  const filtered = activeTab !== null ? units.filter(u => getDorms(u) === activeTab) : units
-
-  if (units.length === 0) {
+  if (filas.length === 0) {
     return (
-      <div className="mt-16">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades disponibles</h2>
-        <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100 text-center">
-          <p className="text-gray-500 text-sm mb-3">No hay unidades cargadas en este momento.</p>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366] text-white text-sm font-bold rounded-full hover:bg-[#1ea952] transition-colors">
-            Consultanos por disponibilidad
-          </a>
-        </div>
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
+        <p className="mb-4 text-gray-600">No hay unidades cargadas en este momento.</p>
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#25D366] px-6 text-sm font-bold text-white transition-colors hover:bg-[#1ea952]">
+          Consultanos por disponibilidad
+        </a>
       </div>
     )
   }
 
   return (
-    <div className="mt-16">
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Raleway, sans-serif' }}>Unidades disponibles</h2>
-          <p className="text-sm text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            En venta · {units.length} unidad{units.length !== 1 ? 'es' : ''} · {devName}
-          </p>
-        </div>
-        {priceListHref && (
-          <a
-            href={priceListHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#25D366] text-white text-[13px] font-bold rounded-full hover:bg-[#1ea952] transition-colors"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/>
-            </svg>
-            Enviar lista de precios
-          </a>
-        )}
-      </div>
-
-      {/* Stats summary */}
-      {(() => {
-        const areas = units.map(u => getArea(u)).filter(a => a > 0).sort((a, b) => a - b)
-        const dorms = units.map(u => getDorms(u)).filter(d => d > 0).sort((a, b) => a - b)
-        const baths = units.map(u => u.bathroom_amount || 0).filter(b => b > 0).sort((a, b) => a - b)
-        const hasCochera = units.some(u => u.parking_lot_amount > 0)
-        const uniqueDorms = Array.from(new Set(dorms))
-        const uniqueBaths = Array.from(new Set(baths))
-
-        return (
-          <div className="flex flex-wrap gap-3 mb-6">
-            {areas.length > 0 && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9H21M9 3V21"/></svg>
-                <span className="font-numeric">{areas[0] === areas[areas.length - 1] ? `${areas[0]}` : `${areas[0]} a ${areas[areas.length - 1]}`} m²</span>
-              </span>
-            )}
-            {uniqueDorms.length > 0 && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M3 9V19M21 9V19M3 15H21M3 9C3 7.9 3.9 7 5 7H19C20.1 7 21 7.9 21 9"/><path d="M7 7V5C7 4.4 7.4 4 8 4H16C16.6 4 17 4.4 17 5V7"/></svg>
-                {uniqueDorms.length === 1 ? `${uniqueDorms[0]} dorm.` : `${uniqueDorms[0]} a ${uniqueDorms[uniqueDorms.length - 1]} dorm.`}
-              </span>
-            )}
-            {uniqueBaths.length > 0 && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M4 12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12Z"/><path d="M4 12V6C4 4.9 4.9 4 6 4C7.1 4 8 4.9 8 6V8"/><path d="M8 8H20"/></svg>
-                {uniqueBaths.length === 1 ? `${uniqueBaths[0]} baño${uniqueBaths[0] > 1 ? 's' : ''}` : `${uniqueBaths[0]} a ${uniqueBaths[uniqueBaths.length - 1]} baños`}
-              </span>
-            )}
-            {hasCochera && (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-xs text-gray-600">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A5C38" strokeWidth="1.8"><path d="M7 17m0 2a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M17 17m0 2a2 2 0 1 0-4 0a2 2 0 1 0 4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2"/><path d="M10 17h4"/></svg>
-                Con cochera
-              </span>
-            )}
-          </div>
-        )
-      })()}
-
-      {/* Filter tabs */}
-      {tabs.length > 1 && (
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 scrollbar-hide">
-          <button
-            onClick={() => setActiveTab(null)}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-              activeTab === null ? 'bg-[#1A5C38] text-white' : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            Todas
-          </button>
-          {tabs.map(t => (
-            <button
-              key={t.value}
-              onClick={() => setActiveTab(t.value)}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                activeTab === t.value ? 'bg-[#1A5C38] text-white' : 'text-gray-500 hover:bg-gray-100'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Grid distrito — cards verticales estilo Zillow (2 cols desktop) */}
-      {isDistrito ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(u => {
-            const photo = getPhoto(u)
-            const area = getArea(u)
-            const price = u.operations?.[0]?.prices?.[0]
-            const comercial = isComercial(u)
-            const disponible = u.status === 1
-            // Datos en fila — solo lo que viene de Tokko (sin "—" ni inventos).
-            const datos: { label: string; value: string }[] = []
-            if (area > 0) datos.push({ label: 'Superficie', value: `${area} m²` })
-            datos.push({ label: 'Tipo', value: comercial ? 'Comercial' : 'Residencial' })
-
-            return (
-              <div
-                key={u.id}
-                className="group flex flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl"
-              >
-                {/* Imagen + badges */}
-                <div className="relative aspect-[4/3] bg-[#F2F2F7]">
-                  {photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={photo}
-                      alt={u.publication_title || u.reference_code}
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 3v18" />
-                      </svg>
-                    </div>
-                  )}
-                  {/* Badge tipo (top-left) */}
-                  <span
-                    className="absolute left-3 top-3 rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.1em] text-white"
-                    style={{ fontFamily: RALEWAY, fontWeight: 600, background: comercial ? '#B8935A' : '#1A5C38' }}
-                  >
-                    {comercial ? 'Comercial' : 'Residencial'}
-                  </span>
-                  {/* Badge disponible (top-right) — solo si Tokko marca disponible */}
-                  {disponible && (
-                    <span
-                      className="absolute right-3 top-3 rounded-full bg-[#e8f5ee] px-3 py-1 text-[10px] uppercase tracking-[0.1em] text-[#1A5C38]"
-                      style={{ fontFamily: RALEWAY, fontWeight: 600 }}
-                    >
-                      Disponible
-                    </span>
-                  )}
-                </div>
-
-                {/* Cuerpo */}
-                <div className="flex flex-1 flex-col p-5">
-                  {/* Eyebrow ubicación */}
-                  <p className="uppercase text-[#6b6b6b]" style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 11, letterSpacing: '0.06em' }}>
-                    {devName}{location ? ` · ${location}` : ''}
-                  </p>
-
-                  {/* Precio destacado */}
-                  <p className="mt-1" style={{ fontFamily: POPPINS, fontWeight: 600, fontSize: 24, color: '#0F3F26', letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}>
-                    {price?.price ? `USD ${price.price.toLocaleString('es-AR')}` : 'Consultar'}
-                  </p>
-
-                  {/* Separador */}
-                  <div className="mt-3 border-t border-[#e8e3da] pt-3">
-                    {/* Datos en fila */}
-                    <div className={`grid gap-3 ${datos.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                      {datos.map(d => (
-                        <div key={d.label}>
-                          <p className="uppercase text-[#888]" style={{ fontSize: 10, letterSpacing: '0.08em' }}>{d.label}</p>
-                          <p className="mt-0.5" style={{ fontFamily: RALEWAY, fontWeight: 500, fontSize: 14, color: '#0F3F26' }}>{d.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Botón */}
-                  <div className="mt-5">
-                    <Link
-                      href={`/propiedades/${u.id}-unidad`}
-                      className="block w-full rounded-md bg-[#1A5C38] px-5 py-3 text-center text-white transition-colors hover:bg-[#0F3F26]"
-                      style={{ fontFamily: POPPINS, fontWeight: 500, fontSize: 13 }}
-                    >
-                      Ver unidad &rarr;
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-      /* Grid default */
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map(u => {
-          const photo = getPhoto(u)
-          const area = getArea(u)
-          const price = u.operations?.[0]?.prices?.[0]
-          const dorms = getDorms(u)
-
+    <div>
+      <div className="space-y-9">
+        {grupos.map(g => {
+          const desde = g.items.find(f => f.precio > 0)
           return (
-            <div key={u.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex flex-col">
-              {/* Image */}
-              <div className="relative h-[160px] bg-[#F2F2F7]">
-                {photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt={u.publication_title || u.reference_code} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 3v18" />
-                    </svg>
-                  </div>
+            <div key={g.dorms}>
+              <div className="flex items-baseline justify-between gap-3 border-b-2 border-gray-900 pb-2">
+                <h3 className="text-lg font-black tracking-[-0.01em] text-gray-900 md:text-xl">
+                  {g.dorms > 0 ? (
+                    <>
+                      <span className="font-numeric">{g.dorms}</span> dormitorio{g.dorms > 1 ? 's' : ''}
+                    </>
+                  ) : (
+                    'Monoambientes y otros'
+                  )}
+                </h3>
+                {desde && (
+                  <p className="text-sm text-gray-500">
+                    desde <span className="font-numeric font-semibold text-gray-900">{formatPrecio(desde)}</span>
+                  </p>
                 )}
               </div>
 
-              {/* Body */}
-              <div className="p-4 flex-1 flex flex-col">
-                <p className="text-xs text-gray-400 mb-0.5">{translateType(u.type?.name || 'Unidad')}</p>
-                <p className="text-sm font-bold text-gray-900 mb-2 line-clamp-1">
-                  {getUnitTitle(u)}
-                </p>
-
-                {/* Price */}
-                <p className="text-xl font-bold text-[#1A5C38] font-numeric mb-2">
-                  {price?.price ? `${price.currency || 'USD'} ${price.price.toLocaleString('es-AR')}` : 'Consultar'}
-                </p>
-
-                {/* Specs */}
-                <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
-                  {area > 0 && <span className="font-numeric">{area} m²</span>}
-                  {dorms > 0 && <span>{dorms} dorm.</span>}
-                  {u.bathroom_amount > 0 && <span>{u.bathroom_amount} baño{u.bathroom_amount > 1 ? 's' : ''}</span>}
-                  {u.parking_lot_amount > 0 && <span>{u.parking_lot_amount} coch.</span>}
-                </div>
-
-                <div className="mt-auto">
-                  <Link
-                    href={`/propiedades/${u.id}-unidad`}
-                    className="block w-full text-center text-[13px] font-semibold text-white bg-[#1A5C38] hover:bg-[#145030] py-2.5 rounded-xl transition-colors"
+              <ul className="divide-y divide-gray-200">
+                {g.items.map(f => (
+                  <li
+                    key={f.id}
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 py-3.5 md:grid-cols-[minmax(0,1fr)_96px_150px_236px] md:py-4"
                   >
-                    Ver unidad &rarr;
-                  </Link>
-                </div>
-              </div>
+                    {/* En celular esta celda ocupa las dos filas: a la derecha quedan
+                        el precio arriba y el plano abajo. */}
+                    <div className="row-span-2 min-w-0 md:row-span-1">
+                      <p className="flex flex-wrap items-center gap-x-2 text-[15px] font-bold leading-snug text-gray-900 md:text-base">
+                        {f.href ? (
+                          <Link href={f.href} className="underline-offset-4 hover:underline">
+                            {conCifras(f.etiqueta)}
+                            <ArrowRight className="ml-1 inline h-4 w-4 text-[#1A5C38] md:hidden" aria-hidden />
+                          </Link>
+                        ) : (
+                          <span>{conCifras(f.etiqueta)}</span>
+                        )}
+                        {f.reservada && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                            Reservada
+                          </span>
+                        )}
+                      </p>
+                      <p className="mt-0.5 text-sm text-gray-500">
+                        <span className="font-numeric md:hidden">
+                          {f.m2 > 0 ? `${f.m2.toLocaleString('es-AR')} m²` : ''}
+                          {f.m2 > 0 && f.detalle ? ' · ' : ''}
+                        </span>
+                        {f.detalle && conCifras(f.detalle)}
+                      </p>
+                    </div>
+
+                    <p className="hidden text-right text-[15px] text-gray-700 font-numeric md:block">
+                      {f.m2 > 0 ? `${f.m2.toLocaleString('es-AR')} m²` : '—'}
+                    </p>
+
+                    <div className="text-right">
+                      {f.preferencial && f.precio > 0 && (
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-[#F40009]">
+                          Valor preferencial
+                        </p>
+                      )}
+                      <p className="text-lg font-bold text-[#1A5C38] font-numeric md:text-xl">
+                        {formatPrecio(f)}
+                      </p>
+                    </div>
+
+                    {(f.planos.length > 0 || f.href) && (
+                      <div className="col-start-2 flex justify-end gap-2 md:col-start-auto">
+                        {f.planos.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setViewer({ kind: 'images', title: `${f.etiqueta} — Plano`, urls: f.planos })}
+                            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-gray-300 px-4 text-sm font-bold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
+                          >
+                            <MapIcon className="h-4 w-4" aria-hidden />
+                            Plano
+                          </button>
+                        )}
+                        {/* En celular la ficha se abre desde el nombre de la unidad. */}
+                        {f.href && (
+                          <Link
+                            href={f.href}
+                            className="hidden min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#1A5C38] px-4 text-sm font-bold text-white transition-colors hover:bg-[#145030] md:inline-flex"
+                          >
+                            Ver unidad
+                            <ArrowRight className="h-4 w-4" aria-hidden />
+                          </Link>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           )
         })}
       </div>
+
+      {priceListHref && (
+        <div className="mt-6 flex justify-center sm:justify-end">
+          <a
+            href={priceListHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-gray-300 bg-white px-5 text-sm font-bold text-gray-700 transition-colors hover:border-[#1A5C38] hover:text-[#1A5C38]"
+          >
+            <Send className="h-4 w-4" aria-hidden />
+            Enviar lista de precios
+          </a>
+        </div>
       )}
+
+      {viewer && <ViewerModal viewer={viewer} onClose={() => setViewer(null)} />}
     </div>
   )
 }

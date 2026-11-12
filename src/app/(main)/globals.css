@@ -4,11 +4,12 @@
 
 :root {
   --background: #ffffff;
+  --card-surface: #ffffff;
   --foreground: #1a1a1a;
   --brand: #1A5C38;
   --brand-light: #E8F2ED;
   --accent: #E63946;
-  --header-height: 76px;
+  --header-height: 77px;
 
   /* SI palette — recursos */
   --si-green: #1A5C38;
@@ -20,10 +21,28 @@
   --cream-deep: #E6E6E2;
   --tinta: #1C1C1E;
   --tinta-soft: #4A4845;
-  --tinta-mute: #8B847A;
+  /* Antes #8B847A (gris tostado, 3,7:1 sobre blanco: la dirección de cada
+     tarjeta y de la ficha no llegaba a AA). Gris neutro: 6:1 sobre blanco y
+     5,3:1 sobre el verde tint. */
+  --tinta-mute: #5F6368;
   --line: #E6E6E4;
   --usd: #0E4A7B;
   --usd-dark: #073357;
+
+  /* Tokens de tema también en claro, de la misma fuente que el oscuro. Solo
+     los que hoy tienen UN valor claro en todos sus fallbacks inline (los 45
+     usos de var(--theme-surface, …) dicen blanco): definirlos no cambia nada
+     en claro. El resto (surface-soft, ink, muted, border…) tiene 10-20 grises
+     distintos de fallback; fijarlos acá repintaría cientos de lugares de
+     golpe, así que se suman a medida que se unifique cada superficie. */
+  --theme-surface: #ffffff;
+
+  /* Toast (src/components/Toast.tsx). */
+  --toast-bg: #111827;
+  --toast-error-bg: #7F1D1D;
+  --toast-ink: #ffffff;
+  --toast-border: transparent;
+  --toast-shadow: 0 8px 24px rgba(0,0,0,0.18);
 
   /* ── Edición Mundial 2026 — token de acento ──────────────────────────────
      Por defecto = verde de marca. La clase html.mundial (la pone el layout
@@ -106,13 +125,160 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove default dark mode override to maintain brand identity */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #1a1a1a;
-  }
+/* Three neutral elevations keep pages, cards and controls in one visual system.
+   The theme-only tokens retain each component's exact light color as fallback. */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #18191b;
+  --card-surface: #202224;
+  --foreground: #f1f2f3;
+  --brand: #8bd3ac;
+  --brand-light: #26392f;
+  --cream: #1c1e20;
+  --cream-deep: #2b2e31;
+  --tinta: #f1f2f3;
+  --tinta-soft: #c4c7ca;
+  --tinta-mute: #a5aaaf;
+  --line: #383c40;
+  --usd: #92c8ec;
+  --usd-dark: #b5def9;
+  --theme-surface: #202224;
+  --theme-surface-soft: #292c2f;
+  --theme-overlay: rgba(32,34,36,.96);
+  --theme-ink: #f1f2f3;
+  --theme-muted: #c4c7ca;
+  --theme-subtle: #a5aaaf;
+  --theme-accent: #8bd3ac;
+  --theme-tint: #26392f;
+  --theme-border: #383c40;
+  --theme-warning-surface: #393122;
+  --theme-warning-ink: #edd7a8;
+  /* El toast #111827 contra #18191b daba 1:1: se veía el texto sin caja. */
+  --toast-bg: #2c2f33;
+  --toast-error-bg: #5c1d1d;
+  --toast-border: rgba(255,255,255,.1);
+  --toast-shadow: 0 10px 30px rgba(0,0,0,.5);
 }
+
+/* Cambio de tema parejo (ThemeToggle): mientras dura, ninguna transición
+   propia de cada elemento; todo cambia a la vez y, donde hay View Transitions,
+   la página entera hace un solo fundido de 200 ms. */
+html.si-tema-cambiando,
+html.si-tema-cambiando *,
+html.si-tema-cambiando *::before,
+html.si-tema-cambiando *::after {
+  transition: none !important;
+}
+html.si-tema-cambiando::view-transition-old(root),
+html.si-tema-cambiando::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: ease-out;
+}
+
+.si-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 9999px;
+  color: var(--foreground);
+  background: transparent;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.si-theme-toggle:hover { background: var(--cream-deep); }
+.si-theme-toggle:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* Ícono del toggle desde el tema del <html> (no desde React): sale bien desde
+   el primer pintado, sin luna que salta a sol al hidratar. Al cambiar, el que
+   entra gira y aparece en 200 ms. */
+.si-tema-icono { display: block; flex: none; }
+.si-tema-icono--sol { display: none; }
+html[data-theme='dark'] .si-tema-icono--sol { display: block; }
+html[data-theme='dark'] .si-tema-icono--luna { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html.si-tema-cambiando .si-tema-icono { animation: si-tema-icono 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+}
+@keyframes si-tema-icono {
+  from { opacity: 0; transform: rotate(-45deg) scale(0.8); }
+  to { opacity: 1; transform: none; }
+}
+.si-theme-toggle--hero { color: white; border-color: rgba(255,255,255,.65); }
+.si-theme-toggle--hero:hover { background: rgba(255,255,255,.18); }
+html[data-theme='dark'] .si-theme-logo { content: url('/logo-blanco.png'); }
+html[data-theme='dark'] .si-theme-drawer { background: var(--card-surface); color: var(--foreground); }
+
+/* Also covers dialogs mounted in body portals. Never filter photographs. */
+html[data-theme='dark'] body,
+html[data-theme='dark'] main,
+html[data-theme='dark'] .si-property-panel { background-color: var(--background); color: var(--foreground); }
+html[data-theme='dark'] :is([class~='bg-white/[0.94]'], .bg-white, .bg-white\/90, .bg-white\/95) { background-color: var(--card-surface); }
+html[data-theme='dark'] :is(.bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-50\/80, .bg-slate-50, .bg-slate-100) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is(.text-gray-950, .text-gray-900, .text-gray-800, .text-gray-700, .text-black, .text-slate-900, .text-slate-800) { color: var(--foreground); }
+html[data-theme='dark'] :is(.text-gray-600, .text-gray-500, .text-gray-400, .text-slate-600, .text-slate-500) { color: var(--tinta-soft); }
+html[data-theme='dark'] :is(.border-gray-100, .border-gray-200, .border-gray-300, .border-slate-200, .divide-gray-100 > :not([hidden]) ~ :not([hidden]), .divide-gray-200 > :not([hidden]) ~ :not([hidden])) { border-color: var(--line); }
+html[data-theme='dark'] :is(.hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover, .focus\:bg-white:focus) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is(input, textarea, select) { color-scheme: dark; }
+html[data-theme='dark'] :is(input, textarea)::placeholder { color: var(--tinta-mute); }
+html[data-theme='dark'] .leaflet-container { background: var(--background); }
+html[data-theme='dark'] :is(.leaflet-popup-content-wrapper, .leaflet-popup-tip, .leaflet-bar a, .leaflet-control-attribution) { background: var(--card-surface); color: var(--foreground); }
+html[data-theme='dark'] .leaflet-control-attribution a { color: var(--brand); }
+/* Safari (con aceleración gráfica) pinta el canvas WebGL de la capa oscura
+   (CapaOscuraVectorial) encima de pines y botones aunque el z-index diga lo
+   contrario. Cada pane de arriba y cada esquina de controles va en su propia capa. */
+.leaflet-container .leaflet-gl-layer { z-index: 1; }
+.leaflet-container :is(.leaflet-shadow-pane, .leaflet-marker-pane, .leaflet-tooltip-pane, .leaflet-popup-pane, .leaflet-control-container > div) { transform: translateZ(0); }
+/* Only the street basemap follows the theme. Satellite photography is untouched.
+   CapaCalles uses CARTO Dark Matter in dark mode; lifted so streets and labels read
+   on a phone at night. Inverting the light tiles is only the fallback without a key. */
+.si-tiles-oscuras { filter: brightness(1.9) contrast(1.05); }
+html[data-theme='dark'] .si-street-tiles { filter: invert(1) hue-rotate(180deg) brightness(.75) saturate(.45); }
+/* Map pins: brand green with white text in light mode; in dark mode, white pills with
+   dark text (chosen by David over the real map). Hover and selected turn brand-light green. */
+html[data-theme='dark'] {
+  --si-pin: #f6f6f4;
+  --si-pin-grupo: #f6f6f4;
+  --si-pin-hover: #d6ecdf;
+  --si-pin-activo: #8bd3ac;
+  --si-pin-texto: #14231b;
+  --si-pin-borde: rgba(20,35,27,.18);
+  --si-pin-radio: 999px;
+  --si-pin-cola: transparent;
+}
+html[data-theme='dark'] .si-tasacion [class~='bg-[#FFF7E8]'] { background-color: #393122; }
+html[data-theme='dark'] .si-tasacion :is([class~='border-[#E1E6E1]'], [class~='border-[#B9C6BD]']) { border-color: var(--line); }
+
+/* Legacy public components with literal Tailwind palette values. */
+html[data-theme='dark'] :is([class~="bg-[#F5F5F7]"], [class~="bg-[#f5f5f7]"], [class~="bg-[#fafafa]"], [class~="bg-[#f9fafb]"], [class~="bg-[#F2F2F7]"], [class~="bg-[#F4F7F2]"], [class~="bg-[#F3F7F4]"], [class~="bg-[#F4F6F5]"], [class~="bg-[#F5F8F5]"], [class~="bg-[#F6F8F6]"], [class~="bg-[#F1F3F1]"], [class~="bg-[#F2F4F0]"], [class~="bg-[#EEF1EF]"], [class~="bg-[#f8f7f4]"], [class~="bg-[#E8E8ED]"]) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is([class~="bg-[#e7f2eb]"], [class~="bg-[#EAF3EE]"], [class~="bg-[#EAF3ED]"], [class~="bg-[#e8f5ee]"], [class~="bg-[#eef3ef]"]) { background-color: var(--theme-tint); }
+html[data-theme='dark'] :is([class~="text-[#121A15]"], [class~="text-[#111814]"], [class~="text-[#0E1A14]"], [class~="text-[#1C1C1E]"], [class~="text-[#09090B]"], [class~="text-[#1C2620]"], [class~="text-[#0a0a0a]"], [class~="text-[#173229]"], [class~="text-[#24292B]"]) { color: var(--foreground); }
+html[data-theme='dark'] :is([class~="text-[#3C4A42]"], [class~="text-[#5B6B62]"], [class~="text-[#66736B]"], [class~="text-[#71717A]"], [class~="text-[#4F5C54]"], [class~="text-[#9ca3af]"], [class~="text-[#6E6E73]"], [class~="text-[#6e6e73]"], [class~="text-[#6B766E]"], [class~="text-[#5C6B62]"], [class~="text-[#5B665F]"], [class~="text-[#3F3F46]"], [class~="text-[#374151]"], [class~="text-[#777]"], [class~="text-[#52525B]"]) { color: var(--tinta-soft); }
+html[data-theme='dark'] :is([class~="text-[#1A5C38]"], [class~="text-[#17613C]"], [class~="text-[#345544]"], [class~="text-[#00754A]"], [class~="text-[#0F3A23]"]) { color: var(--brand); }
+html[data-theme='dark'] :is([class~="border-[#E1E6E1]"], [class~="border-[#DDE8DF]"], [class~="border-[#EEF1EF]"], [class~="border-[#D5DDD8]"], [class~="border-[#E3E7E4]"]) { border-color: var(--line); }
+
+/* Neutral palettes used by the editorial and team sections. */
+html[data-theme='dark'] :is(.bg-neutral-50, .bg-neutral-100, .bg-neutral-200) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is(.text-neutral-700, .text-neutral-800, .text-neutral-900, .text-neutral-950) { color: var(--foreground); }
+html[data-theme='dark'] :is(.text-neutral-400, .text-neutral-500, .text-neutral-600) { color: var(--tinta-soft); }
+html[data-theme='dark'] :is(.border-neutral-100, .border-neutral-200, .border-neutral-300) { border-color: var(--line); }
+html[data-theme='dark'] .hover\:bg-neutral-100:hover { background-color: var(--cream-deep); }
+html[data-theme='dark'] :is(.bg-zinc-50, .bg-zinc-100, .bg-zinc-200) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is(.text-zinc-700, .text-zinc-800, .text-zinc-900, .text-zinc-950) { color: var(--foreground); }
+html[data-theme='dark'] :is(.text-zinc-400, .text-zinc-500, .text-zinc-600) { color: var(--tinta-soft); }
+html[data-theme='dark'] :is(.border-zinc-100, .border-zinc-200, .border-zinc-300) { border-color: var(--line); }
+html[data-theme='dark'] .hover\:bg-zinc-100:hover { background-color: var(--cream-deep); }
+html[data-theme='dark'] :is(.bg-stone-50, .bg-stone-100, .bg-stone-200) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is(.text-stone-700, .text-stone-800, .text-stone-900, .text-stone-950) { color: var(--foreground); }
+html[data-theme='dark'] :is(.text-stone-400, .text-stone-500, .text-stone-600) { color: var(--tinta-soft); }
+html[data-theme='dark'] :is(.border-stone-100, .border-stone-200, .border-stone-300) { border-color: var(--line); }
+html[data-theme='dark'] .hover\:bg-stone-100:hover { background-color: var(--cream-deep); }
+html[data-theme='dark'] :is(.bg-slate-50, .bg-slate-100, .bg-slate-200) { background-color: var(--theme-surface-soft); }
+html[data-theme='dark'] :is(.text-slate-700, .text-slate-800, .text-slate-900, .text-slate-950) { color: var(--foreground); }
+html[data-theme='dark'] :is(.text-slate-400, .text-slate-500, .text-slate-600) { color: var(--tinta-soft); }
+html[data-theme='dark'] :is(.border-slate-100, .border-slate-200, .border-slate-300) { border-color: var(--line); }
+html[data-theme='dark'] .hover\:bg-slate-100:hover { background-color: var(--cream-deep); }
 
 @layer utilities {
   .font-numeric {
@@ -212,6 +378,16 @@ body {
   display: none;
 }
 
+/* Videos decorativos (sin `controls`): Safari en Modo de bajo consumo no los
+   deja arrancar solos y les pinta un ▶ nativo en el medio (David, 7-oct, la
+   portada de la home). Sin controles nunca se muestra; queda la foto/póster. */
+video:not([controls])::-webkit-media-controls,
+video:not([controls])::-webkit-media-controls-start-playback-button,
+video:not([controls])::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
 /* Poppins for numeric content */
 .font-poppins,
 .stat-number,
@@ -271,12 +447,22 @@ div[id="nosotros"] {
 /* Transición al navegar: cada página entra con un fade sutil (lo dispara
    template.tsx, que se re-monta en cada navegación). Solo opacidad: no usa
    transform para no reposicionar elementos position:fixed de la página. */
+/* 180 ms desde .4 (no desde 0): se siente un fundido cruzado y no un pantallazo
+   blanco en cada click, aunque la página ya esté precargada. Antes 300 ms
+   desde 0. */
 @keyframes si-page-in {
-  from { opacity: 0; }
+  from { opacity: 0.4; }
   to { opacity: 1; }
 }
 .si-page-enter {
-  animation: si-page-in 0.3s ease-out both;
+  /* backwards y no both: con fill forwards la animación queda "en efecto"
+     para siempre y Chrome mantiene el wrapper como stacking context, así los
+     modales fixed de la página no pueden quedar por encima del Navbar. */
+  animation: si-page-in 180ms ease-out backwards;
+}
+/* Primera carga: sin fade (ver template.tsx). */
+.si-page-enter[data-sin-fade] {
+  animation: none;
 }
 
 /* Blur-up: shimmer detrás de las fotos que aún no cargaron. Cuando la imagen
@@ -294,19 +480,33 @@ div[id="nosotros"] {
   background-size: 200% 100%;
   animation: si-shimmer 1.4s ease-in-out 6 both;
 }
+/* En oscuro, el gris claro destellaba un bloque casi blanco por cada foto que
+   cargaba en el listado. Mismo brillo, en los grises del tema. */
+html[data-theme='dark'] .si-img-shimmer {
+  background-color: #25282b;
+  background-image: linear-gradient(90deg, #25282b 25%, #2f3236 37%, #25282b 63%);
+}
 
 /* Micro-interacciones. .si-tap = feedback táctil al presionar (botones/links
    simples). .si-press-lift = elevación al hover + press, compone ambos estados
-   en CSS (evita que un transform inline pise el :active). */
+   en CSS (evita que un transform inline pise el :active).
+   Longhands con la lista de propiedades, no el shorthand `transition`: el
+   shorthand (que va después de las utilidades de Tailwind) les pisaba el
+   transition-colors / transition-shadow a los botones que los combinan y los
+   hovers y las chips seleccionadas cambiaban de golpe. */
 .si-tap {
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: transform, color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity;
+  transition-duration: 0.18s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-tap-highlight-color: transparent;
 }
 .si-tap:active {
   transform: scale(0.97);
 }
 .si-press-lift {
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-property: transform, color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity;
+  transition-duration: 0.22s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) {
@@ -352,9 +552,19 @@ div[id="nosotros"] {
    que ningún control quede sin indicador de foco; los componentes con su propio
    ring lo pisan por especificidad. */
 :focus-visible {
-  outline: 2px solid #1A5C38;
+  /* var(--brand): verde de marca en claro y verde claro en oscuro (el #1A5C38
+     fijo sobre #18191b daba 2,2:1 y en oscuro no se veía dónde estaba el foco). */
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
   border-radius: 3px;
+}
+/* Los campos de texto matchean :focus-visible también al tocarlos con el mouse
+   o el dedo, así que la regla de arriba les dibujaba un recuadro verde al
+   escribir. Los que declaran outline-none (buscadores) ya tienen su propio
+   indicador —el cursor y la pastilla— y no lo muestran. */
+input.outline-none:focus-visible,
+textarea.outline-none:focus-visible {
+  outline: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .si-skip-link { transition: none; }
@@ -383,4 +593,72 @@ body.dr-hoja-abierta [data-fab-whatsapp] {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+/* Distrito Roldán (23-oct-2026): paleta propia con modo claro y oscuro. Los
+   componentes usan las clases dr-* de Tailwind (tailwind.config.ts), que leen
+   estas variables, y NO las clases que el modo oscuro general pisa (.bg-white,
+   text-[#345544]…): antes quedaba mezclado crema, gris carbón y verde menta.
+   De noche (David: "no hace falta utilizar tantos colores, usá más el
+   negro"): negro, blanco y grises, y un solo acento —el terracota— en botones
+   y números clave. Las etiquetas y el dorado pasan a gris. RGB sin coma por la
+   opacidad. */
+.dr-tema {
+  --dr-fondo: 248 241 230;      /* #F8F1E6 crema */
+  --dr-fondo-alt: 255 255 255;
+  --dr-superficie: 255 255 255;
+  --dr-tinta: 52 85 68;         /* #345544 */
+  --dr-acento: 179 94 33;       /* #B35E21 terracota */
+  --dr-etiqueta: 179 94 33;     /* etiquetas sobre fondo claro */
+  --dr-bosque: 52 85 68;        /* secciones verdes de marca */
+  --dr-noche: 20 49 37;         /* #143125 hero, cierre, velos de fotos */
+  --dr-oro: 226 184 114;        /* #E2B872 etiquetas sobre verde */
+  --dr-claro: 248 241 230;      /* textos sobre fondos oscuros y fotos */
+  background-color: rgb(var(--dr-fondo));
+}
+html[data-theme='dark'] .dr-tema {
+  --dr-fondo: 0 0 0;
+  --dr-fondo-alt: 10 10 10;
+  --dr-superficie: 24 24 24;
+  --dr-tinta: 245 245 245;
+  --dr-acento: 232 132 72;      /* #E88448: el terracota, con luz para el negro */
+  --dr-etiqueta: 150 150 150;
+  --dr-bosque: 14 14 14;
+  --dr-noche: 0 0 0;
+  --dr-oro: 150 150 150;
+  --dr-claro: 245 245 245;
+}
+
+/* Distrito Roldán (22-oct-2026): la foto del hero se acerca muy lento, como un
+   drone que avanza. Una sola vez (no loop) y nada con movimiento reducido. */
+@media (prefers-reduced-motion: no-preference) {
+  .dr-acercar {
+    animation: drAcercar 22s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    transform-origin: 50% 60%;
+  }
+}
+@keyframes drAcercar {
+  from { transform: scale(1.1); }
+  to { transform: scale(1); }
+}
+
+/* ─── Home: lenguaje común ───────────────────────────────────────────────
+   Aparición al scrollear hecha SOLO con CSS (scroll-driven animations):
+   sin JavaScript, sin costo de carga y con el contenido siempre en el HTML.
+   Donde el navegador no lo soporta (o se pidió menos movimiento) no anima. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .revela {
+      animation: siRevela linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+@keyframes siRevela {
+  /* 14 px sin escala (antes 36 px + scale): acompaña la lectura en vez de
+     decorar, y con el rango más corto lo que ya está a la vista llega antes
+     a opacidad completa. */
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
 }
