@@ -3,11 +3,11 @@
 // "Cerca": lo más cercano de cada rubro en UN renglón de chips
 // ("Escuela · 333 m", "Farmacia · 210 m"…). Reemplaza la grilla de 7 tarjetas.
 //
-// Overpass (OpenStreetMap) en UNA sola consulta. Antes eran 7 en paralelo y
-// Overpass corta a ~2 simultáneas por IP: las demás volvían 429 y se mostraban
-// como "Sin resultados en la zona" (en Pichincha decía que no había farmacias).
-// Un rubro sin resultado ahora simplemente no aparece; sin nada, la fila no se
-// dibuja. Lazy (IntersectionObserver) + cache localStorage 24 h por coords.
+// Los datos salen de /api/cercanos (Overpass consultado desde el servidor, UNA
+// vez por coordenada, guardado un año; ver lib/cercanos.ts). Antes el navegador
+// le pedía a Overpass directo y con los servidores públicos saturados la fila no
+// aparecía nunca. Un rubro sin resultado no aparece; sin nada, la fila no se
+// dibuja. Lazy (IntersectionObserver).
 
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -22,119 +22,32 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { FONDO_SUAVE, TEXTO, TINTA } from './estilos'
+import type { CercanoChip as Cercano } from '@/lib/cercanos'
 
 interface Rubro {
   key: string
   label: string
   Icon: LucideIcon
-  radio: number
-  filtro: string
-  es: (t: Record<string, string>) => boolean
 }
 
-// Orden = orden de los chips.
+// Orden = orden de los chips (el servidor ya los devuelve en este orden).
 const RUBROS: Rubro[] = [
-  { key: 'escuela', label: 'Escuela', Icon: GraduationCap, radio: 1500, filtro: 'nwr["amenity"="school"]', es: t => t.amenity === 'school' },
-  { key: 'super', label: 'Súper', Icon: ShoppingCart, radio: 1200, filtro: 'nwr["shop"~"^(supermarket|convenience)$"]', es: t => t.shop === 'supermarket' || t.shop === 'convenience' },
-  { key: 'farmacia', label: 'Farmacia', Icon: Pill, radio: 1200, filtro: 'nwr["amenity"="pharmacy"]', es: t => t.amenity === 'pharmacy' },
-  { key: 'colectivo', label: 'Colectivo', Icon: Bus, radio: 500, filtro: 'node["highway"="bus_stop"]', es: t => t.highway === 'bus_stop' },
-  { key: 'tren', label: 'Tren', Icon: TrainFront, radio: 2000, filtro: 'nwr["railway"~"^(station|halt)$"]', es: t => t.railway === 'station' || t.railway === 'halt' },
-  { key: 'plaza', label: 'Plaza', Icon: Trees, radio: 1000, filtro: 'nwr["leisure"~"^(park|playground)$"]', es: t => t.leisure === 'park' || t.leisure === 'playground' },
-  { key: 'salud', label: 'Salud', Icon: Stethoscope, radio: 2500, filtro: 'nwr["amenity"~"^(hospital|clinic)$"]', es: t => t.amenity === 'hospital' || t.amenity === 'clinic' },
-  { key: 'banco', label: 'Banco', Icon: Landmark, radio: 1200, filtro: 'nwr["amenity"="bank"]', es: t => t.amenity === 'bank' },
+  { key: 'escuela', label: 'Escuela', Icon: GraduationCap },
+  { key: 'super', label: 'Súper', Icon: ShoppingCart },
+  { key: 'farmacia', label: 'Farmacia', Icon: Pill },
+  { key: 'colectivo', label: 'Colectivo', Icon: Bus },
+  { key: 'tren', label: 'Tren', Icon: TrainFront },
+  { key: 'plaza', label: 'Plaza', Icon: Trees },
+  { key: 'salud', label: 'Salud', Icon: Stethoscope },
+  { key: 'banco', label: 'Banco', Icon: Landmark },
 ]
 
-const ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-]
-const TIMEOUT_MS = 9000
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000
-
-interface Cercano {
-  key: string
-  distancia: number
-  nombre?: string
-}
-
-interface OverpassElement {
-  tags?: Record<string, string>
-  lat?: number
-  lon?: number
-  center?: { lat: number; lon: number }
-}
-
-function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
+// La primera vez de una coordenada el servidor puede tardar ~20 s (Overpass).
+const TIMEOUT_MS = 30000
 
 function formatDistance(m: number): string {
   if (m < 1000) return `${Math.max(50, Math.round(m / 10) * 10)} m`
   return `${(m / 1000).toFixed(1).replace('.', ',')} km`
-}
-
-const cacheKey = (lat: number, lng: number) => `vfc_cerca_v1_${lat.toFixed(4)}_${lng.toFixed(4)}`
-
-function leerCache(key: string): Cercano[] | null {
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as { t: number; v: Cercano[] }
-    if (!parsed || typeof parsed.t !== 'number' || Date.now() - parsed.t > CACHE_TTL_MS) return null
-    return parsed.v
-  } catch {
-    return null
-  }
-}
-
-function guardarCache(key: string, v: Cercano[]) {
-  try {
-    localStorage.setItem(key, JSON.stringify({ t: Date.now(), v }))
-  } catch {
-    /* quota / modo privado */
-  }
-}
-
-async function buscarCercanos(lat: number, lng: number, signal: AbortSignal): Promise<Cercano[] | null> {
-  const partes = RUBROS.map(r => `${r.filtro}(around:${r.radio},${lat},${lng});`).join('')
-  const body = `data=${encodeURIComponent(`[out:json][timeout:8];(${partes});out center 600;`)}`
-
-  for (const url of ENDPOINTS) {
-    try {
-      const r = await fetch(url, {
-        method: 'POST',
-        body,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        signal,
-      })
-      if (!r.ok) continue
-      const data = (await r.json()) as { elements?: OverpassElement[] }
-      if (!Array.isArray(data.elements)) continue
-
-      const mejor = new Map<string, Cercano>()
-      for (const el of data.elements) {
-        const tags = el.tags || {}
-        const elLat = el.lat ?? el.center?.lat
-        const elLng = el.lon ?? el.center?.lon
-        if (!elLat || !elLng) continue
-        const rubro = RUBROS.find(rb => rb.es(tags))
-        if (!rubro) continue
-        const distancia = Math.round(haversineMeters(lat, lng, elLat, elLng))
-        const prev = mejor.get(rubro.key)
-        if (!prev || distancia < prev.distancia) mejor.set(rubro.key, { key: rubro.key, distancia, nombre: tags.name })
-      }
-      return RUBROS.map(rb => mejor.get(rb.key)).filter((c): c is Cercano => Boolean(c))
-    } catch {
-      /* probar el siguiente endpoint */
-    }
-  }
-  return null
 }
 
 export default function CercaChips({ lat, lng }: { lat: number; lng: number }) {
@@ -162,27 +75,21 @@ export default function CercaChips({ lat, lng }: { lat: number; lng: number }) {
 
   useEffect(() => {
     if (!visible) return
-    const key = cacheKey(lat, lng)
-    const cache = leerCache(key)
-    if (cache) {
-      setCercanos(cache)
-      setTermino(true)
-      return
-    }
+    let vivo = true
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
-    buscarCercanos(lat, lng, controller.signal)
-      .then(res => {
-        if (res) {
-          guardarCache(key, res)
-          setCercanos(res)
-        }
+    fetch(`/api/cercanos?lat=${lat.toFixed(4)}&lng=${lng.toFixed(4)}`, { signal: controller.signal })
+      .then(r => (r.ok ? r.json() : null))
+      .then((d: { chips?: Cercano[] } | null) => {
+        if (vivo && d?.chips) setCercanos(d.chips)
       })
+      .catch(() => {})
       .finally(() => {
         clearTimeout(timer)
-        setTermino(true)
+        if (vivo) setTermino(true)
       })
     return () => {
+      vivo = false
       controller.abort()
       clearTimeout(timer)
     }

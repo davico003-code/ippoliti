@@ -18,11 +18,27 @@ export function trackEvent(eventName: string, params?: Record<string, string | n
   }
 }
 
-export function trackFbEvent(eventName: string, params?: Record<string, string | number | string[]>) {
+/**
+ * `eventId` (17-oct-2026): el mismo id viaja a Hilo con la consulta y Hilo lo
+ * manda por la Conversions API; Meta deduplica por (evento, eventID) y cuenta
+ * UNA consulta aunque el navegador tenga bloqueadores.
+ */
+export function trackFbEvent(eventName: string, params?: Record<string, string | number | string[]>, eventId?: string) {
   if (typeof window === 'undefined') return
   if (window.fbq) {
-    window.fbq('track', eventName, params)
+    if (eventId) window.fbq('track', eventName, params, { eventID: eventId })
+    else window.fbq('track', eventName, params)
   }
+}
+
+/** Id de evento para el píxel + CAPI (uno por consulta enviada). */
+export function idEventoMeta(): string {
+  try {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
+  } catch {
+    /* sin crypto */
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`
 }
 
 // Evento custom del píxel (fbq('trackCustom')): para nombres que no son
@@ -84,9 +100,13 @@ export const events = {
       method,
     }),
 
+  // Lead del píxel = SOLO consultas de compra (17-oct-2026): la pauta optimiza
+  // a Lead y antes lo disparaban newsletter, tasador y calculadoras → Meta
+  // aprendía de suscriptores. Tasación va como evento propio (captación puede
+  // optimizar a esa conversión personalizada); las calculadoras son Contact.
   submitTasacion: () => {
     trackEvent('submit_tasacion')
-    trackFbEvent('Lead', { content_name: 'Tasación' })
+    trackFbCustomEvent('TasacionPedida', { content_name: 'Tasación' })
   },
 
   useFilter: (filterName: string, value: string) =>
@@ -103,17 +123,16 @@ export const events = {
   calculadoraCostosDescargar: () => trackEvent('calculadora_costos_descargar'),
   calculadoraCostosWhatsapp: () => {
     trackEvent('calculadora_costos_whatsapp_click')
-    trackFbEvent('Lead', { content_name: 'Calculadora costos alquiler' })
+    trackFbEvent('Contact', { content_name: 'Calculadora costos alquiler', content_category: 'whatsapp' })
   },
 
   calculadoraAjusteView: () => trackEvent('calculadora_ajuste_view'),
   calculadoraAjusteWhatsapp: () => {
     trackEvent('calculadora_ajuste_whatsapp_click')
-    trackFbEvent('Lead', { content_name: 'Calculadora ajuste alquiler' })
+    trackFbEvent('Contact', { content_name: 'Calculadora ajuste alquiler', content_category: 'whatsapp' })
   },
 
   fichaPropiedadCalculadoraClick: () => {
     trackEvent('ficha_propiedad_calculadora_click')
-    trackFbEvent('Lead', { content_name: 'Ficha propiedad → Calculadora costos' })
   },
 }

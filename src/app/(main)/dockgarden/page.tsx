@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
 import { getDockGarden } from '@/lib/brickfy'
@@ -23,7 +23,7 @@ const PAGE_URL = 'https://siinmobiliaria.com/dockgarden'
 const CONTENEDOR = 'mx-auto w-full max-w-6xl px-4 sm:px-6'
 
 export const metadata: Metadata = {
-  title: 'Dock Garden — Unidades, precios y vistas 360° | SI INMOBILIARIA',
+  title: 'Dock Garden — Unidades, precios y vistas 360°',
   description:
     'Todas las unidades en venta de Dock Garden Aldea Fisherton: precios, planos, fotos y recorridos 360°. Financiación en cuotas en USD. SI INMOBILIARIA.',
   robots: { index: false, follow: true },

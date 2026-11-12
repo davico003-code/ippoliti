@@ -2,9 +2,9 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import { VOYAGER_TILES } from '@/lib/map-tiles'
+import CapaCalles from './CapaCalles'
 
 const markerIcon = L.divIcon({
   className: '',
@@ -51,11 +51,7 @@ export default function TasacionesMap({ center, onPositionChange }: Props) {
         scrollWheelZoom={false}
         zoomControl={false}
       >
-        <TileLayer className="si-street-tiles"
-          url={VOYAGER_TILES.url}
-          attribution={VOYAGER_TILES.attribution}
-          maxZoom={19}
-        />
+        <CapaCalles maxZoom={19} />
         <FlyTo center={center} />
         <Marker
           position={center}

@@ -100,10 +100,11 @@ else
 fi
 
 # 5. MUESTRA DE URLS
+# (while read en vez de mapfile: el bash 3 de macOS no lo tiene y la muestra quedaba vacía)
 sample=()
-mapfile -t -O "${#sample[@]}" sample < <(grep "$BASE/propiedades/" "$LOCS" | head -4)
-mapfile -t -O "${#sample[@]}" sample < <(grep "$BASE/blog/" "$LOCS" | head -3)
-mapfile -t -O "${#sample[@]}" sample < <(grep "$BASE/emprendimientos/" "$LOCS" | head -2)
+while IFS= read -r u; do sample+=("$u"); done < <(grep "$BASE/propiedades/" "$LOCS" | head -4)
+while IFS= read -r u; do sample+=("$u"); done < <(grep "$BASE/blog/" "$LOCS" | head -3)
+while IFS= read -r u; do sample+=("$u"); done < <(grep "$BASE/emprendimientos/" "$LOCS" | head -2)
 sample+=("$BASE/guia" "$BASE/informes" "$BASE/barrios-privados")
 sample_fail=0
 for u in "${sample[@]}"; do

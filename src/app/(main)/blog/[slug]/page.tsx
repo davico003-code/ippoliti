@@ -1,13 +1,17 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/lib/blog'
+import { notasRelacionadas } from '@/lib/notas-relacionadas'
+import { zonasMencionadas } from '@/lib/zonas-links'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
 import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
 import BurbujaDavid from '@/components/BurbujaDavid'
+import CompartirPagina from '@/components/CompartirPagina'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -36,8 +40,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `https://siinmobiliaria.com${resolved}`
 
   return {
-    title: `${post.title} | Blog SI INMOBILIARIA`,
-    description: post.summary,
+    title: tituloConMarca(post.title),
+    description: recortarDescripcion(post.summary),
     alternates: { canonical: url },
     openGraph: {
       title: post.title,
@@ -240,10 +244,11 @@ export default async function BlogPostPage({ params }: Props) {
   // relacionados sean consistentes con lo que el usuario vio en /blog.
   const category = resolveCategory(post.slug, post.category)
   const allPosts = await getAllPosts()
-  const related = allPosts
-    .filter(p => p.slug !== post.slug)
-    .filter(p => resolveCategory(p.slug, p.category) === category)
-    .slice(0, 3)
+  // Tres notas relacionadas, repartidas para que TODAS reciban links (antes
+  // eran siempre las 3 más nuevas de la categoría: ver lib/notas-relacionadas).
+  const related = notasRelacionadas(post.slug, allPosts, p => resolveCategory(p.slug, p.category))
+  // Las páginas de barrio y localidad que la nota menciona.
+  const zonas = zonasMencionadas(`${post.title} ${post.content}`)
 
   const isDavidFlores = post.author?.toLowerCase().includes('david flores') ?? false
   const authorName = isDavidFlores ? 'David Flores' : post.author || 'SI INMOBILIARIA'
@@ -351,6 +356,16 @@ export default async function BlogPostPage({ params }: Props) {
                 {minutos} min de lectura
               </span>
             </div>
+            {/* Compartir arriba, junto al título: quien llega desde un grupo de
+                WhatsApp la reenvía sin tener que copiar la URL (botón client,
+                la nota sigue siendo ISR). */}
+            <CompartirPagina
+              titulo={post.title}
+              ruta={`/blog/${post.slug}`}
+              contexto="blog"
+              variante="sobreFoto"
+              className="mt-5"
+            />
           </div>
         </div>
       </header>
@@ -499,6 +514,13 @@ export default async function BlogPostPage({ params }: Props) {
             </p>
           )}
 
+          {/* ── Compartir al terminar de leer: es el momento en que la nota le
+              sirve a alguien más (checklists, informes, columnas). ── */}
+          <div className="mt-12 flex flex-col items-start gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[15px] font-semibold text-gray-800">¿Le sirve a alguien que conocés? Pasale la nota.</p>
+            <CompartirPagina titulo={post.title} ruta={`/blog/${post.slug}`} contexto="blog" />
+          </div>
+
           {/* ── Cierre según el tema de la nota (lib/blog-cta.ts) ── */}
           <div className="mt-14 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-8 md:px-10 md:py-10">
             <p className="text-xs font-bold uppercase tracking-wider text-[#1A5C38]">Para seguir</p>
@@ -539,6 +561,24 @@ export default async function BlogPostPage({ params }: Props) {
               )}
             </div>
           </div>
+
+          {/* ── ZONAS QUE MENCIONA LA NOTA ── */}
+          {zonas.length > 0 && (
+            <nav aria-label="Zonas de esta nota" className="mt-12 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-black text-gray-900 mb-4">Zonas de esta nota</h3>
+              <div className="flex flex-wrap gap-2">
+                {zonas.map(z => (
+                  <Link
+                    key={z.href}
+                    href={z.href}
+                    className="rounded-full bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#e7f2eb] hover:text-[#1A5C38] transition-colors"
+                  >
+                    {z.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
 
           {/* ── ARTÍCULOS RELACIONADOS ── */}
           {related.length > 0 && (

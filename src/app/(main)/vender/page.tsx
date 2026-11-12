@@ -11,6 +11,7 @@ import BarriosPorCiudad from '@/components/tasador/BarriosPorCiudad'
 import Tasador from '@/components/tasador/Tasador'
 import { opcionesTasar } from '@/lib/seo/tasar'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
+import { tituloConMarca } from '@/lib/seo/metas'
 
 // Se arma al pedirla (los números de Hilo piden la clave, que el build no tiene); la lectura de Hilo queda una hora en cache.
 export const dynamic = 'force-dynamic'
@@ -21,7 +22,7 @@ const DESCRIPCION =
   'Calculá cuánto vale tu casa, lote o departamento en tu barrio de Funes, Roldán o Rosario, con los avisos de hoy, y vendela con SI INMOBILIARIA: tasación de un corredor matriculado, difusión en todos los portales y seguimiento hasta la escritura.'
 
 export const metadata: Metadata = {
-  title: `${TITULO} | SI INMOBILIARIA`,
+  title: tituloConMarca(TITULO),
   description: DESCRIPCION,
   alternates: { canonical: `${BASE}/vender` },
   openGraph: { title: TITULO, description: DESCRIPCION, url: `${BASE}/vender`, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },
@@ -126,7 +127,7 @@ export default async function VenderPage() {
           <h2 id="barrios" className="font-raleway text-[clamp(26px,3.6vw,36px)] font-extrabold text-[#121A15]">
             Vendé en tu barrio
           </h2>
-          <p className="mt-2 max-w-[44rem] text-[16px] leading-relaxed text-[#3C4A42]">Cada barrio con su página: cuánto vale, cuántas hay en venta y a qué precios, con el tasador ya cargado.</p>
+          <p className="mt-2 max-w-[44rem] text-[16px] leading-relaxed text-[#3C4A42]">Cada barrio con su página: cuánto vale y a qué precios se publica, con el tasador ya cargado.</p>
           <div className="mt-8">
             <BarriosPorCiudad indice={indice} base="/vender" />
           </div>

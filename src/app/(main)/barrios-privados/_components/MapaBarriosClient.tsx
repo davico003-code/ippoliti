@@ -6,11 +6,12 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import { getBarriosHub, TIER_HUB_META } from "@/lib/barrios";
 import { LIGHT_TILES } from '@/lib/map-tiles'
+import CapaCalles from '@/components/CapaCalles'
 
 const TIER_BG: Record<string, string> = {
   premium: "#0d3d24",
@@ -59,10 +60,7 @@ export default function MapaBarriosClient() {
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
-        <TileLayer className="si-street-tiles"
-          url={LIGHT_TILES.url}
-          attribution={LIGHT_TILES.attribution}
-        />
+        <CapaCalles claras={LIGHT_TILES} />
         <FitBounds points={points} />
         {barrios.map((b) => (
           <Marker

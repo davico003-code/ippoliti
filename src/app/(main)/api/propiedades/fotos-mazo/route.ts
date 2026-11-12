@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllPhotos, getPropertyById } from '@/lib/tokko'
 import { MAX_FOTOS_MAZO } from '@/lib/mazo-items'
+import { conFotosFijas } from '@/lib/fotos-fijas'
 import { rateLimit } from '@/lib/feedback'
 
 // GET /api/propiedades/fotos-mazo?ids=123,456 → { fotos: { "123": [url, …] } }
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
   const pares = await Promise.all(
     ids.map(async (id): Promise<[number, string[]] | null> => {
       try {
-        const fotos = getAllPhotos(await getPropertyById(id)).slice(0, MAX_FOTOS_MAZO)
+        const fotos = getAllPhotos(conFotosFijas(await getPropertyById(id))).slice(0, MAX_FOTOS_MAZO)
         return fotos.length ? [id, fotos] : null
       } catch {
         // Una que ya no está (vendida, despublicada) no tumba a las demás.

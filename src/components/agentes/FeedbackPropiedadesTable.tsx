@@ -7,30 +7,32 @@
 // leads. Tap → desglose + lista de leads (PII). Botón "Archivar a Neon".
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ChevronDown } from 'lucide-react'
 import type { PanelRow } from '@/lib/feedback-admin'
 
-const POPPINS = "'Poppins', system-ui, sans-serif"
-const RALEWAY = "'Raleway', system-ui, sans-serif"
+const POPPINS = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
+const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const VERDE = '#1A5C38'
 const VERDE_OSCURO = '#0F3F26'
 const GRIS = '#7C8488'
 const LINEA = '#E9E3DA'
 const CARBON = '#24292B'
 
+// Desde oct-2026 la ficha pregunta "¿La comprarías?": encanta = Sí, duda = Tal
+// vez, no = No. 'cara' solo junta votos viejos de la carita 💸.
 const REACT_META: { key: 'encanta' | 'duda' | 'cara' | 'no'; emoji: string }[] = [
-  { key: 'encanta', emoji: '😍' },
+  { key: 'encanta', emoji: '👍' },
   { key: 'duda', emoji: '🤔' },
   { key: 'cara', emoji: '💸' },
-  { key: 'no', emoji: '🙈' },
+  { key: 'no', emoji: '👎' },
 ]
 
 const OBJ_LABEL: Record<string, string> = {
   estado: 'Estado',
   ubicacion: 'Ubicación',
   tamano: 'Tamaño',
-  metro: 'Metro caro',
+  metro: 'Precio',
   expensas: 'Expensas',
 }
 

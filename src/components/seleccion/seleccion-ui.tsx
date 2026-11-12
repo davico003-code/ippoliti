@@ -3,7 +3,7 @@
 // Piezas compartidas por la vista del cliente de una selección: el mazo del
 // celular, las tarjetas de la compu, la ficha en hoja y el cierre.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { BedDouble, Bath, Flame, Ruler } from 'lucide-react'
 import AgenteAvatar from '@/components/property-detail/AgenteAvatar'
 import { displayImageUrl } from '@/lib/external-images'
@@ -64,6 +64,8 @@ export const LINEA_EN_RED = 'Algunas las publican otras inmobiliarias. Te las mo
 // Fotos que /_next/image puede optimizar (remotePatterns de next.config). Las
 // de portales/proxy van directo, como en la ficha.
 function optimizable(src: string): boolean {
+  // Nuestras fotos con URL fija (/fotos/…, lib/fotos-fijas.ts): mismo deployment.
+  if (src.startsWith('/fotos/')) return true
   try {
     const u = new URL(src)
     const h = u.hostname

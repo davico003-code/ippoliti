@@ -9,7 +9,7 @@
 // Condo 7 (aviso propio en HILO), fotos de condos terminados de proyectta.com.ar.
 
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -44,7 +44,7 @@ import Num from '@/components/tierra-nueva/Num'
 
 const GREEN = '#1A5C38'
 
-const TITLE = 'Tierra Nueva · Departamentos en cuotas en Fisherton | SI INMOBILIARIA'
+const TITLE = 'Tierra Nueva · Departamentos en cuotas en Fisherton'
 const DESCRIPTION = `Condos 22, 23 y 24 de Tierra Nueva, Fisherton: departamentos de 1 y 2 dormitorios con cochera, pileta y SUM. Desde ${usd(
   TN_PRECIOS.unDorm.contado,
 )} de contado o ${TN_PRECIOS.cuotas} cuotas fijas en dólares sin anticipo. Planos, precios y financiación con SI INMOBILIARIA.`

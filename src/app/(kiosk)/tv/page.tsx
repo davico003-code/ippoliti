@@ -1,4 +1,5 @@
-// Página /tv — modo KIOSCO horizontal para televisor. Trae el mix de slides y
+// Página /tv — modo KIOSCO horizontal para televisor. Trae solo propiedades (los
+// emprendimientos van en la parada, /tv-vertical) y
 // deja que el cliente los cicle con animaciones en loop infinito.
 
 import { getSlides } from '../tvData'
@@ -8,6 +9,6 @@ import TvKioskClient from './TvKioskClient'
 export const revalidate = 1800
 
 export default async function TvPage() {
-  const slides = await getSlides()
-  return <TvKioskClient slides={slides} />
+  const { slides, respaldos } = await getSlides()
+  return <TvKioskClient slides={slides} respaldos={respaldos} />
 }

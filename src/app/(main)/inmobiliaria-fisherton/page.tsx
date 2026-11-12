@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Phone, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
@@ -32,7 +32,7 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Fisherton | Casas y Propiedades | SI INMOBILIARIA',
+  title: 'Inmobiliaria en Fisherton | Casas y Propiedades',
   description: 'Casas, departamentos y terrenos en Fisherton, Rosario. Inventario vigente, tasaciones profesionales y atención desde las oficinas de SI INMOBILIARIA en Funes y Roldán.',
   keywords: 'inmobiliaria fisherton, casas en fisherton, propiedades fisherton, fisherton rosario',
   alternates: { canonical: 'https://siinmobiliaria.com/inmobiliaria-fisherton' },

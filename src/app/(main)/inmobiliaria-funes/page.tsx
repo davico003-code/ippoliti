@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Phone, TreePine, School, Shield, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
+import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'
 
 export const revalidate = 21600
 
@@ -62,7 +63,7 @@ const faqJsonLd = {
 }
 
 export const metadata: Metadata = {
-  title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos | SI INMOBILIARIA',
+  title: 'Inmobiliaria en Funes | Casas, Terrenos y Departamentos',
   description:
     'Inmobiliaria en Funes con oficina local. Casas, terrenos y departamentos, inventario vigente, tasaciones profesionales y asesoramiento con más de 40 años de trayectoria.',
   keywords: 'inmobiliaria funes, casas en funes, terrenos en funes, propiedades funes, inmobiliaria funes santa fe, casas en venta funes, alquiler funes',
@@ -323,6 +324,8 @@ export default async function InmobiliariaFunesPage() {
           </div>
         </div>
       </section>
+
+      <BarriosDeLaZona zona="funes" nombre="Funes" />
 
       {/* Related Links */}
       <section className="py-12 px-4 bg-white border-t">

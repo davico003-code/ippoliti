@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#f4f6f4">
+  <title>Ronda Funes Roldán · Propiedades entre colegas</title>
+  <meta name="description" content="Una vez por mes, las inmobiliarias de Funes y Roldán comparten sus oportunidades reales. Buscá, escribile al colega y mandale la ficha a tu cliente.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Ronda Funes Roldán">
+  <meta property="og:description" content="Oportunidades reales de Funes y Roldán, compartidas entre colegas una vez por mes.">
+  <meta property="og:image" content="https://verficha.casa/ronda/portada.png">
+  <meta property="og:url" content="https://verficha.casa/ronda">
+  <link rel="icon" href="/ronda/icono.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/ronda/icono-apple.png">
+  <link rel="manifest" href="/ronda/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Ronda">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Manrope:wght@700;800&display=swap">
+  <link rel="stylesheet" href="/ronda/styles.css">
+</head>
+<body>
+  <a class="saltar" href="#grilla">Ir a las oportunidades</a>
+
+  <header class="tope">
+    <div class="envoltura tope-fila">
+      <a class="marca" href="/ronda" translate="no">
+        <span class="marca-icono" aria-hidden="true">↗</span>
+        <span class="marca-texto">RONDA <span>Funes · Roldán</span><small>Negocios entre colegas</small></span>
+      </a>
+      <div class="tope-acciones">
+        <button class="boton-icono" id="abrirGuia" type="button" aria-label="Cómo funciona la ronda">?</button>
+        <button class="boton-perfil" id="abrirPerfil" type="button" aria-label="Mis datos" hidden></button>
+        <button class="boton primario solo-escritorio" type="button" data-publicar>+ Publicar</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="envoltura" id="contenido">
+    <section class="portada">
+      <p class="antetitulo" id="semana">RONDA MENSUAL</p>
+      <h1>Oportunidades del mes</h1>
+      <p>Solo oportunidades reales, cada una con su motivo, y lo que buscan los clientes de los colegas. Duran 30&nbsp;días.</p>
+      <dl class="actividad" id="actividad" aria-label="Actividad de la ronda" hidden></dl>
+    </section>
+
+    <!-- Las dos mitades de la ronda (David, 16-oct-2026): lo que se ofrece y lo que se busca. -->
+    <nav class="vistas" aria-label="Qué ver">
+      <button type="button" class="vista-boton" data-vista="oportunidades" aria-pressed="true">
+        <span class="vista-titulo">Oportunidades <b id="cuentaOportunidades"></b></span>
+        <small>Lo que ofrecen los colegas</small>
+      </button>
+      <button type="button" class="vista-boton" data-vista="pedidos" aria-pressed="false">
+        <span class="vista-titulo">Pedidos<span class="solo-ancho">&nbsp;de colegas</span> <b id="cuentaPedidos"></b></span>
+        <small>Lo que buscan los colegas</small>
+      </button>
+    </nav>
+
+    <section class="filtros" aria-label="Buscar y filtrar">
+      <div class="buscador">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="buscar" name="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="Buscar barrio, colega o inmobiliaria…" aria-label="Buscar oportunidades">
+      </div>
+      <div class="filtro-fila">
+        <span class="filtro-rotulo" id="rotuloTipo">Tipo</span>
+        <div class="segmentos" id="filtroTipo" role="group" aria-labelledby="rotuloTipo">
+          <button type="button" class="segmento" data-tipo="">Todas</button>
+          <button type="button" class="segmento" data-tipo="Casa">Casas</button>
+          <button type="button" class="segmento" data-tipo="Lote">Lotes</button>
+          <button type="button" class="segmento" data-tipo="Departamento">Deptos</button>
+        </div>
+      </div>
+      <div class="filtro-fila">
+        <span class="filtro-rotulo" id="rotuloCiudad">Ciudad</span>
+        <div class="segmentos" id="filtroCiudad" role="group" aria-labelledby="rotuloCiudad">
+          <button type="button" class="segmento" data-ciudad="">Ambas</button>
+          <button type="button" class="segmento" data-ciudad="Funes">Funes</button>
+          <button type="button" class="segmento" data-ciudad="Roldán">Roldán</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="resumen">
+      <p id="conteo" aria-live="polite"></p>
+      <label class="orden">Ordenar
+        <select id="orden" name="orden">
+          <option value="">Más recientes</option>
+          <option value="precio-asc">Menor precio</option>
+          <option value="precio-desc">Mayor precio</option>
+        </select>
+      </label>
+    </div>
+
+    <p class="filtro-ids" id="filtroIds" hidden><span id="filtroIdsTexto"></span> <button type="button" class="enlace" data-quitar-ids>Ver todas</button></p>
+    <section id="grilla" class="grilla" aria-label="Propiedades de la ronda"></section>
+  </main>
+
+  <footer class="envoltura pie">
+    <span translate="no">↗ RONDA FUNES ROLDÁN</span>
+    <span>Propiedades compartidas entre inmobiliarias colegas</span>
+  </footer>
+
+  <div class="barra-publicar solo-celular">
+    <button class="boton primario grande" type="button" data-publicar>+ Publicar</button>
+  </div>
+
+  <!-- La puerta: clave de acceso -->
+  <dialog id="clave" class="hoja completa" aria-labelledby="claveTitulo">
+    <form id="claveForm" class="hoja-cuerpo" novalidate>
+      <p class="antetitulo" translate="no">RONDA FUNES ROLDÁN</p>
+      <h2 id="claveTitulo">Ingresá la clave de acceso</h2>
+      <p class="ayuda">La Ronda es solo para inmobiliarias de Funes y Roldán. La clave te la pasa quien te invitó.</p>
+      <div class="campo">
+        <label for="claveCampo">Clave de acceso</label>
+        <input id="claveCampo" name="clave" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="80" placeholder="Escribila acá…">
+        <p class="error" id="claveError" hidden></p>
+      </div>
+      <button class="boton primario grande" type="submit">Entrar</button>
+    </form>
+  </dialog>
+
+  <!-- Primera vez: quién sos -->
+  <dialog id="ingreso" class="hoja completa" aria-labelledby="ingresoTitulo">
+    <form id="ingresoForm" class="hoja-cuerpo" novalidate>
+      <div class="hoja-cabeza">
+        <div>
+          <p class="antetitulo" translate="no">RONDA FUNES ROLDÁN</p>
+          <h2 id="ingresoTitulo">Antes de entrar, contanos quién sos</h2>
+        </div>
+        <button type="button" class="cerrar" data-cerrar aria-label="Cerrar" hidden>×</button>
+      </div>
+      <p class="ayuda" id="ingresoAyuda">Lo cargás una sola vez. Los colegas te van a escribir a ese WhatsApp.</p>
+
+      <div class="campo">
+        <label for="inmoNombre">Tu inmobiliaria</label>
+        <input id="inmoNombre" name="inmobiliaria" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Empezá a escribir el nombre…" role="combobox" aria-expanded="false" aria-controls="inmoLista" aria-autocomplete="list">
+        <div id="inmoLista" class="sugerencias" role="listbox" aria-label="Inmobiliarias" hidden></div>
+        <div id="inmoElegida" class="elegida" hidden>
+          <div><strong></strong><small></small></div>
+          <button type="button" class="enlace" id="inmoCambiar">Cambiar</button>
+        </div>
+        <p class="error" id="inmoError" hidden></p>
+      </div>
+
+      <div id="inmoNueva" class="bloque-nueva" hidden>
+        <p class="nota">Tu inmobiliaria todavía no está en la lista: la sumamos ahora. La próxima persona de tu equipo ya la va a encontrar.</p>
+        <div class="campo">
+          <label for="matriculado">Matriculado a cargo</label>
+          <input id="matriculado" name="matriculado" autocomplete="off" autocapitalize="words" maxlength="80" placeholder="Nombre y apellido…">
+          <p class="error" id="matriculadoError" hidden></p>
+        </div>
+        <div class="campo">
+          <label for="matricula">Matrícula</label>
+          <input id="matricula" name="matricula" autocomplete="off" maxlength="40" placeholder="Ej.: 1234…">
+          <p class="error" id="matriculaError" hidden></p>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="nombre">Tu nombre y apellido</label>
+        <input id="nombre" name="nombre" autocomplete="name" autocapitalize="words" maxlength="60" placeholder="Ej.: María López…">
+        <p class="error" id="nombreError" hidden></p>
+      </div>
+
+      <div class="campo">
+        <label for="whatsapp">Tu WhatsApp</label>
+        <input id="whatsapp" name="whatsapp" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="24" placeholder="3413340916" aria-describedby="whatsappAyuda">
+        <p class="error" id="whatsappError" hidden></p>
+        <p class="ayuda chica" id="whatsappAyuda">Con característica, sin 0 y sin 15. Ejemplo: 3413340916</p>
+      </div>
+
+      <p class="error" id="ingresoError" hidden></p>
+      <button class="boton primario grande" type="submit">Entrar a la ronda</button>
+    </form>
+  </dialog>
+
+  <!-- Cómo funciona -->
+  <dialog id="guia" class="hoja" aria-labelledby="guiaTitulo">
+    <div class="hoja-cuerpo">
+      <div class="hoja-cabeza">
+        <div>
+          <p class="antetitulo">CÓMO FUNCIONA</p>
+          <h2 id="guiaTitulo">Así funciona la ronda</h2>
+        </div>
+        <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
+      </div>
+      <ol class="pasos">
+        <li><span aria-hidden="true">1</span><div><strong>Buscá una oportunidad</strong><p>Están todas en esta pantalla, con sus fotos (deslizalas con el dedo), sus datos y el motivo por el que es oportunidad. Filtrá por tipo y por ciudad.</p></div></li>
+        <li><span aria-hidden="true">2</span><div><strong>Escribile al colega</strong><p>Cada oportunidad dice quién la publicó. Tocás «Consultarle al colega» y le escribís directo por WhatsApp.</p></div></li>
+        <li><span aria-hidden="true">3</span><div><strong>Mandale la ficha a tu cliente</strong><p>«Copiar ficha para mi cliente» te da el enlace: si vino de Zonaprop, una ficha neutra sin logos ni datos del colega; si es de Tokko, la ficha original tal cual.</p></div></li>
+        <li><span aria-hidden="true">✦</span><div><strong>¿Tenés un cliente buscando?</strong><p>En «Pedidos de colegas» publicás qué busca, en qué barrios, con qué presupuesto y cómo puede cerrar. La ronda te muestra qué oportunidades encajan y avisa a los colegas que tienen algo.</p></div></li>
+        <li><span aria-hidden="true">4</span><div><strong>Publicá tus oportunidades</strong><p>Pegás el aviso de Zonaprop (se convierte solo en una ficha neutra) o la ficha de Tokko (se comparte tal cual) y escribís por qué es una oportunidad (es obligatorio). Dura 30&nbsp;días; hasta 3 por inmobiliaria. Si querés cambiarla, la reemplazás y arranca de cero.</p></div></li>
+      </ol>
+      <p class="nota consejo">Guardala como app: en iPhone tocá Compartir y «Agregar a inicio»; en Android, el menú ⋮ y «Agregar a la pantalla principal».</p>
+      <button class="boton primario grande" type="button" data-cerrar>Ver las oportunidades</button>
+    </div>
+  </dialog>
+
+  <!-- ¿Qué publicar? -->
+  <dialog id="elegir" class="hoja" aria-labelledby="elegirTitulo">
+    <div class="hoja-cuerpo">
+      <div class="hoja-cabeza">
+        <div>
+          <p class="antetitulo">PUBLICAR</p>
+          <h2 id="elegirTitulo">¿Qué querés publicar?</h2>
+        </div>
+        <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
+      </div>
+      <div class="elegir-opciones">
+        <button type="button" class="opcion-grande" data-publicar-oportunidad>
+          <strong>Tengo una oportunidad</strong>
+          <span>Una propiedad para ofrecerle a los colegas. Pegás el link del aviso.</span>
+        </button>
+        <button type="button" class="opcion-grande destacada" data-publicar-pedido>
+          <strong>Busco para un cliente</strong>
+          <span>Qué busca, en qué barrios, con qué presupuesto y cómo puede cerrar. Te mostramos qué encaja.</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Pedido de búsqueda -->
+  <dialog id="pedido" class="hoja completa" aria-labelledby="pedidoTitulo">
+    <form id="pedidoForm" class="hoja-cuerpo" novalidate>
+      <div class="hoja-cabeza">
+        <div>
+          <p class="antetitulo">PEDIDO DE BÚSQUEDA</p>
+          <h2 id="pedidoTitulo">¿Qué busca tu cliente?</h2>
+        </div>
+        <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
+      </div>
+      <p class="cupo" id="cupoPedidos"></p>
+
+      <fieldset class="campo">
+        <legend>Busca para</legend>
+        <div class="opciones">
+          <label class="opcion"><input type="radio" name="operacion" value="Compra" checked><span>Comprar</span></label>
+          <label class="opcion"><input type="radio" name="operacion" value="Alquiler"><span>Alquilar</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="campo">
+        <legend>¿Qué busca? <span class="opcional">(podés marcar más de uno)</span></legend>
+        <div class="chips-opciones">
+          <label class="chip-opcion"><input type="checkbox" name="tipos" value="Casa"><span>Casa</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="tipos" value="Lote"><span>Lote</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="tipos" value="Departamento"><span>Depto</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="tipos" value="Otro"><span>Local u otro</span></label>
+        </div>
+        <p class="error" id="tiposError" hidden></p>
+      </fieldset>
+
+      <fieldset class="campo">
+        <legend>¿Dónde?</legend>
+        <div class="chips-opciones">
+          <label class="chip-opcion"><input type="checkbox" name="ciudades" value="Funes"><span>Funes</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="ciudades" value="Roldán"><span>Roldán</span></label>
+        </div>
+        <div class="barrio-buscar">
+          <label for="pedidoBarrio" class="sub-rotulo">Barrios <span class="opcional">(opcional)</span></label>
+          <input id="pedidoBarrio" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="barrioSugerencias" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" maxlength="40" placeholder="Escribí el barrio, ej.: Kentucky">
+          <ul id="barrioSugerencias" class="sugerencias" role="listbox" aria-label="Barrios" hidden></ul>
+        </div>
+        <ul id="barriosElegidos" class="elegidos" aria-label="Barrios elegidos"></ul>
+        <p class="ayuda chica">Si no elegís barrios, busca en toda la ciudad.</p>
+        <p class="error" id="dondeError" hidden></p>
+      </fieldset>
+
+      <div class="campo">
+        <label for="pedidoHasta">Presupuesto: hasta</label>
+        <div class="precio-fila">
+          <input id="pedidoHasta" name="hasta" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="Ej.: 200.000">
+          <select name="moneda" aria-label="Moneda"><option value="USD">US$</option><option value="ARS">$</option></select>
+        </div>
+        <label for="pedidoDesde" class="desde">Desde <span class="opcional">(opcional)</span></label>
+        <input id="pedidoDesde" name="desde" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="Ej.: 150.000">
+      </div>
+
+      <fieldset class="campo">
+        <legend>Dormitorios <span class="opcional">(opcional)</span></legend>
+        <div class="chips-opciones">
+          <label class="chip-opcion"><input type="radio" name="dormitorios" value="" checked><span>Cualquiera</span></label>
+          <label class="chip-opcion"><input type="radio" name="dormitorios" value="1"><span>1+</span></label>
+          <label class="chip-opcion"><input type="radio" name="dormitorios" value="2"><span>2+</span></label>
+          <label class="chip-opcion"><input type="radio" name="dormitorios" value="3"><span>3+</span></label>
+          <label class="chip-opcion"><input type="radio" name="dormitorios" value="4"><span>4+</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="campo">
+        <legend>¿Cómo puede cerrar el negocio?</legend>
+        <div class="chips-opciones">
+          <label class="chip-opcion"><input type="checkbox" name="cierre" value="Contado"><span>Contado</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="cierre" value="Crédito hipotecario"><span>Crédito hipotecario</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="cierre" value="Permuta"><span>Permuta</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="cierre" value="Financiación"><span>Financiación</span></label>
+          <label class="chip-opcion"><input type="checkbox" name="cierre" value="Vende para comprar"><span>Vende para comprar</span></label>
+        </div>
+        <p class="error" id="cierreError" hidden></p>
+      </fieldset>
+
+      <div class="campo">
+        <label for="pedidoComentario">Algo más <span class="opcional">(opcional)</span></label>
+        <textarea id="pedidoComentario" name="comentario" maxlength="280" rows="2" placeholder="Ej.: necesita mudarse antes de marzo; prefiere planta baja…"></textarea>
+        <p class="ayuda chica">Lo ven solo los colegas. No pongas datos personales del cliente.</p>
+      </div>
+
+      <p class="error" id="pedidoError" hidden></p>
+      <div class="fila-botones">
+        <button type="button" class="boton suave" data-cerrar>Cancelar</button>
+        <button class="boton primario" type="submit">Publicar pedido por 30 días</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Publicar -->
+  <dialog id="publicar" class="hoja completa" aria-labelledby="publicarTitulo">
+    <div class="hoja-cuerpo">
+      <div class="hoja-cabeza">
+        <div>
+          <p class="antetitulo">PUBLICAR</p>
+          <h2 id="publicarTitulo">Publicar una oportunidad</h2>
+        </div>
+        <button type="button" class="cerrar" data-cerrar aria-label="Cerrar">×</button>
+      </div>
+      <p class="cupo" id="cupo"></p>
+      <p class="nota" id="reemplazoNota" hidden></p>
+
+      <div id="pasoLleno" hidden>
+        <p class="nota" id="llenoNota"></p>
+        <ul class="lista-propias" id="propias"></ul>
+      </div>
+
+      <form id="pasoEnlace" novalidate>
+        <div class="campo">
+          <label for="enlace">Enlace de la propiedad</label>
+          <div class="con-boton">
+            <input id="enlace" name="enlace" type="url" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Pegá acá el enlace…" aria-describedby="enlaceAyuda">
+            <button type="button" class="boton suave" id="pegar" hidden>Pegar</button>
+          </div>
+          <p class="error" id="enlaceError" hidden></p>
+          <p class="ayuda chica" id="enlaceAyuda">Se publica solo pegando el link: los datos y las fotos se cargan solos. El aviso de <strong>Zonaprop</strong> se convierte en una ficha neutra (sin logos) que cualquiera puede compartir; la ficha de <strong>Tokko</strong> se comparte tal cual.</p>
+        </div>
+        <button class="boton primario grande" type="submit">Revisar la propiedad</button>
+        <p class="estado" id="leyendo" role="status" hidden>Leyendo la ficha…</p>
+      </form>
+
+      <form id="pasoConfirmar" novalidate hidden>
+        <div class="vista" id="vista"></div>
+        <p class="nota" id="comoSeComparte"></p>
+        <fieldset class="campo">
+          <legend>¿En qué ciudad está?</legend>
+          <div class="opciones">
+            <label class="opcion"><input type="radio" name="ciudad" value="Funes"><span>Funes</span></label>
+            <label class="opcion"><input type="radio" name="ciudad" value="Roldán"><span>Roldán</span></label>
+          </div>
+          <p class="error" id="ciudadError" hidden></p>
+        </fieldset>
+        <div class="campo" id="campoPrecio" hidden>
+          <label for="precioLeido">Precio en <span id="precioMoneda">US$</span> <span class="opcional">(vacío = a consultar)</span></label>
+          <input id="precioLeido" name="precio" inputmode="numeric" autocomplete="off" maxlength="15" aria-describedby="precioAyuda">
+          <p class="ayuda chica" id="precioAyuda"></p>
+        </div>
+        <div class="campo">
+          <label for="oportunidad">¿Por qué es una oportunidad? <span class="obligatorio">(obligatorio)</span></label>
+          <textarea id="oportunidad" name="oportunidad" maxlength="500" rows="3" required aria-describedby="motivoAyuda" placeholder="Ej.: está 15 % por debajo de lo que se pide en el barrio y el dueño necesita vender este mes…"></textarea>
+          <p class="error" id="motivoError" hidden></p>
+          <p class="ayuda chica" id="motivoAyuda">Solo oportunidades reales: precio, urgencia del dueño, permuta, financiación… Lo ven solo los colegas; no escribas datos personales del propietario.</p>
+        </div>
+        <p class="error" id="publicarError" hidden></p>
+        <div class="fila-botones">
+          <button type="button" class="boton suave" id="cambiarEnlace">Cambiar enlace</button>
+          <button class="boton primario" type="submit">Publicar por 30 días</button>
+        </div>
+        <p class="estado" id="publicando" role="status" hidden>Publicando… estamos armando la ficha para clientes.</p>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Una propiedad -->
+  <dialog id="detalle" class="hoja completa" aria-labelledby="detalleTitulo">
+    <div class="hoja-cuerpo" id="detalleCuerpo"></div>
+  </dialog>
+
+  <!-- Confirmar la baja -->
+  <dialog id="baja" class="hoja" aria-labelledby="bajaTitulo">
+    <div class="hoja-cuerpo">
+      <h2 id="bajaTitulo">¿Eliminar esta oportunidad?</h2>
+      <p class="ayuda" id="bajaAyuda">Sale de la ronda ahora y libera un lugar de tu inmobiliaria. La ficha que ya le mandaste a un cliente sigue funcionando.</p>
+      <p class="error" id="bajaError" hidden></p>
+      <div class="fila-botones">
+        <button type="button" class="boton suave" data-cerrar>Cancelar</button>
+        <button type="button" class="boton peligro" id="confirmarBaja">Sí, eliminar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Las fotos a pantalla completa -->
+  <dialog id="visor" class="visor" aria-label="Fotos de la propiedad">
+    <div class="visor-pista" id="visorPista"></div>
+    <span class="visor-contador" id="visorContador" aria-live="polite"></span>
+    <button type="button" class="visor-cerrar" data-cerrar aria-label="Cerrar las fotos">×</button>
+  </dialog>
+
+  <div id="aviso" role="status" aria-live="polite"></div>
+  <script src="/ronda/app.js" defer></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 
@@ -89,7 +89,7 @@ export default function NewsletterBanner() {
       if (!res.ok) throw new Error('bad status')
       setStatus('sent')
       trackEvent('generate_lead', { origen: 'newsletter_banner' })
-      trackFbEvent('Lead', { content_name: 'Newsletter oportunidades' })
+      trackFbEvent('CompleteRegistration', { content_name: 'Newsletter oportunidades' })
     } catch {
       setStatus('error')
     }

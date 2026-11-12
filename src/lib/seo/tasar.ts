@@ -79,7 +79,7 @@ export function zonasTasar(t: Tasador): ZonaTasar[] {
  * "Kentucky Club de Campo"), o el que más palabras comparte sin empate ("Vida
  * Crystal Lagoon" = "Vida Lagoon", no "Vida"). null = no la tiene: la ciudad.
  */
-export function zonaDeBarrio(b: BarrioTasador, tipo: TipoTasar, zonas: ZonaTasar[]): ZonaTasar | null {
+export function zonaDeBarrio(b: Pick<BarrioTasador, 'nombre' | 'ciudad'>, tipo: TipoTasar, zonas: ZonaTasar[]): ZonaTasar | null {
   const buscado = palabras(b.nombre)
   if (!buscado.length) return null
   const deCiudad = zonas.filter((z) => !z.esCiudad && z.ciudad === b.ciudad && (z.params[tipo]?.n ?? 0) > 0)
@@ -167,8 +167,10 @@ export function resolverTasar(slug: string, indice: IndiceTasar, base: '/tasar' 
   return destino ? { redirigir: `${base}/${destino}` } : null
 }
 
-/** A Google: solo lo que da número. */
-export const esIndexableTasar = (l: Landing) => l.conNumero
+/** A Google: lo que da número, y SIEMPRE la página de la ciudad (/tasar/lote-funes,
+ *  /tasar/casa-rosario…): aunque fuera de barrios no dé número, es la puerta de
+ *  "cuánto vale un lote en Funes" y enlaza a cada barrio que sí lo da (David, 16-oct). */
+export const esIndexableTasar = (l: Landing) => l.conNumero || l.zona.esCiudad
 
 /** Las landings de una ciudad, de la que más avisos tiene a la que menos (la ciudad primero). */
 export function landingsDeCiudad(indice: IndiceTasar, ciudad: string, tipo?: TipoTasar): Landing[] {

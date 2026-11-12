@@ -6,8 +6,8 @@
 //   - Vercel CDN edge cache: revalidatePath() sobre los API routes con
 //     Cache-Control public s-maxage los marca como stale.
 //   - Redis Upstash: SCAN+DEL para borrar 'barrios:propiedades:*' (cache
-//     custom de getPropiedadesByBarrio, TTL 1h). NO toca audio:* ni
-//     ficha:* (otros subsistemas).
+//     viejo de getPropiedadesByBarrio: ya no se escribe desde el 22-oct-2026,
+//     queda para limpiar restos). NO toca audio:* ni ficha:* (otros subsistemas).
 //
 // La usan dos endpoints con auth distinta:
 //   - /api/admin/revalidate-propiedades  → header x-team-code (SI_TEAM_CODE)

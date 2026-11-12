@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
 import { esEmail, parsearCriteriosWeb } from '@/lib/feed-en-red'
 import { rateLimit } from '@/lib/feedback'
+import { metaDeLaConsulta } from '@/lib/meta-capi'
 
 // Consulta del feed de la ficha: nombre + WhatsApp + lo que marcó con ♥.
 // Mismo camino que /api/leads: respaldo en Redis y empuje al inbox de Hilo,
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
         origen: 'feed_web_busca',
         message: mensaje,
         sourceUrl: pageUrl || null,
+        meta: metaDeLaConsulta(request, body, pageUrl || null),
       }),
     ])
     if (!savedRedis && !savedHilo) {
@@ -143,6 +145,7 @@ export async function POST(request: NextRequest) {
       phone: whatsapp,
       email,
       origen: 'feed_web',
+      meta: metaDeLaConsulta(request, body, pageUrl || null),
       guardadas,
       visita,
       barrio,

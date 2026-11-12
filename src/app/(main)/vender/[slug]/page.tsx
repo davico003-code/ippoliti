@@ -14,6 +14,7 @@ import Tasador from '@/components/tasador/Tasador'
 import { cargarTasar } from '@/lib/tasador/cargar-tasar'
 import { TEXTO_TIPO, TIPOS_TASAR, esIndexableTasar, landingDeCiudad, landingsDeCiudad, mercadoDe, opcionesTasar, resolverTasar, type Landing } from '@/lib/seo/tasar'
 import type { ResumenMercado } from '@/lib/tasador/tipos'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 export const revalidate = 3600
 export const dynamicParams = true
@@ -39,13 +40,12 @@ const indexable = (l: Landing, m: ResumenMercado | null) => esIndexableTasar(l) 
 
 const lugar = (l: Landing) => (l.zona.esCiudad ? l.nombre : `${l.nombre}, ${l.zona.ciudad}`)
 
-/** "Hoy hay 63 casas en venta en Kentucky: la mitad pide entre USD 860 mil y USD 1,4 millones." */
+/** "En Kentucky, la mitad de las casas en venta pide entre USD 860 mil y USD 1,4 millones."
+ *  Solo el rango de referencia, NUNCA cuántas hay: el relevamiento incluye avisos de
+ *  colegas y sumarlos es ilegal (David, 17-oct). En la ciudad, el de toda la ciudad. */
 function frasesMercado(l: Landing, m: ResumenMercado) {
   const t = TEXTO_TIPO[l.tipo]
-  // En la ciudad, el mercado es el de toda la ciudad (barrios incluidos).
-  // La cantidad, solo por barrio: en la ciudad son miles y delata cuánto se releva (David, 10-oct).
-  if (l.zona.esCiudad) return `En todo ${l.nombre}, la mitad de ${t.singular === 'casa' ? 'las casas' : `los ${t.plural}`} en venta pide entre ${usdCorto(m.p25)} y ${usdCorto(m.p75)}.`
-  return `Hoy hay ${n(m.n)} ${t.plural} en venta en ${l.nombre}: la mitad pide entre ${usdCorto(m.p25)} y ${usdCorto(m.p75)}.`
+  return `En ${l.zona.esCiudad ? 'todo ' : ''}${l.nombre}, la mitad de ${t.singular === 'casa' ? 'las casas' : `los ${t.plural}`} en venta pide entre ${usdCorto(m.p25)} y ${usdCorto(m.p75)}.`
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -59,8 +59,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = `¿Querés vender ${t.tu} en ${lugar(l)}? ${m ? `${frasesMercado(l, m)} ` : ''}Tasala online en segundos y vendela con SI INMOBILIARIA: corredores matriculados en Funes, Roldán y Rosario desde 1983.`
   const url = `${BASE}/vender/${l.slug}`
   return {
-    title: `${title} | SI INMOBILIARIA`,
-    description,
+    title: tituloConMarca(title),
+    description: recortarDescripcion(description),
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },
     twitter: { card: 'summary_large_image', title, description, images: ['/og-image.jpg'] },
@@ -86,11 +86,12 @@ export default async function VenderBarrioPage({ params }: Props) {
     .filter((x): x is Landing => !!x)
   const vecinos = landingsDeCiudad(indice, l.zona.ciudad, l.tipo).filter((x) => x.slug !== l.slug && x.conNumero && !x.zona.esCiudad).slice(0, 16)
   const tipoBusqueda = l.tipo === 'lote' ? 'terreno' : l.tipo
-  const enVenta = `/propiedades?op=venta&tipo=${tipoBusqueda}&q=${encodeURIComponent(l.zona.esCiudad ? l.zona.ciudad : l.nombre)}`
+  // Los nombres canónicos de la query del listado (operacion/tipo/q): con el legacy `op=` el
+  // listado reescribía la URL en el navegador y Google contaba cada link como una redirección.
+  const enVenta = `/propiedades?operacion=venta&tipo=${tipoBusqueda}&q=${encodeURIComponent(l.zona.esCiudad ? l.zona.ciudad : l.nombre)}`
 
   const mercadoTiles: { valor: string; texto: string }[] = []
   if (m) {
-    if (!l.zona.esCiudad) mercadoTiles.push({ valor: n(m.n), texto: `${t.plural} en venta hoy` })
     mercadoTiles.push({ valor: usd(m.mediana), texto: 'el precio del medio' })
     mercadoTiles.push({ valor: `${usdCorto(m.p25).replace('USD ', '')} a ${usdCorto(m.p75).replace('USD ', '')}`, texto: 'lo que pide la mitad (USD)' })
     if (l.tipo === 'lote' && m.lote) mercadoTiles.push({ valor: `${n(m.lote)} m²`, texto: 'el lote típico en venta' })
@@ -108,7 +109,7 @@ export default async function VenderBarrioPage({ params }: Props) {
   const faq: { q: string; a: string }[] = []
   if (m)
     faq.push({
-      q: l.zona.esCiudad ? `¿A qué precios se publican ${ella ? 'las casas' : `los ${t.plural}`} en ${l.nombre}?` : `¿Cuánt${ella ? 'as' : 'os'} ${t.plural} hay en venta en ${l.nombre}?`,
+      q: `¿A qué precios se publican ${ella ? 'las casas' : `los ${t.plural}`} en ${l.nombre}?`,
       a: `${frasesMercado(l, m)} El precio del medio es ${usd(m.mediana)}. Es lo que compite con ${ella ? 'la tuya' : 'el tuyo'} cuando la publicás.`,
     })
   faq.push({
@@ -220,17 +221,11 @@ export default async function VenderBarrioPage({ params }: Props) {
             </h2>
             <div className="mt-4 max-w-[46rem] space-y-4 text-[16px] leading-relaxed text-[#3C4A42]">
               <p>
-                {l.zona.esCiudad ? (
-                  <>En todo {l.nombre}, la mitad de {ella ? 'las casas' : `los ${t.plural}`} en venta</>
-                ) : (
-                  <>
-                    En {l.nombre} compiten hoy <b className="font-numeric font-semibold text-[#121A15]">{n(m.n)}</b> {t.plural}. La mitad
-                  </>
-                )}{' '}
+                En {l.zona.esCiudad ? 'todo ' : ''}{l.nombre}, la mitad de {ella ? 'las casas' : `los ${t.plural}`} en venta{' '}
                 pide entre <b className="font-numeric font-semibold text-[#121A15]">{usd(m.p25)}</b> y <b className="font-numeric font-semibold text-[#121A15]">{usd(m.p75)}</b>, y el precio del medio es <b className="font-numeric font-semibold text-[#121A15]">{usd(m.mediana)}</b>.
               </p>
               <p>
-                El que busca en {l.nombre} ve {ella ? 'la tuya' : 'el tuyo'} al lado de esas. Si sale muy por encima de lo que vale sin algo que lo explique —más metros, a estrenar, mejor ubicación dentro del barrio—, la mira, la compara y sigue de largo. Por eso arrancamos por la tasación: el tasador de arriba te da la referencia y el corredor la ajusta con lo que el aviso no dice.
+                El que busca en {l.nombre} ve {ella ? 'la tuya' : 'el tuyo'} al lado de las demás. Si sale muy por encima de lo que vale sin algo que lo explique —más metros, a estrenar, mejor ubicación dentro del barrio—, la mira, la compara y sigue de largo. Por eso arrancamos por la tasación: el tasador de arriba te da la referencia y el corredor la ajusta con lo que el aviso no dice.
               </p>
             </div>
           </section>
