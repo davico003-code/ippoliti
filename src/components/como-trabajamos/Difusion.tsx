@@ -1,7 +1,7 @@
 // /como-trabajamos — difusión: redes (con cifras públicas), Charlas Que Sí,
 // contenido con IA, portales, pauta en Meta y email marketing.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Heart, Mail, Megaphone, MessageCircle, Mic, Send, Sparkles } from 'lucide-react'
 import VisorYoutube, { BotonPlay, PosterYoutube } from './VisorYoutube'
 import { VideoVivo } from './Medios'

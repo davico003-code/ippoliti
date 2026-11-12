@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Tasaciones profesionales en Funes, Roldán, Fisherton y Rosario | SI INMOBILIARIA',
+  title: 'Tasaciones profesionales en Funes, Roldán, Fisherton y Rosario',
   description: '¿Querés vender tu casa, lote o depto en Funes, Roldán, Fisherton o Rosario? Un tasador del equipo te dice cuánto vale de verdad, con lo que se vendió en tu barrio. Te escribimos por WhatsApp en menos de 24 h. Sin compromiso.',
   alternates: { canonical: 'https://siinmobiliaria.com/tasaciones' },
   openGraph: {

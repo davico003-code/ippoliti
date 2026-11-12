@@ -1,7 +1,7 @@
 // /como-trabajamos — producción: fotografía, drone, equipo técnico,
 // videotours de YouTube y reels verticales. Todo material real.
 
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowUpRight, Clapperboard, Drone, Glasses, Laptop, Mic, Smartphone, Video } from 'lucide-react'
 import VisorYoutube, { BotonPlay, PosterYoutube } from './VisorYoutube'

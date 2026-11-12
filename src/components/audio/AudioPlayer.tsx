@@ -347,7 +347,7 @@ export default function AudioPlayer({
   const times = (
     <div
       style={{
-        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
         fontSize: 13,
         color: TIME_COLOR,
         fontVariantNumeric: 'tabular-nums',
@@ -374,7 +374,7 @@ export default function AudioPlayer({
         borderRadius: 8,
         border: 'none',
         cursor: 'pointer',
-        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
         fontSize: 12,
         fontWeight: 500,
         fontVariantNumeric: 'tabular-nums',
@@ -388,7 +388,7 @@ export default function AudioPlayer({
   const helperText = (
     <div
       style={{
-        fontFamily: "'Poppins', system-ui, sans-serif",
+        fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
         fontSize: 13,
         color: TEXT_MUTED,
         marginTop: 8,
@@ -410,31 +410,33 @@ export default function AudioPlayer({
         background: 'var(--theme-surface, #fff)',
         border: '1px solid var(--theme-border, #E5E7EB)',
         borderRadius: 12,
-        padding: 16,
+        padding: isMobile ? '10px 12px' : 16,
         boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
       }}
     >
       {isMobile ? (
-        <>
-          {showHelperText && (
+        // Celu (21-oct-2026): UNA línea — play, el nombre arriba de la barra, el
+        // tiempo y la velocidad. Antes eran dos renglones (~110 px) arriba del
+        // título y el precio no entraba en la primera pantalla.
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {playButton}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontFamily: "'Poppins', system-ui, sans-serif",
+                fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
                 fontSize: 13,
-                color: TEXT_MUTED,
-                marginBottom: 12,
+                fontWeight: 600,
+                color: 'var(--foreground)',
+                lineHeight: 1.2,
               }}
             >
-              🎙 Conocé esta propiedad
+              Escuchá la propiedad
             </div>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {speedToggle}
-            {playButton}
             {progressBar}
-            {times}
           </div>
-        </>
+          {times}
+          {speedToggle}
+        </div>
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -450,7 +452,7 @@ export default function AudioPlayer({
         <div
           role="alert"
           style={{
-            fontFamily: "'Poppins', system-ui, sans-serif",
+            fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif",
             fontSize: 12,
             color: '#B91C1C',
             marginTop: 10,

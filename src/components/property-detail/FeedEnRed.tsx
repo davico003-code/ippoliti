@@ -10,7 +10,7 @@
 // inmobiliarias, dicho abiertamente).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { usePathname } from 'next/navigation'
 import { MapPin } from 'lucide-react'
 import { type TokkoProperty, operacionPrincipal, translatePropertyType } from '@/lib/tokko'

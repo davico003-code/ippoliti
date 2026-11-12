@@ -6,7 +6,7 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { ZoomIn } from 'lucide-react'
 import { FW_BASE } from '@/lib/fisherton-work'
 

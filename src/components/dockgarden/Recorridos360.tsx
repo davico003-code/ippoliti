@@ -4,7 +4,7 @@
 // antes estaban escondidas detrás de las flechas del visor.
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { Rotate3d } from 'lucide-react'
 import { RECORRIDOS_360, TIPOLOGIAS, urlRecorrido } from '@/lib/dockgarden'
 import ViewerModal, { type Viewer } from '@/components/ViewerModal'

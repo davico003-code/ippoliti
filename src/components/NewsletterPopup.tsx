@@ -10,7 +10,7 @@
 // dismiss propio para que ninguno pise al otro.
 
 import { useCallback, useEffect, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { usePathname } from 'next/navigation'
 import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound, X } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
@@ -93,7 +93,8 @@ export default function NewsletterPopup() {
       setStatus('sent')
       try { window.localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
       trackEvent('generate_lead', { origen: 'oportunidades_popup' })
-      trackFbEvent('Lead', { content_name: 'Oportunidades con IA popup' })
+      // Suscripción, no consulta de compra: CompleteRegistration (Lead queda limpio para la pauta).
+      trackFbEvent('CompleteRegistration', { content_name: 'Oportunidades con IA popup' })
     } catch {
       setStatus('error')
     }

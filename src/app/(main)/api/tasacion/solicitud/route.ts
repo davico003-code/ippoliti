@@ -164,12 +164,25 @@ export async function POST(request: NextRequest) {
     console.error('[tasacion] Redis error:', err)
   }
 
+  // Los utm del pedido viajan además como `attribution`: así Hilo ata la tasación
+  // al anuncio de Meta (utm_content = ref), igual que una consulta de ficha.
+  // Antes solo iban dentro de `tasacion` y el contacto quedaba sin anuncio.
+  const u = tasacion.utm
+  const attribution = u && (u.source || u.medium || u.campaign || u.content)
+    ? Object.fromEntries(Object.entries({
+        utm_source: u.source, utm_medium: u.medium, utm_campaign: u.campaign, utm_content: u.content,
+        captured_at: new Date().toISOString(),
+      }).filter(([, v]) => v))
+    : null
+
   let aceptado = await pushLeadToHilo({
     name: nombre,
     phone,
     origen: 'tasacion',
     message: brief,
     tasacion,
+    sourceUrl: tasacion.paginaUrl || null,
+    attribution,
   })
 
   // Solo en desarrollo con mock y sin secreto: simulamos la aceptación para

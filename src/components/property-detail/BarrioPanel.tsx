@@ -5,7 +5,7 @@
 // impacto — hero + tier + frase del broker — que linkea a /barrios-privados/[slug].
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import type { Barrio } from '@/lib/barrios'

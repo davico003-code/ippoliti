@@ -145,7 +145,7 @@ export default function PasoVender({ barrios, tipo, barrio, plazo, onTipo, onBar
         </p>
       )}
 
-      <BarraFija>
+      <BarraFija conFoto>
         <button type="button" onClick={onContinuar} className={cls.cta}>
           Seguir <IconoFlecha />
         </button>

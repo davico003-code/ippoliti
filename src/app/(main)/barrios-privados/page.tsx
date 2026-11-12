@@ -22,11 +22,14 @@ import FaqBarrios from "./_components/FaqBarrios";
 import CtaServiciosCards from "./_components/CtaServiciosCards";
 
 const CANONICAL = "https://siinmobiliaria.com/barrios-privados";
+// Search Console 17-oct: se busca "barrios de funes", "barrio privado funes",
+// "barrios privados en funes" (posición 6-8, sin clics) y "barrios de funes mapa".
+const CANTIDAD = getBarriosHub().length;
+const TITULO = `Barrios privados de Funes: los ${CANTIDAD} barrios cerrados y su mapa`;
 
 export const metadata: Metadata = {
-  title: "Barrios cerrados de Funes | SI INMOBILIARIA",
-  description:
-    "Los 11 barrios cerrados de Funes analizados sin filtro. Premium, consolidados y en desarrollo. Conocelos con la mirada de un broker de dos generaciones.",
+  title: TITULO,
+  description: `Los ${CANTIDAD} barrios privados de Funes en un mapa: Kentucky, Funes Hills, La Finca, Vida, Funes Lakes, Haras y más, con lotes, casas y plano de cada uno.`,
   keywords: [
     "barrios cerrados funes",
     "barrios privados funes",
@@ -37,8 +40,7 @@ export const metadata: Metadata = {
   alternates: { canonical: CANONICAL },
   openGraph: {
     title: "Barrios cerrados de Funes | SI INMOBILIARIA",
-    description:
-      "Una guía completa, escrita por brokers que viven y trabajan en la zona. Los 11 barrios cerrados de Funes analizados sin filtro.",
+    description: `Una guía completa, escrita por brokers que viven y trabajan en la zona. Los ${CANTIDAD} barrios cerrados de Funes analizados sin filtro.`,
     url: CANONICAL,
     type: "website",
     siteName: "SI INMOBILIARIA",
@@ -47,7 +49,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Barrios cerrados de Funes",
-    description: "11 barrios analizados por SI INMOBILIARIA — Mat. 0621",
+    description: `${CANTIDAD} barrios analizados por SI INMOBILIARIA — Mat. 0621`,
     images: ["/og-image.jpg"],
   },
 };

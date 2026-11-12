@@ -8,16 +8,14 @@ import CardMediaButtons from '@/components/CardMediaButtons'
 import FotosDeslizables from '@/components/FotosDeslizables'
 import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
 import { useAgentePropiedad } from '@/components/AgentesPropiedadContext'
-import { useFotosExtra } from '@/components/FotosExtraCards'
+import { SIZES_FOTO_LISTADO, useFotosDeLaPropiedad } from '@/components/FotosExtraCards'
 import {
   type TokkoProperty,
-  getAllPhotos,
-  getMainPhoto,
   formatPrice,
   getOperationType,
   operationBadgeColor,
   preciosPorOperacion,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
@@ -26,10 +24,11 @@ import {
   esOportunidadConsultanos,
 } from '@/lib/tokko'
 import { formatDistanceAR } from '@/lib/geo'
-import { formatDireccionCompleta } from '@/lib/ubicacion'
+import { formatDireccionCompleta, formatUbicacion } from '@/lib/ubicacion'
+import { marcarSalidaDelListado } from '@/lib/volver-listado'
 
-const RALEWAY = "'Raleway', system-ui, sans-serif"
-const POPPINS = "'Poppins', system-ui, sans-serif"
+const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
+const POPPINS = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
 
 type NetworkInformationLite = {
   saveData?: boolean
@@ -62,13 +61,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const agenteFeed = property.agente
   const agentePedido = useAgentePropiedad(property.id)
   const agente = agenteFeed === undefined ? agentePedido : agenteFeed ?? undefined
-  const photos = getAllPhotos(property)
-  const fallback = getMainPhoto(property)
-  const base = photos.length > 0 ? photos : fallback ? [fallback] : []
   // En /propiedades la card llega con la portada sola y las fotos 2-5 las suma
   // FotosExtraProvider cuando la página terminó de cargar.
-  const extra = useFotosExtra(property.id)
-  const images = extra && base.length === 1 ? [base[0], ...extra.filter(u => u !== base[0])] : base
+  const images = useFotosDeLaPropiedad(property)
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
@@ -77,7 +72,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const precios = preciosPorOperacion(property)
   const otrosPrecios = precios.slice(1)
   const operaciones = precios.length > 1 ? precios.map(p => p.operacion) : operation ? [operation] : []
-  const roofed = getRoofedArea(property)
+  // Superficie TOTAL (cubierta + semicubierta), como en toda pieza pública.
+  const total = getTotalSurface(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
   const mono = isMonoambiente(property)
@@ -87,6 +83,9 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   const baths = property.bathroom_amount
   const address = property.fake_address || property.address
   const direccion = formatDireccionCompleta(property, address, ' | ')
+  // Zona para el texto de compartir ("precio · Barrio, Ciudad"): sin repetir
+  // lo que ya dice la dirección, que va como título.
+  const ubicacion = formatUbicacion(property, address)
   // Mixta (venta + alquiler) listada como alquiler: el foco viaja en el link
   // para que la ficha mobile muestre los costos de ingreso y la planilla. Igual
   // con el filtro Temporario: si no, la ficha abría con la venta adelante.
@@ -102,8 +101,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   if (!land && mono) specs.push({ num: '', label: 'Monoambiente' })
   else if (!land && beds > 0) specs.push({ num: String(beds), label: ' dorm' })
   if (!land && baths > 0) specs.push({ num: String(baths), label: ` baño${baths > 1 ? 's' : ''}` })
-  if (roofed != null && roofed > 0) specs.push({ num: roofed.toLocaleString('es-AR'), label: ' m²' })
-  if (lot != null && lot > 0 && lot !== roofed) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
+  if (!land && total != null && total > 0) specs.push({ num: total.toLocaleString('es-AR'), label: ' m²' })
+  if (lot != null && lot > 0 && lot !== total) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m² lote' })
   if (land && lot != null && lot > 0 && specs.length === 0) specs.push({ num: lot.toLocaleString('es-AR'), label: ' m²' })
 
 
@@ -153,12 +152,24 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   // Render como <Link> para que Next prefetchee la ficha en hover (desktop)
   // y al entrar al viewport (mobile). El onClick del padre puede llamar
   // e.preventDefault() para evitar la navegación (caso desktop = abrir panel).
+  //
+  // Play y Compartir van AFUERA del <Link>, como hermanos encima (absolute en
+  // el mismo lugar de siempre): un <button> adentro de un <a> es HTML inválido
+  // y VoiceOver anunciaba la tarjeta como un link con botones adentro.
   return (
+    <div className="relative">
     <Link
       ref={cardRef}
       href={cardHref}
       prefetch={false}
-      onClick={onClick}
+      onClick={e => {
+        onClick?.(e)
+        // Abre la ficha (no el panel de la compu ni otra pestaña): la ficha
+        // sabe que "atrás" es este listado, con sus filtros y su scroll.
+        if (!e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+          marcarSalidaDelListado(cardHref)
+        }
+      }}
       className="group cursor-pointer block"
       style={{
         background: 'var(--card-surface)',
@@ -167,11 +178,12 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       }}
       onMouseEnter={() => router.prefetch(cardHref)}
     >
-      {/* Fotos deslizables (flechas en hover en la compu, swipe en el celu). */}
+      {/* Fotos deslizables (en la compu la foto sigue al mouse, swipe en el celu). */}
       <FotosDeslizables
         images={images}
+        recorrerConMouse
         alt={address}
-        sizes="(max-width: 768px) calc(100vw - 32px), (max-width: 1280px) 48vw, 25vw"
+        sizes={SIZES_FOTO_LISTADO}
         priority={priority}
         diferir={diferirFoto}
         puntos={agente ? 'derecha' : 'centro'}
@@ -215,20 +227,14 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         {/* Agente que atiende la propiedad (pastilla de vidrio, como en la
             home). Con agente, los puntitos de las fotos se corren a la derecha. */}
         <PastillaAgenteCard agente={agente} size={isMobile ? 32 : 34} />
-
-        {/* Play arriba-derecha (solo si hay audio). audioUrl ya viene enriquecido
-            en el listado (string = hay audio, null = no hay). */}
-        <CardMediaButtons
-          propertyId={property.id}
-          audioUrl={property.audioUrl ?? null}
-          size={32}
-          className="absolute top-2.5 right-2.5 z-10"
-        />
       </FotosDeslizables>
 
       {/* Body */}
       <div style={{ padding: '8px 2px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+        {/* La fila reserva el lugar de Compartir (que va afuera del link, ver
+            abajo): alto de 36 y 44 px a la derecha, así el precio nunca queda
+            debajo del botón. */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, minHeight: 36, paddingRight: 44 }}>
           {esOportunidadConsultanos(property.id) ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
               <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>
@@ -251,18 +257,6 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
             {price}
           </p>
           )}
-          <div onClick={e => e.stopPropagation()}>
-            <PropertyShareButton
-              propertyId={property.id}
-              slug={slug}
-              title={address || ''}
-              priceLabel={price}
-              inline
-              size={36}
-              popoverDirection="up"
-              buttonVariant="card"
-            />
-          </div>
         </div>
 
         {!esOportunidadConsultanos(property.id) && otrosPrecios.map(({ operacion, precio }) => (
@@ -324,5 +318,38 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
       </div>
 
     </Link>
+
+      {/* Play arriba-derecha de la foto (solo si hay audio). audioUrl ya viene
+          enriquecido en el listado (string = hay audio, null = no hay). Se ve
+          de 32 px pero se toca en 44: el ::after estira el área del botón. */}
+      <CardMediaButtons
+        propertyId={property.id}
+        audioUrl={property.audioUrl ?? null}
+        size={32}
+        className="absolute top-2.5 right-2.5 z-10 [transform:translateZ(0)] [&_button]:relative [&_button]:after:absolute [&_button]:after:-inset-1.5 [&_button]:after:content-['']"
+      />
+
+      {/* Compartir, a la derecha de la fila del precio. La foto es 16:9 del
+          ancho de la tarjeta y el margin-top en % se mide sobre el ancho, así
+          que cae justo en esa fila sin medir nada en JS (el área de toque de
+          44+ px ya la pone el propio botón). */}
+      <div
+        className="absolute z-10"
+        style={{ top: 0, right: 2, marginTop: 'calc(56.25% + 8px)' }}
+      >
+        <PropertyShareButton
+          propertyId={property.id}
+          slug={slug}
+          title={address || ''}
+          priceLabel={price}
+          ubicacion={ubicacion || undefined}
+          contexto="tarjeta"
+          inline
+          size={36}
+          popoverDirection="up"
+          buttonVariant="card"
+        />
+      </div>
+    </div>
   )
 }

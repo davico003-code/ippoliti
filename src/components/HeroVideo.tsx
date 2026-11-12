@@ -1,10 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import HeroSearch from './HeroSearch'
 import HeroVideoDesktop from './home/HeroVideoDesktop'
 import CiudadRotativa from './home/CiudadRotativa'
 
-export default function HeroVideo() {
+export default function HeroVideo({ vivas }: { vivas?: string[] }) {
   return (
     <section
       className="hero-video-section relative w-full md:-mt-[77px] md:pt-[77px]"
@@ -18,7 +19,7 @@ export default function HeroVideo() {
       >
         <div className="w-full max-w-[720px] text-center">
           <h2
-            className="text-white mb-4"
+            className="text-white mb-4 whitespace-nowrap"
             style={{
               fontFamily: 'var(--font-raleway), Raleway, sans-serif',
               fontWeight: 800,
@@ -28,9 +29,16 @@ export default function HeroVideo() {
               textShadow: '0 2px 24px rgba(0,0,0,0.35)',
             }}
           >
+            {/* Espacio REAL entre palabras (y --sep en 0): antes la separación
+                era solo un margen de CSS y el titular se leía "Encontrátuhogar"
+                (lectores de pantalla, copiar y pegar, Google). El espacio mide
+                casi lo mismo que el margen de antes: el titular se ve igual. */}
             {['Encontrá', 'tu', 'hogar'].map((w, i) => (
-              <span key={w} className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, ['--sep' as string]: '0.24em' }}>
-                {w}
+              <span key={w}>
+                {i > 0 && ' '}
+                <span className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${120 + i * 110}ms`, ['--sep' as string]: '0em' }}>
+                  {w}
+                </span>
               </span>
             ))}
           </h2>
@@ -42,9 +50,35 @@ export default function HeroVideo() {
           }}>
             Propiedades en <CiudadRotativa />
           </p>
-          <div className="portada-in portada-buscador" style={{ ['--d' as string]: '680ms' }}>
-            <HeroSearch />
+          {/* relative z-20: el panel de sugerencias del buscador tiene que
+              pintar ENCIMA del link de abajo (los dos animan con portada-in;
+              mismo arreglo que en HeroMobile). */}
+          <div className="portada-in portada-buscador relative z-20" style={{ ['--d' as string]: '680ms' }}>
+            <HeroSearch vivas={vivas} />
           </div>
+
+          {/* La puerta para quien vende, la misma que en el celu (HeroMobile):
+              el segundo público de SI no tenía ninguna entrada en la portada
+              de la compu (solo "Vender" en el menú). Una sola, chica y blanca:
+              buscar sigue siendo LA acción; esto no compite. Lleva al tasador,
+              que da un valor al instante. */}
+          <Link
+            href="/tasar"
+            className="portada-in si-tap group mt-3 inline-flex min-h-[44px] items-center rounded-full px-4 font-raleway text-white"
+            style={{
+              ['--d' as string]: '820ms',
+              textDecoration: 'none',
+              fontSize: 'clamp(15px, 1.25vw, 18px)',
+              textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+            }}
+          >
+            {/* Un solo renglón de texto con espacio real (no gap de flex): así
+                se lee "¿Vendés? Mirá…" y no "¿Vendés?Mirá…". */}
+            <span>
+              <span className="font-medium text-white/85 group-hover:text-white">¿Vendés?</span>{' '}
+              <span className="font-bold">Mirá cuánto vale tu casa →</span>
+            </span>
+          </Link>
         </div>
       </div>
 

@@ -13,25 +13,29 @@ import {
   getProducerPhoneDisplay,
   getProducerName,
   tituloVisible,
+  numeroVisitaWhatsapp,
+  operacionPrincipal,
 } from '@/lib/tokko'
 import AudioSummary from '../AudioSummary'
-import { events } from '@/lib/analytics'
 import VisitWidget from '../VisitWidget'
 import TourMeetWidget from './TourMeetWidget'
 import { getAgenteRol } from '@/lib/agente-titulo'
 import AgenteAvatar from './AgenteAvatar'
 import ContactoSecundario from './ContactoSecundario'
+import WhatsappConDatos from './WhatsappConDatos'
 
 const TOUR_MEET_USD_THRESHOLD = 450_000
 
+// La misma operación que eligen el precio y el cartel (operacionPrincipal), no
+// operations[0] a ciegas: si la primera viene sin precio, el umbral miraría otra.
 function getUsdPrice(property: TokkoProperty): number {
-  const op = property.operations?.[0]
+  const op = operacionPrincipal(property)
   if (!op?.prices) return 0
   const usd = op.prices.find(p => p.currency === 'USD')
   return usd?.price ?? 0
 }
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 const GREEN = 'var(--brand)'
 
 export default function PropertyDetailSidebar({
@@ -55,6 +59,14 @@ export default function PropertyDetailSidebar({
   const isPremiumSale = isVenta && usdPrice >= TOUR_MEET_USD_THRESHOLD
   const propertyTitle = tituloVisible(property) || address
   const propertyUrl = `https://siinmobiliaria.com/propiedades/${slug}`
+  // Visita con la MISMA regla que el celu (MobileStickyBar en la ficha): en todas
+  // las operaciones, los alquileres de Roldán a la línea de la ficha y el resto
+  // al número general; etiquetada como alquiler si no hay venta.
+  const visitTipo: 'venta' | 'alquiler' =
+    !property.operations?.some(o => o.operation_type === 'Sale') &&
+    property.operations?.some(o => o.operation_type === 'Rent' || o.operation_type === 'Temporary rent')
+      ? 'alquiler'
+      : 'venta'
 
   return (
     <div className="w-full md:w-[360px] md:shrink-0">
@@ -109,18 +121,18 @@ export default function PropertyDetailSidebar({
               })()}
             </div>
           </div>
-          <a
+          <WhatsappConDatos
             href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => events.contactoPropiedad(property.id, propertyTitle, 'whatsapp')}
+            propertyId={property.id}
+            propertyTitle={propertyTitle}
+            propertyPrice={formatPrice(property)}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full font-semibold text-sm transition-colors mb-2"
             style={{ background: '#25d366', color: '#fff' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#1ab856' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#25d366' }}
           >
             <MessageCircle className="w-5 h-5" /> Consultar por WhatsApp
-          </a>
+          </WhatsappConDatos>
           <ContactoSecundario
             propertyId={property.id}
             propertyTitle={propertyTitle}
@@ -130,19 +142,19 @@ export default function PropertyDetailSidebar({
             callHref={getProducerCallHref(property)}
             telefono={getProducerPhoneDisplay(property)}
           />
-          <div className="border-t border-gray-100 pt-4 mt-4">
-            <AudioSummary propertyId={property.id} title={propertyTitle} />
-          </div>
+          {/* La línea divisoria la pone el audio solo si existe: sin audio no queda
+              un separador suelto con aire abajo. */}
+          <AudioSummary propertyId={property.id} title={propertyTitle} className="border-t border-gray-100 pt-4 mt-4" />
         </div>
 
-        {operation?.toLowerCase().includes('venta') && (
-          <VisitWidget
-            propertyId={property.id}
-            propertyTitle={propertyTitle}
-            propertyUrl={propertyUrl}
-            source="desktop-sidebar"
-          />
-        )}
+        <VisitWidget
+          propertyId={property.id}
+          propertyTitle={propertyTitle}
+          propertyUrl={propertyUrl}
+          source="desktop-sidebar"
+          whatsappNumber={numeroVisitaWhatsapp(property)}
+          tipo={visitTipo}
+        />
 
         {isPremiumSale && (
           <TourMeetWidget

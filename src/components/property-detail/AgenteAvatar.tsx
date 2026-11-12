@@ -22,6 +22,7 @@ export default function AgenteAvatar({
   size = 96,
   className = '',
   conFoto = false,
+  animado = true,
 }: {
   name: string
   picture: string | null | undefined
@@ -36,8 +37,12 @@ export default function AgenteAvatar({
    * selección: sin portada se veía un círculo gris hasta que bajaba.
    */
   conFoto?: boolean
+  /** false = solo la foto, aunque el agente tenga video. Las tarjetas del
+   *  listado /propiedades: un video por tarjeta tardaba en cargar (círculo
+   *  gris) y frenaba la lista. El saludo animado queda para la home y la ficha. */
+  animado?: boolean
 }) {
-  const video = picture ? getAgenteVideo(name) : null
+  const video = picture && animado ? getAgenteVideo(name) : null
   // La foto original pesa 200-330 KB; para un círculo de 96 px alcanza la
   // versión optimizada de next/image (~3 KB).
   const foto = picture ? getImageProps({ src: picture, alt: name, width: size, height: size }).props : null

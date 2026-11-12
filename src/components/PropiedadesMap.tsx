@@ -1,8 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import { memo, useEffect, useMemo, useState, useCallback, useRef, type MutableRefObject } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -17,10 +16,12 @@ import {
   tituloVisible,
 } from '@/lib/tokko'
 import type { Zona } from '@/lib/zonas' // used for ZonaFlyTo
-import { DEFAULT_CENTER, DEFAULT_ZOOM, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
+import { formatUbicacion } from '@/lib/ubicacion'
+import { DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES, DEFAULT_ZOOM, esEncuadreInicial, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 import PropertyShareButton from './PropertyShareButton'
 import { trackEvent } from '@/lib/analytics'
-import { VOYAGER_TILES } from '@/lib/map-tiles'
+import CapaCalles from './CapaCalles'
+import FotosVistaPrevia from './FotosVistaPrevia'
 
 // ─── Development grouping ─────────────────────────────────────────────────────
 
@@ -114,17 +115,20 @@ function nombreMapa(name: string) {
 
 // Lejos: círculo verde oscuro con grúa, mismo verde que los clusters y más
 // chico, para que acompañe sin distraer. Sin precio ni nombre.
+// Los colores de los marcadores son variables (--si-pin*): en modo claro,
+// verdes con texto blanco; en modo oscuro globals.css los vuelve pastillas
+// blancas con texto oscuro (elegido por David sobre el mapa real, 15-oct).
 function createDevCircle() {
   return L.divIcon({
     className: '',
     html: `<div style="
-      background:#0D3620;color:#fff;
+      background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
       width:32px;height:32px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
-      border:2.5px solid rgba(255,255,255,0.9);
+      border:2.5px solid var(--si-pin-borde,rgba(255,255,255,0.9));
       box-shadow:0 2px 8px rgba(0,0,0,0.25);
       cursor:pointer;box-sizing:border-box;
-    "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg></div>`,
+    "><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg></div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
     popupAnchor: [0, -18],
@@ -140,7 +144,7 @@ function createDevPill(rawName: string) {
       <div style="
         display:inline-flex;align-items:center;gap:${t.gap}px;
         background:#111;color:#fff;
-        font-family:'Raleway',system-ui,sans-serif;
+        font-family:var(--font-raleway, 'Raleway'),system-ui,sans-serif;
         font-weight:700;font-size:${t.font}px;line-height:1.2;
         padding:${t.pad};border-radius:999px;
         border:2px solid rgba(255,255,255,0.95);
@@ -209,9 +213,14 @@ function shortPrice(property: TokkoProperty): string {
 
 // ─── Price bubble DivIcon ─────────────────────────────────────────────────────
 
-function createPriceBubble(label: string, selected: boolean, hovered: boolean = false) {
+// En pantallas táctiles la burbuja suma 6 px transparentes alrededor: se ve
+// igual (agrandar el precio pisaría más a las vecinas) pero el dedo tiene ~44 px
+// de alto para acertarle en vez de 34.
+const PAD_TACTIL = 6
+
+function createPriceBubble(label: string, selected: boolean, hovered: boolean = false, tactil: boolean = false) {
   // selected > hovered (sin "selected"). Hover más claro y con outline amarillo.
-  const bg = selected ? '#145030' : hovered ? '#2D7A4F' : '#1A5C38'
+  const bg = selected ? 'var(--si-pin-activo,#145030)' : hovered ? 'var(--si-pin-hover,#2D7A4F)' : 'var(--si-pin,#1A5C38)'
   const scale = selected || hovered ? 'transform:scale(1.1);' : ''
   const zExtra = selected ? 'z-index:9999;' : hovered ? 'z-index:5000;' : ''
   const shadow = selected
@@ -221,18 +230,20 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
     : 'box-shadow:0 2px 8px rgba(0,0,0,0.25);'
   const border = hovered && !selected
     ? '2px solid #FBBF24'
-    : '2px solid rgba(255,255,255,0.9)'
+    : '2px solid var(--si-pin-borde,rgba(255,255,255,0.9))'
 
+  const pad = tactil ? PAD_TACTIL : 0
   const html = `
     <div style="
       position:relative;display:inline-block;${zExtra}${scale}
+      ${pad ? `padding:${pad}px;` : ''}
       transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
     ">
       <div style="
-        background:${bg};color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
+        background:${bg};color:var(--si-pin-texto,#fff);
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:700;font-size:11px;
-        padding:4px 8px;border-radius:6px;
+        padding:4px 8px;border-radius:var(--si-pin-radio,6px);
         white-space:nowrap;line-height:1.2;
         border:${border};
         ${shadow}
@@ -242,7 +253,7 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
         width:0;height:0;margin:0 auto;
         border-left:6px solid transparent;
         border-right:6px solid transparent;
-        border-top:6px solid ${bg};
+        border-top:6px solid var(--si-pin-cola,${bg});
       "></div>
     </div>`
 
@@ -253,40 +264,196 @@ function createPriceBubble(label: string, selected: boolean, hovered: boolean = 
   return L.divIcon({
     className: '',
     html,
-    iconSize: [w, 34],
-    iconAnchor: [w / 2, 34],
+    iconSize: [w + pad * 2, 34 + pad * 2],
+    // La punta de la cola sigue clavada en la coordenada: el relleno de abajo
+    // queda por debajo del punto.
+    iconAnchor: [w / 2 + pad, 34 + pad],
     popupAnchor: [0, -36],
   })
 }
 
+// Un ícono por (precio, estado): pasar el mouse por una tarjeta ya no arma
+// ~300 L.divIcon nuevos. react-leaflet hace setIcon cuando cambia la
+// identidad del ícono, así que con la misma instancia el marcador ni se toca.
+const ICONOS_PRECIO = new Map<string, L.DivIcon>()
+// Se pregunta una vez por carga (son ~300 pines y el tipo de puntero no cambia).
+let esTactilCache: boolean | null = null
+function esTactil(): boolean {
+  if (esTactilCache === null) {
+    esTactilCache = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches
+  }
+  return esTactilCache
+}
+function burbujaPrecio(label: string, selected: boolean, hovered: boolean): L.DivIcon {
+  const tactil = esTactil()
+  const clave = `${label}|${selected ? 1 : 0}|${hovered ? 1 : 0}|${tactil ? 1 : 0}`
+  let icono = ICONOS_PRECIO.get(clave)
+  if (!icono) {
+    icono = createPriceBubble(label, selected, hovered, tactil)
+    ICONOS_PRECIO.set(clave, icono)
+  }
+  return icono
+}
+
+interface AccionesPin {
+  onSelect: (id: number) => void
+  onDeselect?: () => void
+  onOpenDetail?: (id: number) => void
+}
+
+// Un marcador de propiedad suelta. Memo con props primitivas (más la propiedad,
+// que llega con la misma referencia mientras no cambie el listado): al pasar el
+// mouse por la grilla solo se re-renderizan los dos pines que cambian de estado
+// (el que se prende y el que se apaga), no los ~300.
+const PinPropiedad = memo(function PinPropiedad({ property, isSelected, isHovered, isMobile, accionesRef }: {
+  property: TokkoProperty
+  isSelected: boolean
+  isHovered: boolean
+  isMobile: boolean
+  accionesRef: MutableRefObject<AccionesPin>
+}) {
+  // Posición estable: un array nuevo en cada render hacía setLatLng, y
+  // markercluster sacaba y volvía a meter el marcador en su árbol.
+  const position = useMemo<[number, number]>(
+    () => [parseFloat(property.geo_lat!), parseFloat(property.geo_long!)],
+    [property.geo_lat, property.geo_long],
+  )
+  const eventHandlers = useMemo(() => ({
+    click: () => accionesRef.current.onSelect(property.id),
+    popupclose: () => accionesRef.current.onDeselect?.(),
+  }), [property.id, accionesRef])
+  const priceLabel = shortPrice(property)
+  const icon = burbujaPrecio(priceLabel, isSelected, isHovered)
+  const photo = getMainPhoto(property)
+  const fullPrice = formatPrice(property)
+  const typeName = propertyTypeLabelById(property.type?.id)
+  const area = getTotalSurface(property)
+  const titulo = tituloVisible(property) || property.address || ''
+
+  return (
+    <Marker
+      position={position}
+      icon={icon}
+      zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
+      eventHandlers={eventHandlers}
+    >
+      {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
+        <div style={{ width: '270px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", position: 'relative' }}>
+          {photo && (
+            // Fotos que se pasan con las flechas sin abrir la ficha. Va de borde
+            // a borde del popup (por eso el ancho y el margen).
+            <FotosVistaPrevia
+              property={property}
+              alt={titulo}
+              className="aspect-[16/9]"
+              style={{ width: 'calc(100% + 40px)', margin: '-10px -20px 12px', borderRadius: 0 }}
+            >
+              {typeName && (
+                <span style={{
+                  position: 'absolute', top: '8px', left: '8px', zIndex: 10, transform: 'translateZ(0)',
+                  background: 'rgba(26,92,56,0.85)', color: '#fff',
+                  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
+                }}>
+                  {typeName}
+                </span>
+              )}
+              <PropertyShareButton
+                propertyId={property.id}
+                slug={generatePropertySlug(property)}
+                title={titulo}
+                priceLabel={fullPrice}
+                ubicacion={formatUbicacion(property, titulo) || undefined}
+                contexto="mapa"
+                top={8}
+                right={8}
+                size={32}
+              />
+            </FotosVistaPrevia>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{
+              fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
+              fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
+              lineHeight: 1.1,
+            }}>
+              {fullPrice}
+            </span>
+          </div>
+          <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-ink, #1a1a1a)', lineHeight: 1.3, margin: '0 0 8px' }}>
+            {titulo}
+          </h3>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
+            {area != null && area > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
+            )}
+            {(property.suite_amount || property.room_amount) > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
+            )}
+            {property.bathroom_amount > 0 && (
+              <span><span style={{ fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
+            )}
+          </div>
+          <button
+            onClick={() => accionesRef.current.onOpenDetail?.(property.id)}
+            style={{
+              display: 'block', width: '100%', textAlign: 'center',
+              background: '#1A5C38', color: 'white',
+              fontSize: '13px', fontWeight: 600,
+              padding: '9px 16px', borderRadius: '8px',
+              border: 'none', cursor: 'pointer',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
+          >
+            Ver propiedad →
+          </button>
+        </div>
+      </Popup>}
+    </Marker>
+  )
+})
+
 // ─── Cluster icon ─────────────────────────────────────────────────────────────
 
+// El tamaño acompaña la cantidad: los grupos chicos (2 a 9) ocupan menos y ya
+// no se pisan entre sí ni tapan los nombres de las ciudades.
 function createClusterIcon(cluster: L.MarkerCluster) {
   const count = cluster.getChildCount()
   const label = count > 99 ? '99+' : String(count)
+  const size = count < 10 ? 34 : count < 50 ? 40 : 46
+  const font = count < 10 ? 13 : count < 50 ? 14 : 15
 
   return L.divIcon({
     className: '',
     html: `
       <div style="
-        background:#0D3620;color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
-        font-weight:800;font-size:13px;
-        width:44px;height:44px;
+        background:var(--si-pin-grupo,#0D3620);color:var(--si-pin-texto,#fff);
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
+        font-weight:800;font-size:${font}px;
+        width:${size}px;height:${size}px;
         border-radius:50%;
         display:flex;align-items:center;justify-content:center;
-        border:3px solid rgba(255,255,255,0.9);
+        border:2.5px solid var(--si-pin-borde,rgba(255,255,255,0.92));
         box-shadow:0 3px 12px rgba(0,0,0,0.3);
+        box-sizing:border-box;
         cursor:pointer;
       ">${label}</div>`,
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   })
+}
+
+// Radio de agrupamiento: más amplio con el mapa lejos (en el celular entran
+// Roldán, Funes y Fisherton y los grupos quedaban encimados); de cerca, el de
+// siempre para que aparezcan los precios.
+function radioDeGrupo(zoom: number) {
+  return zoom <= 12 ? 64 : 50
 }
 
 // ─── Encuadre inicial fijo ───────────────────────────────────────────────────
 //
-// DEFAULT_CENTER/DEFAULT_ZOOM viven en @/lib/map-config (módulo sin leaflet)
+// DEFAULT_BOUNDS y compañía viven en @/lib/map-config (módulo sin leaflet)
 // para que PropiedadesView pueda importarlos sin romper el code-splitting.
 // Cuando el usuario filtra por Ubicación, ZonaFlyTo lo lleva a la zona;
 // cuando limpia el filtro, este componente no re-dispara (solo corre al montar).
@@ -334,7 +501,7 @@ function InitialView({ vista }: { vista?: ZonaMapa | null }) {
       // Al volver a abrir el mapa (celular: lista → mapa) retoma la zona que la
       // persona estaba mirando; si no movió el mapa, el encuadre de siempre.
       if (vista) map.setView([vista.lat, vista.lng], vista.zoom)
-      else map.setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+      else map.fitBounds(DEFAULT_BOUNDS, DEFAULT_BOUNDS_OPCIONES)
     }, 200)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -366,6 +533,9 @@ function MapFlyTo({ center }: { center: FlyToTarget | null }) {
     if (!center) return
     const [lat, lng] = center
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
+    if (esEncuadreInicial(center)) {
+      return whenMapSized(map, () => map.flyToBounds(DEFAULT_BOUNDS, { ...DEFAULT_BOUNDS_OPCIONES, duration: 0.7 }))
+    }
     const zoom = center[2] ?? 16
     return whenMapSized(map, () => map.flyTo([lat, lng], zoom, { duration: 0.7, easeLinearity: 0.4 }))
   }, [center, map])
@@ -384,7 +554,7 @@ function MapStyles() {
       style.textContent = `
         .leaflet-marker-icon:hover { z-index: 9999 !important; }
         .leaflet-marker-icon:hover > div > div:first-child {
-          background: #2D7A4F !important;
+          background: var(--si-pin-hover, #2D7A4F) !important;
           transform: scale(1.1);
           box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
         }
@@ -788,11 +958,12 @@ function SatelliteToggle({ satellite, setSatellite, manualRef }: {
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
           border: satellite ? '1px solid #1A5C38' : '1px solid var(--theme-border, #e5e7eb)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: satellite ? '#fff' : 'var(--theme-muted, #374151)',
           cursor: 'pointer',
           transition: 'background 0.15s, border 0.15s',
         }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={satellite ? '#fff' : '#374151'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 22 8.5 12 15 2 8.5 12 2" />
           <polyline points="2 15.5 12 22 22 15.5" />
         </svg>
@@ -827,6 +998,13 @@ interface Props {
 
 export default function PropiedadesMap({ properties, selectedId, hoveredId, onSelect, onDeselect, onOpenDetail, flyToCenter, onZonaChange, zonaDelMapa, pantallaCompleta, activeZona, onMapMove, onNearbyOrigin, nearbyActive, busqueda }: Props) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  // Con el dedo se hace zoom pellizcando (como en Mapas del iPhone): los +/-
+  // de Leaflet medían 30 px y solo sumaban ruido en la esquina.
+  const tactil = esTactil()
+  // Los pines leen las acciones de acá: así sus handlers no cambian de
+  // identidad en cada render del padre (y el memo de PinPropiedad aguanta).
+  const accionesRef = useRef<AccionesPin>({ onSelect, onDeselect, onOpenDetail })
+  accionesRef.current = { onSelect, onDeselect, onOpenDetail }
   const vistaPropiaRef = useRef(false)
   vistaPropiaRef.current = zonaDelMapa != null
   const [satellite, setSatellite] = useState(false)
@@ -847,8 +1025,8 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
 
   return (
     <MapContainer
-      center={DEFAULT_CENTER}
-      zoom={DEFAULT_ZOOM}
+      bounds={DEFAULT_BOUNDS}
+      boundsOptions={DEFAULT_BOUNDS_OPCIONES}
       style={{ height: '100%', width: '100%' }}
       zoomControl={false}
       scrollWheelZoom
@@ -876,16 +1054,9 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
           />
         </>
       ) : (
-        <TileLayer
-          key="base"
-          className="si-street-tiles"
-          url={VOYAGER_TILES.url}
-          attribution={VOYAGER_TILES.attribution}
-          maxNativeZoom={VOYAGER_TILES.maxNativeZoom}
-          maxZoom={20}
-        />
+        <CapaCalles maxZoom={20} />
       )}
-      <ZoomControl position="bottomright" />
+      {!tactil && <ZoomControl position="bottomright" />}
       <AutoSatellite satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <SatelliteToggle satellite={satellite} setSatellite={setSatellite} manualRef={satManualRef} />
       <InitialView vista={zonaDelMapa} />
@@ -903,12 +1074,12 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
       {/* Legend — hidden on mobile */}
       <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 1000, background: 'var(--theme-surface, white)', borderRadius: 8, padding: '6px 10px', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', fontSize: 11, display: isMobile ? 'none' : 'flex', flexDirection: 'column', gap: 4 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#1A5C38', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin, #1A5C38)', borderRadius: 4, border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
           <span style={{ color: 'var(--theme-muted, #666)' }}>Propiedad</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ width: 14, height: 14, background: '#0D3620', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
+          <div style={{ width: 14, height: 14, background: 'var(--si-pin-grupo, #0D3620)', color: 'var(--si-pin-texto, #fff)', borderRadius: '50%', border: '1.5px solid white', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="8" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 21h6"/><path d="M9 21v-18l-6 6h18"/><path d="M9 3l10 6"/><path d="M17 9v4a2 2 0 1 1 -2 2"/></svg>
           </div>
           <span style={{ color: 'var(--theme-muted, #666)' }}>Emprendimiento</span>
         </div>
@@ -916,125 +1087,42 @@ export default function PropiedadesMap({ properties, selectedId, hoveredId, onSe
 
       <MarkerClusterGroup
         chunkedLoading
-        maxClusterRadius={50}
+        maxClusterRadius={radioDeGrupo}
         spiderfyOnMaxZoom
         showCoverageOnHover={false}
         iconCreateFunction={createClusterIcon}
       >
         {/* Standalone properties */}
-        {standalone.map(property => {
-          const lat = parseFloat(property.geo_lat!)
-          const lng = parseFloat(property.geo_long!)
-          const isSelected = property.id === selectedId
-          const isHovered = property.id === hoveredId
-          const priceLabel = shortPrice(property)
-          const photo = getMainPhoto(property)
-          const fullPrice = formatPrice(property)
-          const typeName = propertyTypeLabelById(property.type?.id)
-          const area = getTotalSurface(property)
-
-          return (
-            <Marker
-              key={property.id}
-              position={[lat, lng]}
-              icon={createPriceBubble(priceLabel, isSelected, isHovered)}
-              zIndexOffset={isSelected ? 1000 : isHovered ? 500 : 0}
-              eventHandlers={{
-                click: () => onSelect(property.id),
-                popupclose: () => onDeselect?.(),
-              }}
-            >
-              {!isMobile && <Popup maxWidth={300} className="ippoliti-popup">
-                <div style={{ width: '270px', fontFamily: "'Raleway',system-ui,sans-serif", position: 'relative' }}>
-                  {photo && (
-                    <div style={{ margin: '-10px -20px 12px', aspectRatio: '16 / 9', overflow: 'hidden', position: 'relative' }}>
-                      <img
-                        src={photo}
-                        alt={tituloVisible(property) || property.address}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                      />
-                      {typeName && (
-                        <span style={{
-                          position: 'absolute', top: '8px', left: '8px',
-                          background: 'rgba(26,92,56,0.85)', color: '#fff',
-                          fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                          letterSpacing: '0.05em', padding: '3px 8px', borderRadius: '4px',
-                        }}>
-                          {typeName}
-                        </span>
-                      )}
-                      <PropertyShareButton
-                        propertyId={property.id}
-                        slug={generatePropertySlug(property)}
-                        title={tituloVisible(property) || property.address || ''}
-                        priceLabel={fullPrice}
-                        top={8}
-                        right={8}
-                        size={32}
-                      />
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                    <span style={{
-                      fontSize: '22px', fontWeight: 800, color: 'var(--theme-accent, #1A5C38)',
-                      fontFamily: "'Poppins',system-ui,sans-serif", fontVariantNumeric: 'tabular-nums',
-                      lineHeight: 1.1,
-                    }}>
-                      {fullPrice}
-                    </span>
-                  </div>
-                  <h3 style={{ fontSize: '14px', fontWeight: 500, color: 'var(--theme-ink, #1a1a1a)', lineHeight: 1.3, margin: '0 0 8px' }}>
-                    {tituloVisible(property) || property.address}
-                  </h3>
-                  <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--theme-muted, #4b5563)', marginBottom: '12px' }}>
-                    {area != null && area > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{area}</span> m²</span>
-                    )}
-                    {(property.suite_amount || property.room_amount) > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.suite_amount || property.room_amount}</span> dorm.</span>
-                    )}
-                    {property.bathroom_amount > 0 && (
-                      <span><span style={{ fontFamily: "'Poppins',system-ui,sans-serif", fontWeight: 600, color: 'var(--theme-ink, #0a0a0a)' }}>{property.bathroom_amount}</span> baño{property.bathroom_amount > 1 ? 's' : ''}</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => onOpenDetail?.(property.id)}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'center',
-                      background: '#1A5C38', color: 'white',
-                      fontSize: '13px', fontWeight: 600,
-                      padding: '9px 16px', borderRadius: '8px',
-                      border: 'none', cursor: 'pointer',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#145030' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = '#1A5C38' }}
-                  >
-                    Ver propiedad →
-                  </button>
-                </div>
-              </Popup>}
-            </Marker>
-          )
-        })}
+        {standalone.map(property => (
+          <PinPropiedad
+            key={property.id}
+            property={property}
+            isSelected={property.id === selectedId}
+            isHovered={property.id === hoveredId}
+            isMobile={isMobile}
+            accionesRef={accionesRef}
+          />
+        ))}
       </MarkerClusterGroup>
 
-      {/* Development markers — outside cluster group */}
+      {/* Development markers — outside cluster group. Lejos van por debajo de
+          los grupos: si se cruzan, el número del grupo queda a la vista. */}
       {devGroups.map(g => (
         <Marker
           key={`dev-${g.devId}`}
           position={[g.lat, g.lng]}
           icon={devIcons.get(g.devId)!}
-          zIndexOffset={devCerca ? 500 : 0}
+          zIndexOffset={devCerca ? 500 : -1000}
         >
           <Popup maxWidth={260} className="ippoliti-popup">
-            <div style={{ width: '230px', fontFamily: "'Raleway',system-ui,sans-serif", padding: '2px 0' }}>
+            <div style={{ width: '230px', fontFamily: "var(--font-raleway, 'Raleway'),system-ui,sans-serif", padding: '2px 0' }}>
               <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--theme-accent, #1A5C38)', display: 'block', marginBottom: 4 }}>
                 Emprendimiento
               </span>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--theme-ink, #1a1a1a)', margin: '0 0 6px' }}>
                 {g.devName}
               </h3>
-              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-accent, #1A5C38)', fontFamily: "'Poppins',system-ui,sans-serif", marginBottom: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--theme-accent, #1A5C38)', fontFamily: "var(--font-poppins, 'Poppins'),system-ui,sans-serif", marginBottom: 8 }}>
                 Desde {g.minPrice}
               </div>
               <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--theme-muted, #666)', marginBottom: 12 }}>

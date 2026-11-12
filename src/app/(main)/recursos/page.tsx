@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import TrackPageView from '@/components/recursos/TrackPageView'
 import RecursosCTA from '@/components/recursos/RecursosCTA'

@@ -41,7 +41,7 @@ export function canalTinder(): CanalTinder | null {
 const CLAVE_VISITANTE = 'si-visitante'
 
 /** Un id al azar por navegador (para contar PERSONAS, no clics). Sin datos personales. */
-function visitante(): string {
+export function visitante(): string {
   try {
     let v = window.localStorage.getItem(CLAVE_VISITANTE)
     if (!v) {

@@ -1,5 +1,5 @@
 import type { TokkoProperty } from '@/lib/tokko'
-import type { Barrio } from '@/lib/barrios'
+import { barrioSlugDeLaPropiedad, type Barrio } from '@/lib/barrios'
 
 const normalize = (s: string): string =>
   s
@@ -31,14 +31,6 @@ export function propertyMatchesBarrio(
     return true
   }
 
-  if (barrio.tokko.matchByTitle?.length) {
-    const haystack = normalize(
-      `${property.publication_title ?? ''} ${property.address ?? ''} ${property.fake_address ?? ''}`,
-    )
-    return barrio.tokko.matchByTitle.some((needle) =>
-      haystack.includes(normalize(needle)),
-    )
-  }
-
-  return false
+  // El mismo detector que la ficha (ubicación → título, sin tildes).
+  return barrioSlugDeLaPropiedad(property) === barrio.slug
 }

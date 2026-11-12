@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Image from "next/image"
+import Image from "@/components/Imagen"
 import Link from "next/link"
 import { ArrowRight, ArrowUpRight, MessageCircle, Phone } from "lucide-react"
 import { getPropertyById, formatPrice, generatePropertySlug } from "@/lib/tokko"
@@ -29,7 +29,7 @@ import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd"
 // visibles: la versión anterior escondía todo con JS y en prod quedaba negra.
 
 export const metadata: Metadata = {
-  title: "Hausing — Casas de autor en los barrios más exclusivos de Funes | SI INMOBILIARIA",
+  title: "Hausing — Casas de autor en los barrios más exclusivos de Funes",
   description:
     "Colección de casas Hausing en Kentucky, Funes Hills Cadaqués, Vida y Don Mateo. Pileta propia, losa radiante y aberturas con DVH. Fichas técnicas, datos de cada barrio y visitas privadas con SI INMOBILIARIA.",
   alternates: { canonical: "https://siinmobiliaria.com/hausing" },

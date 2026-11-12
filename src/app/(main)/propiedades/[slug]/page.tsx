@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import Image from '@/components/Imagen';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { normalizarTitulo } from '@/lib/titulo';
-import { ArrowLeft } from 'lucide-react';
 
 import ThemeToggle from '@/components/ThemeToggle';
+import VolverAlListado from '@/components/VolverAlListado';
 import AudioSummary from '@/components/AudioSummary';
 import MobileStickyBar from '@/components/MobileStickyBar';
 import PropertyViewTracker from '@/components/PropertyViewTracker';
@@ -27,7 +27,7 @@ import {
   getTotalSurface,
   getOperationType,
   propertyTypeLabelById,
-  getMainPhoto,
+  getAllPhotos,
   getDescription,
   getBlueprintPhotos,
   sanitizeProperty,
@@ -37,9 +37,20 @@ import {
   operacionPrincipal,
   tituloVisible,
 } from '@/lib/tokko';
-import { formatUbicacion } from '@/lib/ubicacion';
+import { formatUbicacion, resolverUbicacion } from '@/lib/ubicacion';
 import { sinVideosCaidos } from '@/lib/videos-vivos';
 import { PROPERTY_SEO, applyPropertySeoOverride } from '@/lib/seoOverrides';
+import {
+  archivoDeFotoFirmada,
+  conFotosFijas,
+  esFotoR2,
+  fotoAbsoluta,
+  fotoPrincipalParaBuscadores,
+} from '@/lib/fotos-fijas';
+import { cercanosGuardados } from '@/lib/cercanos';
+import { tiemposGuardados } from '@/lib/tiempos-viaje';
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas';
+import { videosPropios } from '@/lib/video-oficina';
 
 export const revalidate = 3600;
 
@@ -90,7 +101,9 @@ async function tituloUnico(property: TokkoProperty, title: string): Promise<stri
 }
 
 // Meta description cuando el aviso no tiene descripción cargada.
-function descripcionFallback(property: TokkoProperty): string {
+/** "Casa en venta en Funes · 240 m² · USD 250.000": lo que distingue a cada
+ *  ficha (las unidades de un edificio comparten el texto del aviso). */
+function datosClave(property: TokkoProperty): string {
   const tipo = propertyTypeLabelById(property.type?.id);
   const op = getOperationType(property).toLowerCase();
   const ubic = formatUbicacion(property);
@@ -100,7 +113,81 @@ function descripcionFallback(property: TokkoProperty): string {
     `${tipo === 'Otros' ? 'Propiedad' : tipo}${op ? ` en ${op}` : ''}${ubic ? ` en ${ubic}` : ''}`,
     sup ? `${sup.toLocaleString('es-AR')} m²` : '',
     precio ?? '',
-  ].filter(Boolean).join(' · ') + '. Consultá con SI INMOBILIARIA.';
+  ].filter(Boolean).join(' · ');
+}
+
+function descripcionFallback(property: TokkoProperty): string {
+  return `${datosClave(property)}. Consultá con SI INMOBILIARIA.`;
+}
+
+// ── JSON-LD ─────────────────────────────────────────────────────────────
+
+/** Tipo de schema.org de la vivienda; lo que no es vivienda queda como Place. */
+function tipoSchemaVivienda(tipoId: number | undefined): 'Apartment' | 'SingleFamilyResidence' | 'House' | 'Place' {
+  if (tipoId === 2) return 'Apartment';
+  if (tipoId === 3 || tipoId === 4) return 'SingleFamilyResidence';
+  if (tipoId === 13) return 'House'; // PH
+  return 'Place';
+}
+
+/**
+ * Una oferta por operación con precio (venta y alquiler a la vez → dos), la
+ * principal primero, como preciosPorOperacion. El alquiler declara que el
+ * precio es POR MES: si no, $850.000 de alquiler se leía igual que una venta.
+ * Vacío si la propiedad no publica precio ("Sin Precio" / oportunidad).
+ */
+function ofertasJsonLd(property: TokkoProperty, url: string) {
+  if (mostrarPrecio(property) === null) return [];
+  const principal = operacionPrincipal(property);
+  const vistas = new Set<string>();
+  return (property.operations ?? [])
+    .filter((op) => (op.prices?.[0]?.price ?? 0) > 0)
+    .sort((a, b) => (a === principal ? -1 : b === principal ? 1 : 0))
+    .filter((op) => {
+      if (vistas.has(op.operation_type)) return false;
+      vistas.add(op.operation_type);
+      return true;
+    })
+    .map((op) => {
+      const { price, currency } = op.prices[0];
+      const priceCurrency = currency || 'USD';
+      const esAlquiler = op.operation_type === 'Rent' || op.operation_type === 'Temporary rent';
+      return {
+        '@type': 'Offer',
+        url,
+        price,
+        priceCurrency,
+        availability: 'https://schema.org/InStock',
+        businessFunction: esAlquiler
+          ? 'http://purl.org/goodrelations/v1#LeaseOut'
+          : 'http://purl.org/goodrelations/v1#Sell',
+        // El temporario no lleva unidad: el monto puede ser por quincena o por
+        // mes según la temporada, y declarar uno equivocado es peor que nada.
+        ...(op.operation_type === 'Rent'
+          ? { priceSpecification: { '@type': 'UnitPriceSpecification', price, priceCurrency, unitCode: 'MON', unitText: 'MONTH' } }
+          : {}),
+      };
+    });
+}
+
+/**
+ * Hasta 10 fotos (portada primero, sin planos) con URL ESTABLE: la fija de
+ * /fotos/… o la de R2. Nunca la firmada de Supabase, que rota cada 45 días y
+ * deja a los buscadores con la foto rota (ver lib/fotos-fijas.ts).
+ */
+function fotosParaBuscadores(property: TokkoProperty, max = 10): string[] {
+  const fotos = (property.photos ?? []).filter((f) => !f.is_blueprint);
+  const portada = fotos.find((f) => f.is_front_cover);
+  const ordenadas = [
+    ...(portada ? [portada] : []),
+    ...fotos.filter((f) => f !== portada).sort((a, b) => a.order - b.order),
+  ];
+  const estables = ordenadas.map((f) => {
+    const fija = fotoAbsoluta(esFotoR2(f.image) ? f.original ?? f.image : f.image);
+    if (fija && !archivoDeFotoFirmada(fija)) return fija;
+    return esFotoR2(f.image) ? f.image : null;
+  });
+  return Array.from(new Set(estables.filter((u): u is string => !!u))).slice(0, max);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -116,52 +203,64 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const tituloBase = rawTitle ? rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) : 'Propiedad';
     const title = seo?.title ? tituloBase : await tituloUnico(property, tituloBase);
     // #1: el texto de Tokko trae whitespace/newlines al inicio; los tags se
-    // reemplazan por espacio (no pegar palabras), se colapsan los espacios y se
-    // trimea ANTES de cortar a 160, para no desperdiciar el límite con basura.
-    const desc = seo?.metaDescription ?? ((property.description || property.description_only || '')
+    // reemplazan por espacio (no pegar palabras) y se colapsan los espacios.
+    // Adelante van los datos clave (precio incluido): es lo que se lee en
+    // Google y lo que separa a las unidades de un mismo edificio.
+    const texto = (property.description || property.description_only || '')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 160) || descripcionFallback(property));
-    const photo = getMainPhoto(property);
+      .trim();
+    const desc = seo?.metaDescription ?? recortarDescripcion(texto ? `${datosClave(property)}. ${texto}` : descripcionFallback(property));
     const price = formatPrice(property);
     const loc = formatUbicacion(property);
-    const ogDesc = `${price} - ${loc || property.address}. ${desc}`.slice(0, 200);
+    const ogDesc = seo?.metaDescription ? `${price} - ${loc || property.address}. ${desc}`.slice(0, 200) : desc;
+    // En la tarjeta de WhatsApp/iMessage lo que se lee en negrita es el título
+    // (la descripción se corta a 1-2 renglones): el precio va ahí, igual que en
+    // la ficha neutra. "Sin precio"/oportunidad: el título solo. El <title> de
+    // Google queda como estaba.
+    const precioOg = mostrarPrecio(property);
+    const ogTitle = precioOg ? `${title} · ${precioOg}` : title;
     // #3: canonical SIEMPRE al slug canónico del ID (no al slug pedido), para
     // consolidar los duplicados que sirve cualquier sufijo con el ID correcto.
     const canonicalUrl = `https://siinmobiliaria.com/propiedades/${generatePropertySlug(property)}`;
     return {
-      title: `${title} | SI INMOBILIARIA`,
+      title: tituloConMarca(title),
       description: desc,
       alternates: { canonical: canonicalUrl },
       openGraph: {
-        title,
+        title: ogTitle,
         description: ogDesc,
         url: canonicalUrl,
         type: 'article',
-        // Sin width/height hardcodeados: las fotos de Tokko no son 800x600 y
-        // declarar dimensiones falsas distorsiona el preview en WhatsApp/FB.
-        ...(photo ? { images: [{ url: photo, alt: title }] } : {}),
+        // El openGraph de la página reemplaza ENTERO al del layout: sin
+        // repetirlos, la ficha salía sin og:site_name ni og:locale.
+        siteName: 'SI INMOBILIARIA',
+        locale: 'es_AR',
+        // SIN clave `images` a propósito: la imagen la arma opengraph-image.tsx
+        // (1200 × 630, portada + precio + zona, JPEG liviano, con medidas).
+        // Next solo usa la del archivo si acá no hay `images`; antes iba la
+        // foto cruda (/fotos/…): cualquier proporción y de hasta varios MB.
       },
       twitter: {
         card: 'summary_large_image',
-        title,
+        title: ogTitle,
         description: ogDesc,
-        ...(photo ? { images: [photo] } : {}),
+        // Sin `images`: Next le copia la del openGraph (la generada).
       },
     };
   } catch (e) {
-    // La propiedad no existe / el feed falló. La ruta hace notFound() pero por
-    // una limitación de Next el streaming ya commiteó HTTP 200 (soft-404). El
-    // noindex evita que Google indexe esa página de error. Cuando la página
-    // termina en notFound() Next ya agrega su propio noindex: sumar el nuestro
-    // dejaba dos <meta name="robots">.
+    // La propiedad no existe: la ruta hace notFound() (y Next agrega su propio
+    // noindex; sumar el nuestro dejaba dos <meta name="robots">). Las dadas de
+    // baja ni llegan acá: el middleware responde 301/410 antes.
     const esNotFound =
       isNaN(getIdFromSlug(params.slug)) || (e instanceof Error && e.message.includes('not found'));
-    return {
-      title: 'Propiedad no encontrada | SI INMOBILIARIA',
-      ...(esNotFound ? {} : { robots: { index: false, follow: false } }),
-    };
+    // Falla PASAJERA del feed (timeout, 5xx de Hilo): antes esta rama devolvía
+    // "Propiedad no encontrada" con noindex y HTTP 200, y Google la tomaba por
+    // una orden: sacó del índice fichas VIVAS (7879811 y 7872050, 22/23-oct-2026,
+    // "Excluida por noindex" en Search Console). Se relanza: la respuesta es un
+    // 500, que para Google es temporal y conserva lo indexado hasta reintentar.
+    if (!esNotFound) throw e;
+    return { title: 'Propiedad no encontrada | SI INMOBILIARIA' };
   }
 }
 
@@ -173,7 +272,9 @@ export default async function PropertyPage({ params }: Props) {
 
   let property: TokkoProperty;
   try {
-    property = await sinVideosCaidos(sanitizeProperty(await getPropertyById(id)));
+    // Fotos con URL fija: la clave de /_next/image y la URL que ve Google
+    // Imágenes ya no cambian cada 45 días (ver lib/fotos-fijas.ts).
+    property = conFotosFijas(await sinVideosCaidos(sanitizeProperty(await getPropertyById(id))));
   } catch (e) {
     if (e instanceof Error && e.message.includes('not found')) {
       // LIMITACIÓN CONOCIDA (#2 soft-404): en esta ruta el notFound() resuelve
@@ -184,6 +285,9 @@ export default async function PropertyPage({ params }: Props) {
       // fichas con problemas reales de indexación, se deja documentado y NO se
       // toca. No es la causa el <head> manual del layout (una copia de esta
       // página en otra ruta, bajo el mismo layout, sí devuelve 404).
+      // Desde el 12-oct-2026 el middleware (fichaDadaDeBaja) responde antes de
+      // llegar acá: 301 al listado parecido o 410. Esto queda de red, para la
+      // ventana en que la propiedad se dio de baja y la lista de ids no se enteró.
       notFound();
     }
     throw e;
@@ -244,18 +348,28 @@ export default async function PropertyPage({ params }: Props) {
   const currentLat = property.geo_lat ? parseFloat(property.geo_lat) : null;
   const currentLng = property.geo_long ? parseFloat(property.geo_long) : null;
   const hasCoords = currentLat != null && !isNaN(currentLat) && currentLng != null && !isNaN(currentLng);
+  // Lugares cercanos y "¿Cuánto tardás?" ya guardados → en el HTML (Google
+  // indexa la versión celu). A la vez: cada uno corta a los 800 ms.
+  const [cercanos, tiempos] = hasCoords
+    ? await Promise.all([cercanosGuardados(currentLat!, currentLng!), tiemposGuardados(currentLat!, currentLng!)])
+    : [null, null];
   const description = getDescription(property);
 
   // JSON-LD — RealEstateListing + BreadcrumbList
-  const mainPhotoUrl = getMainPhoto(property);
-  // La operación que muestra la ficha (operations[0] podía ser una venta en 0).
-  const opPrincipal = operacionPrincipal(property);
-  const propPrice = opPrincipal?.prices?.[0]?.price ?? 0;
-  const propCurrency = opPrincipal?.prices?.[0]?.currency ?? 'USD';
+  const mainPhotoUrl = fotoPrincipalParaBuscadores(property);
+  const fotosBuscadores = fotosParaBuscadores(property);
   const propUrl = `https://siinmobiliaria.com/propiedades/${canonicalSlug}`;
-  // "Sin Precio" en Tokko (web_price: false): el Offer se omite del JSON-LD
-  // para no filtrar el monto que la API igual manda.
-  const tienePrecio = mostrarPrecio(property) !== null;
+  // "Sin Precio" en Tokko (web_price: false): sin Offer, para no filtrar el
+  // monto que la API igual manda (ofertasJsonLd lo respeta).
+  const ofertas = ofertasJsonLd(property, propUrl);
+  // RealEstateListing es un WebPage en schema.org: la dirección, el geo, los
+  // ambientes y la superficie son de la VIVIENDA y van en `about` (colgados
+  // del aviso los validadores los daban como propiedades desconocidas).
+  // addressLocality es la ciudad (antes el barrio: "Cotos de la Alameda" en
+  // vez de Roldán) y el barrio va en containedInPlace.
+  const { barrio, ciudad } = resolverUbicacion(property);
+  const tipoVivienda = tipoSchemaVivienda(property.type?.id);
+  const esVivienda = tipoVivienda !== 'Place';
   const jsonLd = [
     {
       '@context': 'https://schema.org',
@@ -263,35 +377,37 @@ export default async function PropertyPage({ params }: Props) {
       name: tituloVisible(property) || property.address,
       description,
       url: propUrl,
-      image: mainPhotoUrl ? [mainPhotoUrl] : [],
-      ...(tienePrecio ? {
-        offers: {
-          '@type': 'Offer',
-          price: propPrice,
-          priceCurrency: propCurrency,
-          availability: 'https://schema.org/InStock',
+      ...(property.created_at ? { datePosted: property.created_at.slice(0, 10) } : {}),
+      image: fotosBuscadores.length ? fotosBuscadores : mainPhotoUrl ? [mainPhotoUrl] : [],
+      ...(ofertas.length ? { offers: ofertas } : {}),
+      about: {
+        '@type': tipoVivienda,
+        name: tituloVisible(property) || property.address,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: property.real_address || property.fake_address || property.address,
+          addressLocality: ciudad || property.location?.name || '',
+          addressRegion: 'Santa Fe',
+          addressCountry: 'AR',
         },
-      } : {}),
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: property.real_address || property.fake_address || property.address,
-        addressLocality: property.location?.name || '',
-        addressRegion: 'Santa Fe',
-        addressCountry: 'AR',
+        ...(barrio ? { containedInPlace: { '@type': 'Place', name: barrio } } : {}),
+        ...(hasCoords ? {
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: currentLat,
+            longitude: currentLng,
+          },
+        } : {}),
+        // Schema.org: numberOfRooms son los ambientes, NO incluye baños (esos
+        // van en numberOfBathroomsTotal; sumarlos acá duplicaba el dato).
+        // Solo en viviendas: un lote o un local no tiene dormitorios.
+        ...(esVivienda ? {
+          numberOfRooms: property.room_amount || property.suite_amount || undefined,
+          numberOfBedrooms: isMonoambiente(property) ? 0 : (property.suite_amount || property.room_amount || undefined),
+          numberOfBathroomsTotal: property.bathroom_amount || undefined,
+          floorSize: area ? { '@type': 'QuantitativeValue', value: area, unitCode: 'MTK' } : undefined,
+        } : {}),
       },
-      ...(hasCoords ? {
-        geo: {
-          '@type': 'GeoCoordinates',
-          latitude: currentLat,
-          longitude: currentLng,
-        },
-      } : {}),
-      // Schema.org: numberOfRooms son los ambientes, NO incluye baños (esos
-      // van en numberOfBathroomsTotal; sumarlos acá duplicaba el dato).
-      numberOfRooms: property.room_amount || property.suite_amount || undefined,
-      numberOfBedrooms: isMonoambiente(property) ? 0 : (property.suite_amount || property.room_amount || undefined),
-      numberOfBathroomsTotal: property.bathroom_amount || undefined,
-      floorSize: area ? { '@type': 'QuantitativeValue', value: area, unitCode: 'MTK' } : undefined,
     },
     {
       '@context': 'https://schema.org',
@@ -312,27 +428,28 @@ export default async function PropertyPage({ params }: Props) {
       {/* ════════════════════════════════════════════
           MOBILE LAYOUT (md:hidden)
           Usa los mismos componentes compartidos que desktop (gallery, sticky
-          nav, detail body) para mantener paridad. El MobileStickyBar flotante
-          de abajo queda intacto — por eso el wrapper tiene pb-28 para que el
-          contenido no quede tapado por la barra flotante.
+          nav, detail body) para mantener paridad. El aire para la barra
+          flotante de abajo (MobileStickyBar) lo pone el footer (FooterWrapper),
+          que es lo último de la página: con los 112 px acá, el contenido
+          quedaba libre pero la última fila del footer (© y matrícula) seguía
+          tapada por la barra.
           ════════════════════════════════════════════ */}
-      <div className="md:hidden min-h-screen bg-[#fafafa]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 112px)' }}>
-        {/* Header propio de la ficha mobile — back + logo + (acciones) */}
+      <div className="md:hidden min-h-screen bg-[#fafafa]" style={{ paddingBottom: 24 }}>
+        {/* Header propio de la ficha mobile — back + logo + (acciones).
+            Con el área segura de arriba: en la web instalada en el iPhone el
+            header quedaba debajo del reloj (el Navbar del resto del sitio ya
+            la respeta). En Safari común vale 0 y no cambia nada. */}
         <div
           // El Tinder la esconde al abrir "Ver la ficha completa" (mazo/ficha-oscura.ts).
           data-ficha-barra-arriba=""
           className="sticky top-0 z-40 bg-white border-b border-gray-200 grid items-center px-4"
-          style={{ height: 56, gridTemplateColumns: 'minmax(76px,1fr) auto minmax(76px,1fr)' }}
+          style={{
+            height: 'calc(56px + env(safe-area-inset-top, 0px))',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            gridTemplateColumns: 'minmax(76px,1fr) auto minmax(76px,1fr)',
+          }}
         >
-          <Link
-            href="/propiedades"
-            className="flex items-center gap-1.5 text-sm font-semibold text-gray-700"
-            aria-label="Volver al mapa"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Mapa</span>
-          </Link>
+          <div className="flex items-center"><VolverAlListado /></div>
           <Link href="/" className="flex items-center justify-center" aria-label="Ir a la página principal">
             <Image
               src="/LOGO_HORIZONTAL.png"
@@ -351,23 +468,20 @@ export default async function PropertyPage({ params }: Props) {
           <PropertyGalleryHero property={property} />
         </div>
 
-        {/* Audio narrado (solo aparece si la propiedad tiene audio cacheado;
-            el componente se auto-oculta si /api/audio/check devuelve hasAudio:false) */}
-        <div className="px-4 pb-2">
-          <AudioSummary
-            propertyId={property.id}
-            title={tituloVisible(property) || property.address}
-          />
-        </div>
-
-        {/* Sticky tabs con scroll horizontal */}
+        {/* Sticky tabs con scroll horizontal. Se pegan debajo del header, que
+            ahora suma el área segura de arriba: PropertyStickyNav solo acepta
+            px fijos (56), así que el calc va por CSS. Con el área en 0 es lo
+            mismo de antes, y adentro del Tinder (mazo/ficha-oscura.ts esconde el
+            header y pone la tira en top 0, con un selector más específico)
+            sigue mandando esa regla. */}
+        <style dangerouslySetInnerHTML={{ __html: '[data-ficha-barra-arriba]~nav.sticky{top:calc(56px + env(safe-area-inset-top,0px))!important}' }} />
         <PropertyStickyNav
           sections={[
             { id: 'overview', label: 'Resumen' },
             { id: 'caracteristicas', label: 'Características' },
             // "Video" solo si la propiedad tiene recorrido (misma condición que
             // la sección #video en PropertyDetailBody).
-            ...(property.videos && property.videos.length > 0
+            ...(videosPropios(property.videos).length > 0
               ? [{ id: 'video', label: 'Video' }]
               : []),
             // Igual que "Video": la pestaña se muestra solo si abajo existe la
@@ -399,6 +513,16 @@ export default async function PropertyPage({ params }: Props) {
             property={property}
             whatsappUrl={whatsappUrl}
             showMobileContact
+            cercanos={cercanos?.ficha ?? null}
+            tiempos={tiempos}
+            // Audio narrado: debajo de los datos, no arriba del título (el precio
+            // tiene que entrar en la primera pantalla). Se auto-oculta sin audio.
+            despuesDeDatos={
+              <AudioSummary
+                propertyId={property.id}
+                title={tituloVisible(property) || property.address}
+              />
+            }
           />
         </div>
 
@@ -407,15 +531,11 @@ export default async function PropertyPage({ params }: Props) {
           <PropertyDetailSimilars property={property} />
         </div>
 
-        {/* Link "Volver al catálogo" */}
-        <div className="px-4 pb-6 pt-2 border-t border-gray-100">
-          <Link
-            href="/propiedades"
-            className="inline-flex items-center gap-2 text-[#1A5C38] hover:text-[#0F3A23] font-bold text-base"
-            style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}
-          >
-            ← Volver al catálogo
-          </Link>
+        {/* Cierre: "Volver al catálogo", que vuelve igual que el "Volver" del
+            header (a la misma búsqueda, no al listado entero). El link para
+            colegas está en el menú de Compartir de la barra de abajo. */}
+        <div className="px-4 pb-2 pt-2 border-t border-gray-100 flex flex-col items-start gap-1">
+          <VolverAlListado variante="pie" />
         </div>
       </div>
 
@@ -428,6 +548,19 @@ export default async function PropertyPage({ params }: Props) {
           ════════════════════════════════════════════ */}
       <PropertyDetailZillowDesktopPanel
         initialPropertyId={property.id}
+        // Lo que ya está acá para que el link abierto en la compu muestre la
+        // ficha en el primer pintado (antes: pantalla en blanco hasta hidratar).
+        previa={{
+          titulo: tituloVisible(property) || property.address,
+          precio: price,
+          direccion: [
+            property.real_address || property.fake_address || property.address,
+            formatUbicacion(property, property.real_address || property.fake_address || property.address),
+          ].filter(Boolean).join(', '),
+          // Las mismas 5 que la galería del panel (mismo orden y URL): la foto
+          // ya bajada se reusa cuando el panel real aparece.
+          fotos: getAllPhotos(property).slice(0, 5),
+        }}
       />
 
       {/* Mobile sticky bar */}
@@ -437,6 +570,9 @@ export default async function PropertyPage({ params }: Props) {
         title={tituloVisible(property) || property.address}
         propertyId={property.id}
         propertyTitle={tituloVisible(property) || property.address}
+        propertyPrice={price}
+        // "precio · zona" en el texto que se comparte (lib/compartir lineaDatos).
+        propertyUbicacion={formatUbicacion(property)}
         visitWhatsappNumber={numeroVisitaWhatsapp(property)}
         visitTipo={
           !property.operations?.some(o => o.operation_type === 'Sale') &&

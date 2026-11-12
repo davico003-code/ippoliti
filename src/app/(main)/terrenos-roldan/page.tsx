@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getLotSurface } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Terrenos en Roldán | Lotes desde USD 25.000 | SI INMOBILIARIA',
+  title: 'Terrenos en Roldán | Lotes desde USD 25.000',
   description: 'Terrenos y lotes en venta en Roldán. Desde USD 25.000 con financiación. Valorización 15-20% anual. Los Aromos, El Molino, Tierra de Sueños. SI INMOBILIARIA.',
   keywords: 'terrenos roldan, lotes roldan, terrenos en venta roldan, lotes en venta roldan santa fe',
   alternates: { canonical: 'https://siinmobiliaria.com/terrenos-roldan' },

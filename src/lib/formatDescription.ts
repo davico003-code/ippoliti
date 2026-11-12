@@ -201,12 +201,14 @@ function parseStructured(normalized: string): FormattedBlock[] {
 
   // Label corto (1-4 palabras, sin puntuación de cierre) que rotula el bloque
   // siguiente: título si lo que sigue es prosa o un dato ("El Edificio", "Método
-  // de pago"). No dispara en modo lista (ahí una línea corta es un ítem).
+  // de pago"). Fuera de una lista admite hasta 5 palabras ("Departamento dúplex
+  // (2 dormitorios)", "Precio y forma de pago"); dentro, una línea así es un
+  // ítem ("Calles pavimentadas con iluminación") y el tope sigue en 4.
   const looksLikeLabel = (line: string, next: string | undefined): boolean => {
     if (!next) return false
-    if (line.length > 30 || /[.!?:;]$/.test(line)) return false
+    if (line.length > (listMode ? 30 : 40) || /[.!?:;]$/.test(line)) return false
     if (!/^[A-ZÁÉÍÓÚÜÑ¿]/.test(line)) return false
-    if (line.split(/\s+/).length > 4) return false
+    if (line.split(/\s+/).length > (listMode ? 4 : 5)) return false
     if (BULLET_RE.test(line) || parseDataLine(line)) return false
     return isProseLine(next) || !!parseDataLine(next)
   }
@@ -367,6 +369,14 @@ function dividirEnOraciones(texto: string): string[] {
   }
   oraciones.push(texto.slice(desde).trim())
   return oraciones.filter(Boolean)
+}
+
+// Estilo Apple (David 20-oct): la primera oración del párrafo va oscura —es lo
+// que se lee de un vistazo— y el resto en gris. Respeta "Av.", "Sup.", etc.
+export function entradaDelParrafo(texto: string): { entrada: string; resto: string } {
+  const [primera] = dividirEnOraciones(texto)
+  if (!primera || !texto.startsWith(primera)) return { entrada: texto, resto: '' }
+  return { entrada: primera, resto: texto.slice(primera.length).trim() }
 }
 
 function partirParrafoLargo(texto: string): string[] {
