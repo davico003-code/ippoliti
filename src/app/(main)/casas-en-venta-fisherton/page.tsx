@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
-import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getRoofedArea } from '@/lib/tokko'
+import Image from '@/components/Imagen'
+import { getProperties, type TokkoProperty, getMainPhoto, formatPrice, generatePropertySlug, getTotalSurface } from '@/lib/tokko'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const revalidate = 21600
 
 export const metadata: Metadata = {
-  title: 'Casas en venta en Fisherton | Precios y fotos | SI INMOBILIARIA',
+  title: 'Casas en venta en Fisherton | Precios y fotos',
   description: 'Casas en venta en Fisherton, Rosario. Green Village, Palos Verdes, Aldea. Zona residencial premium. Precios, fotos, m² y dormitorios. SI INMOBILIARIA.',
   keywords: 'casas en venta fisherton, casas fisherton, fisherton rosario casas, propiedades fisherton',
   alternates: { canonical: 'https://siinmobiliaria.com/casas-en-venta-fisherton' },
@@ -19,8 +19,10 @@ function filter(props: TokkoProperty[]): TokkoProperty[] {
   return props.filter(p => {
     const loc = `${p.location?.short_location ?? ''} ${p.location?.name ?? ''} ${p.fake_address ?? ''} ${p.address ?? ''}`.toLowerCase()
     const match = loc.includes('fisherton') || loc.includes('aldea')
-    const isCasa = (p.type?.name?.toLowerCase() ?? '').includes('casa') || (p.type?.name?.toLowerCase() ?? '').includes('house')
-    const isVenta = p.operations?.[0]?.operation_type === 'Sale'
+    const tipo = p.type?.name?.toLowerCase() ?? ''
+    // 'warehouse' contiene 'house': los galpones entraban como casas.
+    const isCasa = (tipo.includes('casa') || tipo.includes('house')) && !tipo.includes('warehouse')
+    const isVenta = (p.operations ?? []).some(o => o.operation_type === 'Sale')
     return match && isCasa && isVenta
   })
 }
@@ -44,12 +46,12 @@ export default async function Page() {
 
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {properties.map(p => { const photo = getMainPhoto(p); const roofed = getRoofedArea(p); const beds = p.suite_amount || p.room_amount; return (
+          {properties.map(p => { const photo = getMainPhoto(p); const roofed = getTotalSurface(p); const beds = p.suite_amount || p.room_amount; return (
             <Link key={p.id} href={`/propiedades/${generatePropertySlug(p)}`} className="group bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all">
               <div className="relative h-48 bg-gray-100">{photo && <Image src={photo} alt={p.publication_title || p.address} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, (max-width: 1279px) 33vw, 25vw" />}</div>
               <div className="p-4">
                 <p className="text-xl font-black text-gray-900 font-numeric mb-1">{formatPrice(p)}</p>
-                <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed} m²`].filter(Boolean).join(' · ')}</p>
+                <p className="text-sm text-gray-600 mb-1">{[beds && `${beds} dorm`, roofed && `${roofed.toLocaleString('es-AR')} m²`].filter(Boolean).join(' · ')}</p>
                 <p className="text-sm text-gray-500 truncate">{p.fake_address || p.address}</p>
               </div>
             </Link>

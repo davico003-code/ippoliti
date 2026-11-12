@@ -16,6 +16,7 @@ export interface BlogPost {
   publishAt?: string    // ISO completo; si es futuro, la nota está programada
   updatedAt?: string    // ISO completo; se estampa al editar la nota en el panel
   hasImageOverride?: boolean
+  imageCredit?: string  // "Foto: InfoFunes" etc. cuando la portada no es propia
 }
 
 export const posts: BlogPost[] = [
@@ -145,7 +146,7 @@ Realizamos tasaciones profesionales con comparables locales y administramos alqu
 
 Cómo contactarnos
 
-Si estás buscando comprar, vender o alquilar en Funes, te invitamos a consultarnos sin compromiso. Podés escribirnos por WhatsApp al 341 210 1694, llamarnos al (341) 210-1694, o visitarnos en nuestras oficinas. Te contactamos en menos de 24 horas.
+Si estás buscando comprar, vender o alquilar en Funes, te invitamos a consultarnos sin compromiso. Podés escribirnos por WhatsApp al 341 334 0916, llamarnos al (341) 334-0916, o visitarnos en nuestras oficinas. Te contactamos en menos de 24 horas.
 
 También podés solicitar una tasación profesional de tu propiedad completando el formulario en nuestra sección de tasaciones. Después de revisar el caso confirmamos el alcance, la documentación necesaria y el plazo.`,
   },
@@ -186,7 +187,7 @@ Fundada en 1983 por Susana Ippoliti, SI INMOBILIARIA es la inmobiliaria más ant
 
 Realizamos tasaciones profesionales con comparables locales, administramos alquileres y publicamos en los principales portales inmobiliarios. Trabajamos en Roldán desde 1983.
 
-¿Querés consultar? Escribinos por WhatsApp al 341 210 1694 o visitá nuestra sección de tasaciones para solicitar una valuación profesional. Antes de comenzar confirmamos alcance y plazo.`,
+¿Querés consultar? Escribinos por WhatsApp al 341 334 0916 o visitá nuestra sección de tasaciones para solicitar una valuación profesional. Antes de comenzar confirmamos alcance y plazo.`,
   },
   {
     slug: 'comprar-casa-funes-roldan',
@@ -229,7 +230,7 @@ Financiación. Si no contás con el total en efectivo, consultá las opciones de
 
 Con más de 40 años operando en Roldán y Funes, somos la inmobiliaria que mejor conoce ambos mercados. Nuestro equipo — Susana, Laura y David — te asesora de forma honesta y personalizada, sin presión de venta. Contamos con estudio jurídico propio para garantizar la seguridad de la operación y realizamos tasaciones profesionales.
 
-Ya sea que busques tu primera casa, una inversión o cambiar a un hogar más grande, te acompañamos en todo el proceso. Consultanos por WhatsApp al 341 210 1694 o visitá nuestras oficinas en Roldán (Catamarca 775) y Funes. Te contactamos en menos de 24 horas.
+Ya sea que busques tu primera casa, una inversión o cambiar a un hogar más grande, te acompañamos en todo el proceso. Consultanos por WhatsApp al 341 334 0916 o visitá nuestras oficinas en Roldán (Catamarca 775) y Funes. Te contactamos en menos de 24 horas.
 
 Si estás pensando en vender antes de comprar, podés solicitar una tasación profesional en nuestra sección de tasaciones. Revisamos el caso y te confirmamos el alcance, la documentación necesaria y el plazo.`,
   },
@@ -243,19 +244,22 @@ function yaPublicada(p: BlogPost): boolean {
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | undefined> {
-  const { getPostsDinamicos, getBlogRedirects, getImageOverrides } =
+  const { getPostsDinamicos, getBlogRedirects, getImageOverrides, getImageCredits } =
     await import('./blog-posts-dinamicos');
   // Borrada (soft-delete): el middleware ya hace 301; defensa en profundidad.
   const redirects = await getBlogRedirects();
   if (redirects[slug]) return undefined;
+  // La versión dinámica (Blob) le gana a la estática del código: así una nota
+  // estática se reescribe publicando su Blob, sin tocar código (reescritura del
+  // blog, oct-2026). Borrar el Blob devuelve la versión estática.
   const local =
-    posts.find(p => p.slug === slug) ??
-    (await getPostsDinamicos()).find(p => p.slug === slug);
+    (await getPostsDinamicos()).find(p => p.slug === slug) ??
+    posts.find(p => p.slug === slug);
   // Programada con fecha futura: tratarla como inexistente (igual que borrada)
   if (!local || !yaPublicada(local)) return undefined;
-  const overrides = await getImageOverrides();
+  const [overrides, creditos] = await Promise.all([getImageOverrides(), getImageCredits()]);
   return overrides[slug]
-    ? { ...local, image: overrides[slug], hasImageOverride: true }
+    ? { ...local, image: overrides[slug], hasImageOverride: true, imageCredit: creditos[slug] }
     : local;
 }
 
@@ -267,7 +271,8 @@ export async function getAllPosts(): Promise<BlogPost[]> {
     getBlogRedirects(),
     getImageOverrides(),
   ]);
-  return [...posts, ...dinamicos]
+  const slugsDinamicos = new Set(dinamicos.map(p => p.slug));
+  return [...posts.filter(p => !slugsDinamicos.has(p.slug)), ...dinamicos]
     .filter(p => !redirects[p.slug])                                  // tombstone: oculta borradas (estáticas y dinámicas)
     .filter(yaPublicada)                                              // programadas: ocultas hasta su fecha
     .map(p => (

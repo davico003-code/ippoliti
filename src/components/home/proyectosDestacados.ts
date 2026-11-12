@@ -16,6 +16,9 @@ export interface ProyectoDestacado {
   image: string
   /** URL sin extensión; ProjectMediaCard arma `${videoUrl}.webm` y `.mp4`. */
   videoUrl?: string
+  /** Tractor animado sobre la foto (MaquinasObra). Las rutas están trazadas
+   *  sobre ESTA `image`: si se cambia la foto, sacar el flag o retrazarlas. */
+  maquinas?: boolean
 }
 
 export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
@@ -26,18 +29,19 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
     location: 'Roldán',
     pago: 'Entrega 30% + 24 cuotas fijas en USD',
     href: '/emprendimientos/67178-distrito-roldan',
-    image: 'https://static.tokkobroker.com/dev_pictures/67178_41755302210101797952152961824111367170079757743169980171710493926367681957871.jpg',
+    // La aérea de Tokko con el color corregido y el camión del obrador integrado.
+    image: '/images/distrito-roldan/portada-home-aerea.webp',
     videoUrl: '/videos/proyectos/distrito-roldan',
+    maquinas: true,
   },
   {
-    id: 'dockgarden',
-    badge: 'Condominio',
-    title: 'Dockgarden',
-    location: 'Aldea Fisherton',
-    pago: 'Entrega 20% + 36 cuotas fijas en USD',
-    href: '/emprendimientos/67173-dockgarden-aldea-fisherton',
-    image: 'https://static.tokkobroker.com/dev_pictures/67173_93775060846060385394324593876733363454956168345677306486130087037249128718036.jpg',
-    videoUrl: '/videos/proyectos/dockgarden',
+    id: 'tierra-nueva',
+    badge: 'Departamentos',
+    title: 'Tierra Nueva',
+    location: 'Fisherton',
+    pago: '36 cuotas fijas en USD · Sin anticipo',
+    href: '/emprendimientos/tierra-nueva',
+    image: '/emprendimientos/tierra-nueva/card.webp',
   },
   {
     id: 'hausing',
@@ -50,13 +54,13 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
     videoUrl: '/videos/proyectos/hausing',
   },
   {
-    id: 'aurea',
-    badge: 'Barrio Privado',
-    title: 'Aurea',
-    location: 'Roldán',
-    pago: 'Lotes desde 500m² · Financiación disponible',
-    href: '/propiedades/7296792-lotes-en-venta-desde-500m2-barrio-privado-aurea-en-roldan',
-    image: '/aurea-portada.jpg',
-    videoUrl: '/videos/proyectos/aurea',
+    id: 'dockgarden',
+    badge: 'Condominio',
+    title: 'Dockgarden',
+    location: 'Aldea Fisherton',
+    pago: 'Entrega 20% + 36 cuotas fijas en USD',
+    href: '/emprendimientos/67173-dockgarden-aldea-fisherton',
+    image: '/images/dockgarden/render-frente.webp', // render propio: la de Tokko trae el logo estampado
+    videoUrl: '/videos/proyectos/dockgarden',
   },
 ]

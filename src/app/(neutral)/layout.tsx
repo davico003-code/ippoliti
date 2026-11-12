@@ -10,12 +10,17 @@
 // fuga de estilos del root SI, swap por un neutral.css mínimo.
 
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import '../(main)/globals.css'
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const inter = localFont({
+  // Inter, en el repo (src/fonts): compilar no depende de Google Fonts.
+  src: [
+    { path: '../../fonts/inter-latin.woff2', weight: '400' },
+    { path: '../../fonts/inter-latin.woff2', weight: '500' },
+    { path: '../../fonts/inter-latin.woff2', weight: '600' },
+    { path: '../../fonts/inter-latin.woff2', weight: '700' },
+  ],
   variable: '--font-inter',
   display: 'swap',
 })

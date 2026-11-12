@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import { BarChart3, CheckCircle2, Cpu, MapPin, UserRound } from 'lucide-react'
 import { trackEvent, trackFbEvent } from '@/lib/analytics'
 
@@ -89,7 +89,7 @@ export default function NewsletterBanner() {
       if (!res.ok) throw new Error('bad status')
       setStatus('sent')
       trackEvent('generate_lead', { origen: 'newsletter_banner' })
-      trackFbEvent('Lead', { content_name: 'Newsletter oportunidades' })
+      trackFbEvent('CompleteRegistration', { content_name: 'Newsletter oportunidades' })
     } catch {
       setStatus('error')
     }
@@ -104,10 +104,10 @@ export default function NewsletterBanner() {
           {status === 'sent' ? (
             <div
               className="flex items-center gap-3 rounded-xl border px-5 py-4 font-raleway text-[15px] font-semibold"
-              style={{ borderColor: 'rgba(26,92,56,0.3)', background: 'rgba(26,92,56,0.06)', color: GREEN }}
+              style={{ borderColor: 'rgba(26,92,56,0.3)', background: 'rgba(26,92,56,0.06)', color: 'var(--theme-accent, #1A5C38)' }}
               role="status"
             >
-              <CheckCircle2 size={22} style={{ color: GREEN }} className="shrink-0" />
+              <CheckCircle2 size={22} style={{ color: 'var(--theme-accent, #1A5C38)' }} className="shrink-0" />
               ¡Listo! Te van a empezar a llegar las oportunidades seleccionadas.
             </div>
           ) : (

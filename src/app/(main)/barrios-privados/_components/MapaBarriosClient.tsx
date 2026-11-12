@@ -6,11 +6,12 @@
 
 import "leaflet/dist/leaflet.css";
 import { useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import { getBarriosHub, TIER_HUB_META } from "@/lib/barrios";
 import { LIGHT_TILES } from '@/lib/map-tiles'
+import CapaCalles from '@/components/CapaCalles'
 
 const TIER_BG: Record<string, string> = {
   premium: "#0d3d24",
@@ -59,10 +60,7 @@ export default function MapaBarriosClient() {
         style={{ height: "100%", width: "100%" }}
         scrollWheelZoom={false}
       >
-        <TileLayer
-          url={LIGHT_TILES.url}
-          attribution={LIGHT_TILES.attribution}
-        />
+        <CapaCalles claras={LIGHT_TILES} />
         <FitBounds points={points} />
         {barrios.map((b) => (
           <Marker
@@ -98,7 +96,7 @@ export default function MapaBarriosClient() {
                     margin: "0 0 6px",
                     fontSize: 16,
                     fontWeight: 700,
-                    color: "#0a0a0a",
+                    color: "var(--theme-ink, #0a0a0a)",
                   }}
                 >
                   {b.nombre}
@@ -107,7 +105,7 @@ export default function MapaBarriosClient() {
                   style={{
                     margin: "0 0 8px",
                     fontSize: 12,
-                    color: "#444",
+                    color: "var(--theme-muted, #444)",
                     lineHeight: 1.45,
                     fontFamily:
                       "var(--font-poppins), 'Poppins', system-ui, sans-serif",
@@ -120,7 +118,7 @@ export default function MapaBarriosClient() {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "#1A5C38",
+                    color: "var(--theme-accent, #1A5C38)",
                     textDecoration: "none",
                   }}
                 >

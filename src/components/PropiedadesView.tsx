@@ -1,11 +1,9 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import PropertyPanel from './PropertyPanel'
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect, useLayoutEffect, useDeferredValue, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   Search,
@@ -18,11 +16,13 @@ import {
   Check,
   ArrowUpDown,
   Locate,
-  LocateFixed,
   Clock,
   ArrowLeft,
-  RefreshCw,
   FileDown,
+  Maximize2,
+  Minimize2,
+  Share2,
+  RotateCw,
 } from 'lucide-react'
 import MotivosFit from '@/components/MotivosFit'
 import {
@@ -35,34 +35,50 @@ import {
   limpiarPerfilDeUrl,
 } from '@/lib/smart-profile-url'
 import PropiedadCardGrid from '@/components/PropiedadCardGrid'
+import FotosVistaPrevia from '@/components/FotosVistaPrevia'
+import { AgentesPropiedadProvider } from '@/components/AgentesPropiedadContext'
+import { GripVertical } from 'lucide-react'
+import { formatDireccionCompleta, formatUbicacion } from '@/lib/ubicacion'
 import PropiedadesViewDesktopGridSkeleton from '@/components/PropiedadesViewDesktopGridSkeleton'
 import MobileFilterSheet from '@/components/MobileFilterSheet'
+import ThemeToggle from '@/components/ThemeToggle'
 import PropertyShareButton from '@/components/PropertyShareButton'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { trackEvent } from '@/lib/analytics'
+import { haptico } from '@/lib/haptico'
+import { guardarUltimoListado, marcarSalidaDelListado } from '@/lib/volver-listado'
+import { compartirPagina } from '@/lib/compartir'
+import { resumenBusqueda } from '@/lib/resumen-busqueda'
+import { showToast } from '@/components/Toast'
 import { mesAnioAR } from '@/lib/listado-alquileres'
-import { buscarZonas } from '@/lib/zonas'
+import { buscarZonas, detalleZona, nombreBuscable } from '@/lib/zonas'
+import { idsDeZonasVivas } from '@/lib/zonas-vivas'
 import { highlightMatch } from '@/lib/highlight'
+import { construirIndice, buscar } from '@/lib/busqueda-propiedades'
 import { ZONAS, type Zona } from '@/lib/zonas'
+import { criteriosDelBuscador } from '@/lib/avisame-nuevas'
+import { SuscripcionMail } from '@/components/mazo/SuscripcionMail'
 import {
   type TokkoProperty,
-  getMainPhoto,
   formatPrice,
   getOperationType,
+  operacionPrincipal,
+  priorizarOperacion,
   operationBadgeColor,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   isMonoambiente,
   propertyTypeLabelById,
   generatePropertySlug,
   TYPE_FILTER_GROUPS,
+  tituloVisible,
 } from '@/lib/tokko'
 import { filterPropertiesByRadius, GEO_NEARBY_RADIUS_KM, distanceToProperty } from '@/lib/geo'
 // Constantes del mapa desde @/lib/map-config (módulo sin leaflet): un import
 // estático de PropiedadesMap acá anularía el dynamic() de abajo y metería
 // leaflet en el First Load JS de /propiedades.
-import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget } from '@/lib/map-config'
+import { DEFAULT_CENTER as MAP_DEFAULT_CENTER, DEFAULT_ZOOM as MAP_DEFAULT_ZOOM, type FlyToTarget, type ZonaMapa } from '@/lib/map-config'
 
 const PropiedadesMap = dynamic(() => import('./PropiedadesMap'), {
   ssr: false,
@@ -85,9 +101,17 @@ const PropiedadesViewDesktopGrid = dynamic(
   { ssr: false, loading: () => <PropiedadesViewDesktopGridSkeleton /> }
 )
 
+// El panel de la ficha (galería, cuerpo, contacto, similares, footer) solo se
+// abre en la compu. Con el import estático, el celu bajaba ~100 KB de JS de la
+// ficha entera para parsear antes de que el listado respondiera al primer
+// toque. Ahora es lazy: la compu lo adelanta en un momento libre después de
+// cargar y al pasar el mouse por una tarjeta (PropiedadesViewDesktopGrid); el
+// celu nunca lo baja.
+const PropertyPanel = dynamic(() => import('./PropertyPanel'), { ssr: false })
+
 // ─── Filter types ────────────────────────────────────────────────────────────
 
-type Operation = 'todos' | 'venta' | 'alquiler'
+type Operation = 'todos' | 'venta' | 'alquiler' | 'temporario'
 // 'todos' o cualquier `value` de TYPE_FILTER_GROUPS (poblado dinámicamente
 // según el inventario presente). String abierto porque las opciones se derivan
 // del mapa de tipos por id en tokko.ts.
@@ -96,7 +120,7 @@ type Beds      = 'todos' | 'mono' | '1' | '2' | '3' | '4+'
 type Currency  = 'USD' | 'ARS'
 type Location  = 'todos' | 'roldan' | 'rosario' | 'funes'
 type SortBy    = 'recientes' | 'precio-asc' | 'precio-desc' | 'superficie' | 'destacadas'
-type OperationType = 'Sale' | 'Rent'
+type OperationType = 'Sale' | 'Rent' | 'Temporary rent'
 // listMode era un toggle huérfano (compact|list) que no afectaba el render de
 // las cards; eliminado junto con su estado y los botones de la barra superior.
 
@@ -121,32 +145,45 @@ const DEFAULTS: Filters = {
   priceMin: '', priceMax: '', currency: 'USD',
 }
 
+// Pastillas flotantes Ordenar / Mapa del celu. Invertidas en oscuro, como
+// Apple Maps: eran #111 fijo y sobre el fondo oscuro (#18191b, 1,07:1) solo
+// se distinguían cuando caían encima de una foto. En claro quedan igual.
+const PASTILLA: React.CSSProperties = {
+  background: 'var(--theme-ink, #111)',
+  color: 'var(--background, #fff)',
+  padding: '12px 20px',
+  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
+  fontSize: 14,
+  fontWeight: 600,
+  border: 'none',
+  minHeight: 44,
+  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+}
+
+const LISTA_PCT_DEFAULT = 48
+const LISTA_PCT_MIN = 30
+const LISTA_PCT_MAX = 70
+const LISTA_PCT_KEY = 'si-propiedades-lista-pct'
+
 function operationTypeForFilter(operation: Operation): OperationType | null {
   if (operation === 'venta') return 'Sale'
   if (operation === 'alquiler') return 'Rent'
+  if (operation === 'temporario') return 'Temporary rent'
   return null
 }
 
 function operationForView(property: TokkoProperty, operationType: OperationType | null) {
-  if (!operationType) return property.operations?.[0] ?? null
+  // Sin operación elegida, la misma que muestra la card (la que tiene precio);
+  // operations[0] podía ser una venta en 0 de una propiedad que se alquila.
+  if (!operationType) return operacionPrincipal(property)
   return property.operations?.find(operation => operation.operation_type === operationType) ?? null
 }
 
-/**
- * Las cards, el mapa y el sheet de la propiedad eligen operación con
- * `operacionPrincipal`, que prefiere la que tiene precio cargado. Al filtrar por
- * Venta o Alquiler una propiedad mixta, la vista tiene que mostrar SIEMPRE la
- * operación elegida: si el alquiler vino con precio 0, antes ganaba la venta y
- * la card decía "VENTA · USD 450.000" dentro del listado de alquileres. Por eso
- * acá la propiedad de la vista queda solo con la operación filtrada (la ficha
- * original no se muta; el listado sin filtro sigue viendo las dos).
- */
-function prioritizeOperationForView(property: TokkoProperty, operationType: OperationType | null): TokkoProperty {
-  if (!operationType || !property.operations?.length) return property
-  const selected = property.operations.find(operation => operation.operation_type === operationType)
-  if (!selected) return property
-  if (property.operations.length === 1 && property.operations[0] === selected) return property
-  return { ...property, operations: [selected] }
+/** Precio para ordenar: el que la card muestra, o null si no se publica. */
+function precioOrden(property: TokkoProperty, operationType: OperationType | null) {
+  if (property.web_price === false) return null
+  const pr = operationForView(property, operationType)?.prices?.[0]
+  return pr && pr.price > 0 ? pr : null
 }
 
 // Util: solo dígitos del input crudo (descarta puntos, comas, espacios).
@@ -178,6 +215,163 @@ function safeDecodeQuery(s: string): string {
 // toda /propiedades al error boundary ("Algo salió mal") en esos browsers.
 const safeSessionGet = (key: string): string | null => {
   try { return sessionStorage.getItem(key) } catch { return null }
+}
+
+// useLayoutEffect sin el aviso de React en el server (la vista también se
+// renderiza en SSR).
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
+// ─── Búsqueda ↔ URL ─────────────────────────────────────────────────────────
+
+// El orden también viaja en la URL (?orden=): un link compartido con "Menor
+// precio" llegaba ordenado por Destacadas. 'destacadas' es el default y no se escribe.
+const ORDENES_URL: SortBy[] = ['recientes', 'precio-asc', 'precio-desc', 'superficie']
+function parseOrden(v: string | null): SortBy {
+  return v && (ORDENES_URL as string[]).includes(v) ? (v as SortBy) : 'destacadas'
+}
+
+/**
+ * La query canónica de una búsqueda: conserva los params ajenos al listado
+ * (utm, perfil del asistente) y reescribe los alias viejos (op, type,
+ * location, search) al canónico. Una sola función para el sync de la URL, la
+ * posición guardada y el botón Compartir: así los tres dicen la misma URL.
+ */
+function queryDeBusqueda(base: URLSearchParams, f: Filters, orden: SortBy): string {
+  const params = new URLSearchParams(Array.from(base.entries()))
+  params.delete('op')
+  // Migrar alias legacy al canónico: limpiarlos para no duplicar en la URL.
+  params.delete('type'); params.delete('location'); params.delete('search')
+  const put = (k: string, v: string) => { if (v) params.set(k, v); else params.delete(k) }
+  put('q', f.search.trim())
+  put('operacion', f.operation !== 'todos' ? f.operation : '')
+  put('tipo', f.type && f.type !== 'todos' ? f.type : '')
+  put('dormitorios', f.beds !== 'todos' ? f.beds : '')
+  put('ubicacion', f.location !== 'todos' ? f.location : '')
+  put('precio_min', f.priceMin)
+  put('precio_max', f.priceMax)
+  put('moneda', (f.priceMin || f.priceMax) ? f.currency : '')
+  put('orden', orden !== 'destacadas' ? orden : '')
+  return params.toString()
+}
+
+// ─── Volver al mismo lugar ──────────────────────────────────────────────────
+// La lista del celu scrollea en un div propio (no en la ventana), que el
+// navegador no restaura, y al remontar volvía a la primera tanda de 24: quien
+// había bajado 40 tarjetas, abría la 35 y volvía, aparecía arriba de todo. Se
+// guarda, para la búsqueda actual, cuántas tandas había, dónde estaba el
+// scroll y qué tarjeta se tocó; al volver a ESA misma búsqueda (atrás del
+// navegador o "Volver" de la ficha) se restaura. Media hora de vigencia: más
+// tarde ya es otra visita y se empieza de arriba.
+const CLAVE_POS = 'si_listado_pos'
+const POS_VIGENCIA_MS = 30 * 60 * 1000
+interface PosListado { url: string; scrollTop: number; tandas: number; id?: number; t: number }
+
+function leerPos(): PosListado | null {
+  try {
+    const raw = sessionStorage.getItem(CLAVE_POS)
+    if (!raw) return null
+    const v = JSON.parse(raw) as Partial<PosListado> | null
+    if (!v || typeof v.url !== 'string' || typeof v.scrollTop !== 'number' || typeof v.tandas !== 'number' || typeof v.t !== 'number') return null
+    if (Date.now() - v.t > POS_VIGENCIA_MS) return null
+    return {
+      url: v.url,
+      scrollTop: Math.max(0, v.scrollTop),
+      tandas: Math.min(40, Math.max(1, Math.round(v.tandas))),
+      id: typeof v.id === 'number' ? v.id : undefined,
+      t: v.t,
+    }
+  } catch {
+    return null
+  }
+}
+
+function guardarPos(p: Omit<PosListado, 't'>): void {
+  try { sessionStorage.setItem(CLAVE_POS, JSON.stringify({ ...p, t: Date.now() })) } catch { /* modo privado */ }
+}
+
+/**
+ * ¿"Atrás" vuelve a una página de SI? document.referrer no alcanza: en las
+ * navegaciones internas de Next no cambia (si se entró por Google, sigue
+ * diciendo google.com). Por eso: si la página con la que arrancó este
+ * documento NO es el listado, se llegó navegando adentro del sitio; si es el
+ * listado, solo hay historia propia si se entró desde otra página de SI.
+ */
+function hayHistoriaDelSitio(): boolean {
+  try {
+    if (window.history.length <= 1) return false
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
+    const inicial = nav?.name ? new URL(nav.name).pathname : null
+    if (inicial && inicial !== window.location.pathname) return true
+    const ref = document.referrer
+    return !!ref && new URL(ref).origin === window.location.origin
+  } catch {
+    return false
+  }
+}
+
+// "Mi ubicación": un solo texto por caso. Antes el ícono del input y la fila
+// del buscador decían cosas distintas para el mismo permiso negado.
+const UBICACION_SIN_SOPORTE = 'Tu navegador no comparte la ubicación. Buscá por barrio o ciudad.'
+const UBICACION_SIN_PERMISO = 'Para ver lo que hay cerca, permití la ubicación en el navegador.'
+const UBICACION_FALLO = 'No pudimos obtener tu ubicación. Probá de nuevo.'
+
+// ─── Filtrado ───────────────────────────────────────────────────────────────
+
+type ResultadoBusqueda = ReturnType<typeof buscar>
+
+// Normaliza texto: lowercase + NFD sin tildes (para que "roldan" matchee "Roldán")
+const normTxt = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+/**
+ * ¿La propiedad entra en la búsqueda escrita + los filtros de la barra? Afuera
+ * del componente para poder recontar sacando un filtro por vez: el estado
+ * vacío dice cuántas aparecen sin cada uno (la app piensa por la persona).
+ */
+function pasaFiltros(p: TokkoProperty, f: Filters, resultado: ResultadoBusqueda): boolean {
+  const opType = operationTypeForFilter(f.operation)
+  if (resultado && !resultado.score.has(p.id)) return false
+  if (opType && !p.operations?.some(operation => operation.operation_type === opType)) {
+    return false
+  }
+  if (f.type !== 'todos') {
+    // Match por id exacto contra el grupo del filtro (sin substring de nombre:
+    // "warehouse" contiene "house" y arrastraba galpones bajo "Casa").
+    const grp = TYPE_FILTER_GROUPS.find(g => g.value === f.type)
+    if (!grp || !grp.ids.includes(p.type?.id ?? -1)) return false
+  }
+  if (f.beds !== 'todos') {
+    if (f.beds === 'mono') {
+      // Solo monoambientes (0 dormitorios).
+      if (!isMonoambiente(p)) return false
+    } else {
+      // Dormitorios reales: un monoambiente NO cuenta como "1 dorm".
+      if (isMonoambiente(p)) return false
+      const rooms = p.suite_amount || p.room_amount || 0
+      if (f.beds === '4+' && rooms < 4) return false
+      if (f.beds !== '4+' && rooms !== parseInt(f.beds)) return false
+    }
+  }
+  // Filtro de precio: cohorte por moneda. Si el usuario fija algún tope,
+  // solo se evalúan propiedades publicadas en esa moneda; las demás se
+  // descartan (decisión explícita: comparar USD vs ARS sin conversión sería
+  // engañoso porque dependería de un tipo de cambio que no manejamos).
+  if (f.priceMin || f.priceMax) {
+    const minNum = f.priceMin ? parseInt(f.priceMin, 10) : 0
+    const maxNum = f.priceMax ? parseInt(f.priceMax, 10) : Number.POSITIVE_INFINITY
+    // Buscar el precio de la operación activa y la moneda seleccionada.
+    // Un precio oculto ("Consultar") no puede entrar por un filtro de precio.
+    if (p.web_price === false) return false
+    const matchingPrice = operationForView(p, opType)?.prices?.find(pr => pr.currency === f.currency)
+    if (!matchingPrice) return false
+    if (matchingPrice.price < minNum || matchingPrice.price > maxNum) return false
+  }
+  if (f.location !== 'todos') {
+    const all = normTxt(`${p.location?.short_location ?? p.location?.name ?? ''} ${p.fake_address ?? p.address ?? ''}`)
+    if (f.location === 'roldan' && !all.includes('roldan')) return false
+    if (f.location === 'rosario' && !all.includes('rosario')) return false
+    if (f.location === 'funes' && !all.includes('funes')) return false
+  }
+  return true
 }
 
 // Formato es-AR con separador de miles (120000 → "120.000"). Para vacío devuelve ''.
@@ -263,13 +457,16 @@ function FilterSelect<T extends string>({
         onClick={() => setOpen(o => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={options[0].label}
+        // El nombre accesible incluye lo que se ve ("Operación: Venta"): con
+        // solo "Operación", el lector no decía qué estaba aplicado y el control
+        // por voz ("tocar Venta") no lo encontraba.
+        aria-label={active ? `${options[0].label}: ${current.label}` : options[0].label}
         className="appearance-none h-10 rounded-xl pl-3.5 pr-8 cursor-pointer flex items-center whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all relative"
         style={{
-          border: active || open ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
-          background: '#fff',
-          color: active ? '#1A5C38' : '#0a0a0a',
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          border: active || open ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
+          background: 'var(--theme-surface, #fff)',
+          color: active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontWeight: active ? 600 : 500,
           fontSize: 14,
         }}
@@ -296,10 +493,10 @@ function FilterSelect<T extends string>({
                 onClick={() => { onChange(o.value); setOpen(false) }}
                 className="flex w-full items-center justify-between gap-4 px-3.5 py-2 text-left whitespace-nowrap transition-colors hover:bg-gray-50"
                 style={{
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontSize: 14,
                   fontWeight: sel ? 600 : 500,
-                  color: sel ? '#1A5C38' : '#0a0a0a',
+                  color: sel ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
                 }}
               >
                 {o.label}
@@ -452,10 +649,10 @@ function PriceFilterDropdown({
         aria-expanded={open}
         className="appearance-none h-10 rounded-xl pl-3.5 pr-2.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all flex items-center gap-1 flex-shrink-0"
         style={{
-          border: open || active ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
-          background: '#fff',
-          color: open || active ? '#1A5C38' : '#0a0a0a',
-          fontFamily: "'Raleway', system-ui, sans-serif",
+          border: open || active ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
+          background: 'var(--theme-surface, #fff)',
+          color: open || active ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
+          fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
           fontWeight: open || active ? 600 : 500,
           fontSize: 14,
           whiteSpace: 'nowrap',
@@ -472,7 +669,7 @@ function PriceFilterDropdown({
             top: pos.top,
             left: pos.left,
             width: 320,
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--theme-surface, #fff)',
             isolation: 'isolate',
           }}
           role="dialog"
@@ -487,9 +684,9 @@ function PriceFilterDropdown({
                 onClick={() => onCurrencyChange(c)}
                 className={`flex-1 h-9 transition-colors ${i === 0 ? 'rounded-l-md' : 'rounded-r-md'}`}
                 style={{
-                  background: localCur === c ? '#1A5C38' : '#f3f4f6',
-                  color: localCur === c ? '#fff' : '#374151',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  background: localCur === c ? '#1A5C38' : 'var(--theme-surface-soft, #f3f4f6)',
+                  color: localCur === c ? '#fff' : 'var(--theme-muted, #374151)',
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: localCur === c ? 700 : 500,
                   border: 'none',
@@ -500,7 +697,6 @@ function PriceFilterDropdown({
               </button>
             ))}
           </div>
-
           {/* Inputs min/max */}
           <div className="flex w-full items-center gap-2 mb-3">
             <input
@@ -513,10 +709,11 @@ function PriceFilterDropdown({
               onKeyDown={e => { if (e.key === 'Enter') apply() }}
               className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
-                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #d1d5db)',
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 14,
                 boxSizing: 'border-box',
+                background: 'var(--theme-surface-soft, #fff)',
               }}
             />
             <span className="shrink-0 mx-0.5 text-gray-400">—</span>
@@ -530,24 +727,25 @@ function PriceFilterDropdown({
               onKeyDown={e => { if (e.key === 'Enter') apply() }}
               className="flex-1 min-w-0 h-10 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30"
               style={{
-                border: invalid ? '1.5px solid #dc2626' : '1.5px solid #d1d5db',
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                border: invalid ? '1.5px solid #dc2626' : '1.5px solid var(--theme-border, #d1d5db)',
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 14,
                 boxSizing: 'border-box',
+                background: 'var(--theme-surface-soft, #fff)',
               }}
             />
           </div>
 
           {invalid && (
-            <p className="text-[12px] text-red-600 mb-2" style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+            <p className="text-[12px] text-red-600 mb-2" style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
               El mínimo no puede ser mayor al máximo
             </p>
           )}
 
           {/* Atajos rápidos */}
           <div className="mb-3">
-            <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-2"
-               style={{ fontFamily: "'Raleway', system-ui, sans-serif" }}>
+            <p className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-2"
+               style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
               Rangos sugeridos
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -558,11 +756,11 @@ function PriceFilterDropdown({
                   onClick={() => onPresetClick(p)}
                   className="h-8 px-2 rounded-md border border-gray-200 hover:border-[#1A5C38] hover:text-[#1A5C38] transition-colors"
                   style={{
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontSize: 12,
                     fontWeight: 500,
-                    color: '#374151',
-                    background: '#fff',
+                    color: 'var(--theme-muted, #374151)',
+                    background: 'var(--theme-surface, #fff)',
                     cursor: 'pointer',
                   }}
                 >
@@ -580,10 +778,10 @@ function PriceFilterDropdown({
               disabled={!active && !localMin && !localMax}
               className="flex-1 h-9 rounded-lg hover:bg-gray-50 disabled:opacity-40"
               style={{
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
-                color: '#6b7280',
+                color: 'var(--theme-subtle, #6b7280)',
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -598,7 +796,7 @@ function PriceFilterDropdown({
               className="flex-1 h-9 rounded-lg text-white transition-colors"
               style={{
                 background: invalid ? '#9ca3af' : '#1A5C38',
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
                 border: 'none',
@@ -622,14 +820,21 @@ function PriceFilterDropdown({
 export default function PropiedadesView({
   properties,
   initialPropertyId,
+  feedCaido = false,
 }: {
   properties: TokkoProperty[]
   /** If provided, the detail panel opens with this property on mount. Used by /propiedades/[slug] */
   initialPropertyId?: number
+  /** El feed no respondió (ni la copia estable): se muestra el error con Reintentar, no "Sin resultados". */
+  feedCaido?: boolean
 }) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
+  // El listado de verdad (/propiedades). Con initialPropertyId esta vista es el
+  // fondo de la ficha en la compu: ahí no se guarda "la última búsqueda" ni la
+  // posición, porque la URL es la de la ficha.
+  const esListado = initialPropertyId == null
   const initialSearch = safeDecodeQuery(searchParams.get('q') ?? '')
 
   // Construye el set COMPLETO de filtros desde la URL. Única fuente de verdad
@@ -637,7 +842,7 @@ export default function PropiedadesView({
   // (Navbar, back/forward) o apertura de un link compartido. Todos los filtros
   // viajan en la query → la búsqueda es 100% compartible.
   const parseFilters = useCallback((): Filters => {
-    const op = (searchParams.get('operacion') ?? searchParams.get('op') ?? '').toLowerCase()
+    const op = (searchParams.get('operacion') ?? searchParams.get('op') ?? searchParams.get('operation') ?? '').toLowerCase()
     const beds = searchParams.get('dormitorios') ?? ''
     // Alias legacy de links internos (footer/landings): location→ubicacion,
     // type→tipo, search→q. El effect estado→URL luego reescribe al canónico.
@@ -646,7 +851,7 @@ export default function PropiedadesView({
     return {
       ...DEFAULTS,
       search: safeDecodeQuery(searchParams.get('q') ?? searchParams.get('search') ?? ''),
-      operation: op === 'venta' || op === 'alquiler' ? (op as Operation) : 'todos',
+      operation: op === 'venta' || op === 'alquiler' || op === 'temporario' ? (op as Operation) : 'todos',
       type: searchParams.get('tipo') || searchParams.get('type') || 'todos',
       beds: (['mono', '1', '2', '3', '4+'].includes(beds) ? beds : 'todos') as Beds,
       location: (['roldan', 'rosario', 'funes'].includes(loc) ? loc : 'todos') as Location,
@@ -663,6 +868,8 @@ export default function PropiedadesView({
     return ZONAS.find(z => {
       const n = z.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       if (n === q) return true
+      // La etiqueta con la que se eligió ("Vida (barrio cerrado)") también es la zona.
+      if (z.etiqueta && z.etiqueta.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === q) return true
       return (z.aliases ?? []).some(a => a.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === q)
     }) ?? null
   }, [initialSearch])
@@ -670,6 +877,10 @@ export default function PropiedadesView({
   const activeZona = resolvedZona
 
   const [filters, setFilters]           = useState<Filters>(parseFilters)
+  const [sortBy, setSortBy]             = useState<SortBy>(() => parseOrden(searchParams.get('orden')))
+  // URL canónica de la búsqueda actual (la que el sync escribe). La usan la
+  // posición guardada y "Compartir": location.search puede ir 250 ms atrasada.
+  const urlActualRef = useRef('')
   // True cuando el cambio de URL fue iniciado por esta UI (sync estado→URL).
   // Sirve para que el effect URL→estado no resetee en el viaje de vuelta.
   const internalUrlSyncRef = useRef(false)
@@ -684,32 +895,29 @@ export default function PropiedadesView({
       return
     }
     setFilters(parseFilters())
+    setSortBy(parseOrden(searchParams.get('orden')))
   }, [searchParams, parseFilters])
 
   // Estado → URL: refleja TODOS los filtros activos en la query (compartible).
   // Debounced para no spamear el historial mientras se tipea en el buscador.
   useEffect(() => {
-    const params = new URLSearchParams(Array.from(searchParams.entries()))
-    params.delete('op')
-    // Migrar alias legacy al canónico: limpiarlos para no duplicar en la URL.
-    params.delete('type'); params.delete('location'); params.delete('search')
-    const put = (k: string, v: string) => { if (v) params.set(k, v); else params.delete(k) }
-    put('q', filters.search.trim())
-    put('operacion', filters.operation !== 'todos' ? filters.operation : '')
-    put('tipo', filters.type && filters.type !== 'todos' ? filters.type : '')
-    put('dormitorios', filters.beds !== 'todos' ? filters.beds : '')
-    put('ubicacion', filters.location !== 'todos' ? filters.location : '')
-    put('precio_min', filters.priceMin)
-    put('precio_max', filters.priceMax)
-    put('moneda', (filters.priceMin || filters.priceMax) ? filters.currency : '')
-    const qs = params.toString()
+    const qs = queryDeBusqueda(searchParams, filters, sortBy)
+    const url = qs ? `${pathname}?${qs}` : pathname
+    urlActualRef.current = url
+    // La ficha vuelve a esta búsqueda (lib/volver-listado). Se guarda en el
+    // acto, sin esperar el debounce: si la persona toca una tarjeta enseguida
+    // de cambiar un filtro, igual vuelve con ese filtro.
+    if (esListado && pathname === '/propiedades') guardarUltimoListado(url)
     if (qs === searchParams.toString()) return
     const t = setTimeout(() => {
       internalUrlSyncRef.current = true
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+      // history.replaceState y no router.replace: la página es force-dynamic y
+      // router.replace re-renderizaba todo el listado en el server (~1 MB por
+      // cada cambio de filtro). Next 14.2 sincroniza useSearchParams igual.
+      window.history.replaceState(null, '', url)
     }, 250)
     return () => clearTimeout(t)
-  }, [filters, pathname, router, searchParams])
+  }, [filters, sortBy, pathname, searchParams, esListado])
   const [selectedId, setSelectedId]     = useState<number | null>(null)
   const [hoveredId, setHoveredId]       = useState<number | null>(null)
   const [flyToCenter, setFlyToCenter]   = useState<FlyToTarget | null>(null)
@@ -732,9 +940,12 @@ export default function PropiedadesView({
     if (pref === 'list' || pref === 'map') setMobileView(pref)
   }, [])
   const [showBottomSheet, setShowBottomSheet] = useState(false)
-  const [sortBy, setSortBy]             = useState<SortBy>('destacadas')
   const [sortOpen, setSortOpen]         = useState(false)
-  const [mapBounds, setMapBounds]       = useState<{ south: number; north: number; west: number; east: number } | null>(null)
+  // Zona que la persona dejó a la vista moviendo el mapa: el listado muestra
+  // solo lo que cae adentro (como Zonaprop/Airbnb). null = no movió el mapa.
+  const [mapBounds, setMapBounds]       = useState<ZonaMapa | null>(null)
+  // Mapa a pantalla completa (solo compu): tapa la página entera; Esc sale.
+  const [mapaCompleto, setMapaCompleto] = useState(false)
   // Modo "cercanía": cuando el usuario clickea Centrar y damos OK al permiso
   // de geolocalización, guardamos el origen acá. El listado y el mapa pasan a
   // mostrar SOLO propiedades dentro de GEO_NEARBY_RADIUS_KM (5 km por default).
@@ -742,7 +953,6 @@ export default function PropiedadesView({
   const [nearbyOrigin, setNearbyOrigin] = useState<{ lat: number; lng: number } | null>(null)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [mobileSortOpen, setMobileSortOpen]       = useState(false)
-  const [refreshing, setRefreshing]               = useState(false)
   const [searchSuggestions, setSearchSuggestions] = useState(false)
   const [searchDropdownDesktop, setSearchDropdownDesktop] = useState(false)
   const [locatingUser, setLocatingUser] = useState(false)
@@ -775,6 +985,8 @@ export default function PropiedadesView({
     })
   }, [])
   const searchWrapRef                   = useRef<HTMLDivElement>(null)
+  const inputMobileRef                  = useRef<HTMLInputElement>(null)
+  const inputDesktopRef                 = useRef<HTMLInputElement>(null)
   const sortRef                         = useRef<HTMLDivElement>(null)
   const listRef                         = useRef<HTMLDivElement>(null)
 
@@ -823,6 +1035,14 @@ export default function PropiedadesView({
     // La URL se limpia sola vía el effect estado→URL (DEFAULTS = sin params).
   }, [])
 
+  // "Limpiar todo" del sheet de filtros del celu: limpia SOLO lo que el sheet
+  // muestra (tipo, dormitorios, precio, ubicación). Antes usaba reset() y
+  // también borraba Venta/Alquiler y lo escrito en el buscador: quien estaba
+  // en "Alquiler · pileta" quería sacar los dormitorios y le aparecían ventas.
+  const limpiarSheet = useCallback(() => {
+    setFilters(prev => ({ ...DEFAULTS, operation: prev.operation, search: prev.search }))
+  }, [])
+
   // Cambia el filtro de operación y refleja el cambio en la URL para que sea
   // compartible (`?operacion=venta|alquiler`). Preserva el resto de los query
   // params actuales y normaliza el legacy `?op=` al canónico `?operacion=`.
@@ -847,9 +1067,12 @@ export default function PropiedadesView({
   // y se mezclaba con el filtro de proximidad. Solo proximidad: 1 km a la
   // redonda + el resto de los filtros activos del usuario (operación,
   // tipología, dormitorios, precio) se respetan.
+  // Es la ÚNICA entrada a "mi ubicación" del listado (la fila del buscador,
+  // celu y compu). El ícono que había dentro del input de la compu hacía lo
+  // mismo con otro texto de error y sin limpiar la búsqueda: se sacó.
   const useMyLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationError('Tu navegador no soporta geolocalización')
+      setLocationError(UBICACION_SIN_SOPORTE)
       return
     }
     setLocatingUser(true)
@@ -867,13 +1090,11 @@ export default function PropiedadesView({
         setSearchSuggestions(false)
         setSearchDropdownDesktop(false)
         setLocatingUser(false)
+        haptico()
       },
       (err) => {
         setLocatingUser(false)
-        const msg = err.code === err.PERMISSION_DENIED
-          ? 'Necesitamos acceso a tu ubicación para encontrar propiedades cerca tuyo.'
-          : 'No se pudo obtener tu ubicación'
-        setLocationError(msg)
+        setLocationError(err.code === err.PERMISSION_DENIED ? UBICACION_SIN_PERMISO : UBICACION_FALLO)
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
     )
@@ -881,6 +1102,16 @@ export default function PropiedadesView({
 
   const hasActive = (Object.keys(DEFAULTS) as (keyof Filters)[])
     .some(k => filters[k] !== DEFAULTS[k])
+
+  // "Temporario" solo si hay alguno publicado (es de temporada): fuera de
+  // temporada el botón llevaba siempre a "Sin resultados". Si el link ya trae
+  // ?operacion=temporario, se ofrece igual para que se vea y se pueda sacar.
+  const hayTemporarios = useMemo(
+    () => properties.some(p => p.operations?.some(o => o.operation_type === 'Temporary rent')),
+    [properties],
+  )
+  const operacionesUi: Array<'venta' | 'alquiler' | 'temporario'> =
+    hayTemporarios || filters.operation === 'temporario' ? ['venta', 'alquiler', 'temporario'] : ['venta', 'alquiler']
 
   // Opciones de tipología: solo los grupos con al menos un id presente en el
   // inventario cargado, con sus labels en español (mismo mapa por id que el
@@ -899,100 +1130,43 @@ export default function PropiedadesView({
   }, [properties])
 
   // ─── Client-side filtering ──────────────────────────────────────────────────
-  // Normaliza texto: lowercase + NFD sin tildes (para que "roldan" matchee "Roldán")
-  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
-  // Resolver el barrio real de cada propiedad (NO usar divisions en bruto porque
-  // Tokko pone TODOS los barrios de la ciudad en divisions[], no solo el de la
-  // propiedad). Match del fake_address contra cada division individual.
-  const resolvedNeighborhoods = useMemo(() => {
-    const map: Record<number, string> = {}
-    for (const p of properties) {
-      const addrText = p.fake_address || p.address || ''
-      const divs = [...(p.location?.divisions ?? [])].sort((a, b) => b.name.length - a.name.length)
-      const match = divs.find(d => {
-        const escaped = d.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        return new RegExp(`\\b${escaped}\\b`, 'i').test(addrText)
-      })
-      map[p.id] = match?.name ?? ''
-    }
-    return map
-  }, [properties])
+  // Buscador: interpreta lo que se tipea (tipo, lugar, operación, dormitorios,
+  // precio, typos, alias de barrios…) — ver lib/busqueda-propiedades. El índice
+  // se arma una vez por inventario; la consulta usa el valor diferido para que
+  // el input no se trabe mientras la lista se re-renderiza en el celular.
+  const indiceBusqueda = useMemo(() => construirIndice(properties), [properties])
+  const busquedaDiferida = useDeferredValue(filters.search)
+  const resultadoBusqueda = useMemo(
+    () => buscar(indiceBusqueda, busquedaDiferida),
+    [indiceBusqueda, busquedaDiferida],
+  )
 
   const selectedOperationType = operationTypeForFilter(filters.operation)
-  const filtered = useMemo(() => properties.filter(p => {
-    if (filters.search) {
-      const q = norm(filters.search)
-      // Solo incluir el barrio resuelto (no toda la lista de divisions de la ciudad)
-      const neighborhood = resolvedNeighborhoods[p.id] ?? ''
-      const development = p.development?.name ?? ''
-      const haystack = norm([
-        p.publication_title,
-        p.address,
-        p.fake_address,
-        p.location?.short_location,
-        p.location?.name,
-        neighborhood,
-        development,
-      ].filter(Boolean).join(' '))
-      if (!haystack.includes(q)) return false
+  // Operación con la que se muestra el precio de la card: la del toggle o, si
+  // no hay, la que se escribió ("alquiler funes" en una casa que también se vende).
+  const operacionVista: OperationType | null = selectedOperationType ?? resultadoBusqueda?.interpretacion.operacion ?? null
+  const filtered = useMemo(() => properties.filter(p => pasaFiltros(p, filters, resultadoBusqueda)).sort((a, b) => {
+    // Con búsqueda escrita y sin orden elegido: el orden del buscador (lo que
+    // mejor responde, o por precio si se pidió "barato" / "lo más caro").
+    if (resultadoBusqueda && sortBy === 'destacadas') {
+      return (resultadoBusqueda.rango.get(a.id) ?? 1e9) - (resultadoBusqueda.rango.get(b.id) ?? 1e9)
     }
-    if (selectedOperationType && !p.operations?.some(operation => operation.operation_type === selectedOperationType)) {
-      return false
-    }
-    if (filters.type !== 'todos') {
-      // Match por id exacto contra el grupo del filtro (sin substring de nombre:
-      // "warehouse" contiene "house" y arrastraba galpones bajo "Casa").
-      const grp = TYPE_FILTER_GROUPS.find(g => g.value === filters.type)
-      if (!grp || !grp.ids.includes(p.type?.id ?? -1)) return false
-    }
-    if (filters.beds !== 'todos') {
-      if (filters.beds === 'mono') {
-        // Solo monoambientes (0 dormitorios).
-        if (!isMonoambiente(p)) return false
-      } else {
-        // Dormitorios reales: un monoambiente NO cuenta como "1 dorm".
-        if (isMonoambiente(p)) return false
-        const rooms = p.suite_amount || p.room_amount || 0
-        if (filters.beds === '4+' && rooms < 4) return false
-        if (filters.beds !== '4+' && rooms !== parseInt(filters.beds)) return false
-      }
-    }
-    // Filtro de precio: cohorte por moneda. Si el usuario fija algún tope,
-    // solo se evalúan propiedades publicadas en esa moneda; las demás se
-    // descartan (decisión explícita: comparar USD vs ARS sin conversión sería
-    // engañoso porque dependería de un tipo de cambio que no manejamos).
-    if (filters.priceMin || filters.priceMax) {
-      const minNum = filters.priceMin ? parseInt(filters.priceMin, 10) : 0
-      const maxNum = filters.priceMax ? parseInt(filters.priceMax, 10) : Number.POSITIVE_INFINITY
-      // Buscar el precio de la operación activa y la moneda seleccionada.
-      const matchingPrice = operationForView(p, selectedOperationType)?.prices?.find(pr => pr.currency === filters.currency)
-      if (!matchingPrice) return false
-      if (matchingPrice.price < minNum || matchingPrice.price > maxNum) return false
-    }
-    if (filters.location !== 'todos') {
-      const all = norm(`${p.location?.short_location ?? p.location?.name ?? ''} ${p.fake_address ?? p.address ?? ''}`)
-      if (filters.location === 'roldan' && !all.includes('roldan')) return false
-      if (filters.location === 'rosario' && !all.includes('rosario')) return false
-      if (filters.location === 'funes' && !all.includes('funes')) return false
-    }
-    return true
-  }).sort((a, b) => {
     switch (sortBy) {
       case 'destacadas': {
         if (a.is_starred_on_web && !b.is_starred_on_web) return -1
         if (!a.is_starred_on_web && b.is_starred_on_web) return 1
         return 0
       }
-      case 'precio-asc': {
-        const pa = operationForView(a, selectedOperationType)?.prices?.[0]?.price ?? Infinity
-        const pb = operationForView(b, selectedOperationType)?.prices?.[0]?.price ?? Infinity
-        return pa - pb
-      }
+      case 'precio-asc':
       case 'precio-desc': {
-        const pa = operationForView(a, selectedOperationType)?.prices?.[0]?.price ?? 0
-        const pb = operationForView(b, selectedOperationType)?.prices?.[0]?.price ?? 0
-        return pb - pa
+        // Sin precio visible (oculto o 0) al final; USD antes que ARS (no se
+        // comparan monedas sin tipo de cambio); dentro de cada moneda, por monto.
+        const pa = precioOrden(a, selectedOperationType)
+        const pb = precioOrden(b, selectedOperationType)
+        if (!pa || !pb) return pa ? -1 : pb ? 1 : 0
+        if (pa.currency !== pb.currency) return pa.currency === 'USD' ? -1 : pb.currency === 'USD' ? 1 : 0
+        return sortBy === 'precio-asc' ? pa.price - pb.price : pb.price - pa.price
       }
       case 'superficie': {
         const sa = parseFloat(a.total_surface) || parseFloat(a.roofed_surface) || 0
@@ -1006,12 +1180,13 @@ export default function PropiedadesView({
       default:
         return 0
     }
-  }).map(property => prioritizeOperationForView(property, selectedOperationType)), [
+  }).map(property => priorizarOperacion(property, operacionVista)), [
     properties,
     filters,
     sortBy,
-    resolvedNeighborhoods,
+    resultadoBusqueda,
     selectedOperationType,
+    operacionVista,
   ])
 
   // Lista para el mapa: aplica filtros + cercanía. NO aplica mapBounds porque
@@ -1030,6 +1205,32 @@ export default function PropiedadesView({
       return da - db
     })
   }, [filtered, nearbyOrigin])
+
+  // Filtros de la barra (toggle, tipología, dormitorios, ubicación, precio).
+  // Si la búsqueda escrita tiene resultados pero estos filtros la dejan en cero,
+  // el estado vacío ofrece quitarlos en vez de decir "Sin resultados".
+  const filtrosUiActivos = filters.operation !== 'todos' || filters.type !== 'todos' ||
+    filters.beds !== 'todos' || filters.location !== 'todos' || !!filters.priceMin || !!filters.priceMax
+  const quitarFiltrosUi = useCallback(() => {
+    setFilters(prev => ({ ...DEFAULTS, search: prev.search }))
+    setMapBounds(null)
+  }, [])
+
+  // Una búsqueda o una Ubicación nueva mandan sobre la zona del mapa: si no,
+  // escribir "funes" (o elegir Funes) con el mapa parado en Rosario daba cero.
+  // Los demás filtros (tipo, dormitorios, precio) se ven dentro de la zona.
+  useEffect(() => { setMapBounds(null) }, [filters.search, filters.location])
+
+  // Escribir "alquiler …" con el toggle en Venta (o al revés) mueve el toggle:
+  // lo último que la persona dijo es lo que quiere, sin un toque extra.
+  const operacionEscrita = resultadoBusqueda?.interpretacion.operacion ?? null
+  const temporarioEscrito = resultadoBusqueda?.interpretacion.temporario ?? false
+  useEffect(() => {
+    if (!operacionEscrita || filters.operation === 'todos') return
+    const quiere: Operation = temporarioEscrito ? 'temporario'
+      : operacionEscrita === 'Rent' ? 'alquiler' : 'venta'
+    if (filters.operation !== quiere) updateOperation(quiere)
+  }, [operacionEscrita, temporarioEscrito, filters.operation, updateOperation])
 
   // ── Asistente de búsqueda ────────────────────────────────────────────────
   // El perfil vive en la URL (ver lib/smart-profile-url.ts), así que compartir
@@ -1050,27 +1251,34 @@ export default function PropiedadesView({
     [smartActivo, propertiesForMap, smartProfile],
   )
 
-  // Lista para el listado lateral: asistente (si está activo) + bounds del mapa.
+  // Lista para el listado lateral: asistente (si está activo) + zona del mapa.
   // El asistente se aplica ACÁ, así el contador, el mapa y el render por tandas
   // trabajan sobre el mismo conjunto sin tener que enterarse de nada.
+  const propertiesSinZona = useMemo(() => {
+    if (!smartSelection) return propertiesForMap
+    return smartSelection.properties
+      .map(p => ({ p, fit: scorePropertyFit(p, smartProfile) }))
+      .sort((a, b) => b.fit.score - a.fit.score)
+      .map(x => x.p)
+  }, [propertiesForMap, smartSelection, smartProfile])
   const visibleProperties = useMemo(() => {
-    let list = propertiesForMap
-    if (smartSelection) {
-      list = smartSelection.properties
-        .map(p => ({ p, fit: scorePropertyFit(p, smartProfile) }))
-        .sort((a, b) => b.fit.score - a.fit.score)
-        .map(x => x.p)
-    }
-    if (mapBounds) {
-      list = list.filter(p => {
-        if (!p.geo_lat || !p.geo_long) return true
-        const lat = parseFloat(p.geo_lat)
-        const lng = parseFloat(p.geo_long)
-        return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
-      })
-    }
-    return list
-  }, [propertiesForMap, mapBounds, smartSelection, smartProfile])
+    if (!mapBounds) return propertiesSinZona
+    return propertiesSinZona.filter(p => {
+      if (!p.geo_lat || !p.geo_long) return true
+      const lat = parseFloat(p.geo_lat)
+      const lng = parseFloat(p.geo_long)
+      return lat >= mapBounds.south && lat <= mapBounds.north && lng >= mapBounds.west && lng <= mapBounds.east
+    })
+  }, [propertiesSinZona, mapBounds])
+
+  // El mapa avisa cada vez que la persona lo mueve. Si solo cambió de tamaño
+  // (divisor, pantalla completa), actualiza la zona únicamente si la lista ya
+  // venía siguiendo al mapa. La lista vuelve arriba: lo de antes ya no aplica.
+  const handleZonaMapa = useCallback((zona: ZonaMapa, soloSiYaSeguia: boolean) => {
+    setMapBounds(prev => (soloSiYaSeguia && !prev ? prev : zona))
+    if (!soloSiYaSeguia) listRef.current?.scrollTo({ top: 0 })
+  }, [])
+
 
   // ── Render incremental de las cards ──────────────────────────────────────
   // Antes se renderizaban TODAS las propiedades filtradas (248): el HTML de
@@ -1081,15 +1289,146 @@ export default function PropiedadesView({
   const CARDS_POR_TANDA = 24
   const [tandas, setTandas] = useState(1)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
+  // Posición a restaurar al volver de una ficha (ver leerPos). Mientras está
+  // seteada, el reset a la primera tanda no corre y no se pisa lo guardado.
+  const restaurarRef = useRef<PosListado | null>(null)
+  const [restaurarTick, setRestaurarTick] = useState(0)
 
   const renderedProperties = useMemo(
     () => visibleProperties.slice(0, tandas * CARDS_POR_TANDA),
     [visibleProperties, tandas],
   )
   const hayMas = renderedProperties.length < visibleProperties.length
+  // "Avisame cuando entre algo así" (6-nov): con zona elegida, deja el mail y
+  // Hilo le manda las nuevas en venta que calcen (ver lib/avisame-nuevas.ts).
+  const criteriosAviso = useMemo(
+    () => criteriosDelBuscador({ operation: filters.operation, type: filters.type, location: filters.location, search: filters.search }),
+    [filters.operation, filters.type, filters.location, filters.search],
+  )
+  // Al final de la lista, en el celu, la lista ya deja 100 px para la barra de
+  // abajo: la caja se mete en ese hueco (y deja el suyo debajo).
+  const cajaAviso = (alFinal: boolean) => criteriosAviso ? (
+    <div className={`px-4 pb-[100px] md:pb-6 ${alFinal ? '-mt-[84px] md:mt-0' : 'pt-2'}`}>
+      <SuscripcionMail key={`${criteriosAviso.zona}-${criteriosAviso.tipo}`} criterios={criteriosAviso} donde="buscador" />
+    </div>
+  ) : null
 
-  // Cualquier cambio de resultado vuelve a la primera tanda.
-  useEffect(() => { setTandas(1) }, [visibleProperties.length])
+  // Ids de las tarjetas pintadas: el provider pide sus agentes por tandas.
+  // Solo las que el listado no trajo con agente (feed viejo o Tokko).
+  const idsRenderizadas = useMemo(() => renderedProperties.filter(p => p.agente === undefined).map(p => p.id), [renderedProperties])
+
+  // Divisor lista | mapa (solo compu): se arrastra para agrandar el mapa o la
+  // lista; doble click vuelve al 48 %. Se recuerda en el navegador.
+  const contenidoRef = useRef<HTMLDivElement | null>(null)
+  const [listaPct, setListaPct] = useState(LISTA_PCT_DEFAULT)
+  const [arrastrando, setArrastrando] = useState(false)
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem(LISTA_PCT_KEY))
+      if (v >= LISTA_PCT_MIN && v <= LISTA_PCT_MAX) setListaPct(v)
+    } catch { /* sin storage: queda el default */ }
+  }, [])
+  const guardarListaPct = useCallback((v: number) => {
+    try { localStorage.setItem(LISTA_PCT_KEY, String(Math.round(v))) } catch { /* ok */ }
+  }, [])
+  const onDivisorDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const caja = contenidoRef.current?.getBoundingClientRect()
+    if (!caja) return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    setArrastrando(true)
+    let ultimo = listaPct
+    let raf = 0
+    const mover = (ev: PointerEvent) => {
+      ultimo = Math.min(LISTA_PCT_MAX, Math.max(LISTA_PCT_MIN, ((ev.clientX - caja.left) / caja.width) * 100))
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => setListaPct(ultimo))
+    }
+    const soltar = () => {
+      window.removeEventListener('pointermove', mover)
+      window.removeEventListener('pointerup', soltar)
+      window.removeEventListener('pointercancel', soltar)
+      setArrastrando(false)
+      guardarListaPct(ultimo)
+    }
+    window.addEventListener('pointermove', mover)
+    window.addEventListener('pointerup', soltar)
+    // Sin esto, un arrastre cortado (alt-tab, gesto del sistema) dejaba la
+    // página con el texto sin poder seleccionarse y el cursor de redimensionar.
+    window.addEventListener('pointercancel', soltar)
+  }, [listaPct, guardarListaPct])
+
+  // Cualquier cambio de resultado vuelve a la primera tanda (salvo mientras se
+  // restaura la posición de una vuelta desde la ficha).
+  useEffect(() => {
+    if (restaurarRef.current) return
+    setTandas(1)
+  }, [visibleProperties.length])
+
+  // Al montar: si hay una posición guardada para ESTA búsqueda, se vuelve a
+  // ella. Va en un effect (no en el initializer de useState) para que el
+  // primer render coincida con el SSR; corre después del reset de arriba.
+  useEffect(() => {
+    if (!esListado) return
+    const pos = leerPos()
+    if (!pos || pos.url !== urlActualRef.current) return
+    restaurarRef.current = pos
+    setTandas(pos.tandas)
+    setRestaurarTick(t => t + 1)
+    // Solo al montar: después, la posición la va guardando el scroll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Cuando ya están pintadas las tandas que había, se pone el scroll donde
+  // estaba (antes del paint: no se ve el salto desde arriba). Si algo cambió
+  // de alto mientras tanto, igual se asegura que la tarjeta tocada quede a la vista.
+  useIsoLayoutEffect(() => {
+    const pos = restaurarRef.current
+    if (!pos) return
+    const necesarias = Math.min(pos.tandas * CARDS_POR_TANDA, visibleProperties.length)
+    if (renderedProperties.length < necesarias) return
+    restaurarRef.current = null
+    const el = listRef.current
+    if (!el) return
+    el.scrollTop = pos.scrollTop
+    if (pos.id == null) return
+    const card = el.querySelector<HTMLElement>(`[data-property-id="${pos.id}"]`)
+    if (!card) return
+    const c = card.getBoundingClientRect()
+    const l = el.getBoundingClientRect()
+    if (c.bottom < l.top + 48 || c.top > l.bottom - 48) card.scrollIntoView({ block: 'center' })
+  }, [restaurarTick, renderedProperties.length, visibleProperties.length])
+
+  // Guarda dónde está la persona en esta búsqueda (scroll + tandas + tarjeta
+  // tocada). Lista oculta (vista mapa del celu) = scrollTop 0 falso: no se guarda.
+  const guardarPosicion = useCallback((id?: number) => {
+    if (!esListado || restaurarRef.current) return
+    const el = listRef.current
+    if (!el || el.clientHeight === 0 || !urlActualRef.current) return
+    guardarPos({ url: urlActualRef.current, scrollTop: el.scrollTop, tandas, id })
+  }, [esListado, tandas])
+
+  const scrollTimerRef = useRef<number | undefined>(undefined)
+  const alScrollearLista = useCallback(() => {
+    window.clearTimeout(scrollTimerRef.current)
+    scrollTimerRef.current = window.setTimeout(() => guardarPosicion(), 150)
+  }, [guardarPosicion])
+  useEffect(() => () => window.clearTimeout(scrollTimerRef.current), [])
+
+  // Toque en una tarjeta del celu que abre la ficha: se guarda la posición con
+  // esa tarjeta y se marca la salida (la ficha sabe que "Volver" es atrás).
+  // En burbuja: el botón Compartir de la tarjeta corta la propagación y no
+  // cuenta como salida.
+  const alTocarTarjeta = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const destino = e.target as HTMLElement
+    const href = destino.closest('a')?.getAttribute('href')
+    if (!href || !href.startsWith('/propiedades/')) return
+    const id = Number(destino.closest<HTMLElement>('[data-property-id]')?.dataset.propertyId)
+    window.clearTimeout(scrollTimerRef.current)
+    guardarPosicion(Number.isFinite(id) ? id : undefined)
+    marcarSalidaDelListado(href)
+  }, [guardarPosicion])
 
   useEffect(() => {
     if (!hayMas) return
@@ -1114,7 +1453,10 @@ export default function PropiedadesView({
 
   // Callback del botón "Centrar" del mapa: setea origen + limpia bounds para
   // que el filtro de radio sea el único activo (sino se acumulan).
+  // Mismo criterio que "Mi ubicación actual": la cercanía excluye el texto y
+  // la Ubicación (antes este camino no los limpiaba y podía dar cero).
   const handleNearbyOrigin = useCallback((lat: number, lng: number) => {
+    setFilters(prev => ({ ...prev, search: '', location: 'todos' }))
     setNearbyOrigin({ lat, lng })
     setMapBounds(null)
   }, [])
@@ -1127,34 +1469,6 @@ export default function PropiedadesView({
     setFlyToCenter([MAP_DEFAULT_CENTER[0], MAP_DEFAULT_CENTER[1], MAP_DEFAULT_ZOOM])
   }, [])
 
-  // Geolocalización + filtro a 5km. Disparado desde el icono LocateFixed del
-  // input desktop. A diferencia de useMyLocation (que hace reverse geocode y
-  // setea el texto del search), este callback aplica el filtro de proximidad
-  // (mismo modo que el chip flotante "Mostrando propiedades a menos de 5 km").
-  const useMyNearbyLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationError('Tu navegador no soporta geolocalización')
-      return
-    }
-    setLocatingUser(true)
-    setLocationError(null)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
-        setNearbyOrigin({ lat: latitude, lng: longitude })
-        setMapBounds(null)
-        setFlyToCenter([latitude, longitude])
-        setViewManually('map')
-        setLocatingUser(false)
-      },
-      () => {
-        setLocatingUser(false)
-        setLocationError('No pudimos acceder a tu ubicación. Verificá los permisos del navegador.')
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
-  }, [setViewManually])
-
   // Panel auto-open ONLY in desktop. En mobile la ficha se renderiza directo
   // como página completa en [slug]/page.tsx mobile block — abrir el panel acá
   // lockearía el body scroll aunque el panel esté display:none (el useEffect
@@ -1165,6 +1479,30 @@ export default function PropiedadesView({
   const isDesktopViewport = useMediaQuery('(min-width: 768px)')
   const shouldRenderMap = isDesktopViewport || mobileView === 'map'
   const [panelPropertyId, setPanelPropertyId] = useState<number | null>(null)
+
+  // Compu: el chunk del panel se adelanta en un momento libre después de
+  // cargar, así el primer click en una tarjeta lo abre sin esperar la red. El
+  // celu no entra acá (nunca abre el panel).
+  useEffect(() => {
+    if (!isDesktopViewport) return
+    const cargar = () => { void import('./PropertyPanel').catch(() => {}) }
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void }
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(cargar, { timeout: 4000 })
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const t = window.setTimeout(cargar, 2500)
+    return () => window.clearTimeout(t)
+  }, [isDesktopViewport])
+
+  // Esc sale de la pantalla completa; si hay una ficha abierta encima, Esc
+  // cierra solo la ficha (PropertyPanel) y el mapa sigue grande.
+  useEffect(() => {
+    if (!mapaCompleto || panelPropertyId != null) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMapaCompleto(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mapaCompleto, panelPropertyId])
 
   useEffect(() => {
     if (initialPropertyId == null) return
@@ -1213,15 +1551,19 @@ export default function PropiedadesView({
     setSelectedId(null)
   }, [])
 
-  const selectedProperty = useMemo(
-    () => (selectedId != null ? properties.find(p => p.id === selectedId) ?? null : null),
-    [selectedId, properties]
-  )
+  // Con Venta/Alquiler filtrado, la vista previa muestra la operación elegida
+  // (igual que la card): una mixta decía "VENTA · USD 450.000" en alquileres.
+  const selectedProperty = useMemo(() => {
+    const p = selectedId != null ? properties.find(x => x.id === selectedId) : null
+    return p ? priorizarOperacion(p, selectedOperationType) : null
+  }, [selectedId, properties, selectedOperationType])
 
   const opLabel = filters.operation === 'venta' ? 'en venta'
-    : filters.operation === 'alquiler' ? 'en alquiler' : 'disponibles'
+    : filters.operation === 'alquiler' ? 'en alquiler'
+    : filters.operation === 'temporario' ? 'en alquiler temporario' : 'disponibles'
 
-  const searchZonas = useMemo(() => buscarZonas(filters.search, 6), [filters.search])
+  const zonasVivas = useMemo(() => new Set(idsDeZonasVivas(indiceBusqueda)), [indiceBusqueda])
+  const searchZonas = useMemo(() => buscarZonas(filters.search, 6, zonasVivas), [filters.search, zonasVivas])
 
   // Count non-operation active filters for mobile badge
   const mobileActiveCount = [
@@ -1231,29 +1573,168 @@ export default function PropiedadesView({
     filters.location !== 'todos',
   ].filter(Boolean).length
 
+  // ── Estado vacío que piensa ──────────────────────────────────────────────
+  // Antes, cualquier combinación de filtros sin resultados decía "Sin
+  // resultados · Probá con otros filtros" y la persona tenía que adivinar cuál
+  // sacar. Ahora se recuenta sacando un filtro por vez (en memoria, ~1 ms) y se
+  // ofrece el que más abre, más una pastilla con × por cada filtro activo.
+  type FiltroRelajable = 'operation' | 'type' | 'beds' | 'location' | 'precio'
+  const relajaciones = useMemo(() => {
+    // Con el asistente activo la lista sale de su selección (no de pasaFiltros):
+    // los números de "sacá uno" no coincidirían. Ahí manda "Empezar de nuevo".
+    if (visibleProperties.length > 0 || !filtrosUiActivos || nearbyOrigin || smartActivo) return []
+    const etiqueta: Record<FiltroRelajable, string> = {
+      operation: filters.operation === 'venta' ? 'Venta' : filters.operation === 'alquiler' ? 'Alquiler' : 'Temporario',
+      type: typeOptions.find(o => o.value === filters.type)?.label ?? 'Tipología',
+      beds: filters.beds === 'mono' ? 'Monoambiente' : `${filters.beds} dorm.`,
+      location: filters.location === 'roldan' ? 'Roldán' : filters.location === 'rosario' ? 'Rosario' : 'Funes',
+      precio: !filters.priceMin ? `Hasta ${filters.currency} ${compactPrice(filters.priceMax)}`
+        : !filters.priceMax ? `Desde ${filters.currency} ${compactPrice(filters.priceMin)}`
+        : `${filters.currency} ${compactPrice(filters.priceMin)} - ${compactPrice(filters.priceMax)}`,
+    }
+    const activos: FiltroRelajable[] = []
+    if (filters.operation !== 'todos') activos.push('operation')
+    if (filters.type !== 'todos') activos.push('type')
+    if (filters.beds !== 'todos') activos.push('beds')
+    if (filters.location !== 'todos') activos.push('location')
+    if (filters.priceMin || filters.priceMax) activos.push('precio')
+    return activos
+      .map(k => {
+        const sin: Filters = k === 'precio'
+          ? { ...filters, priceMin: '', priceMax: '' }
+          : { ...filters, [k]: DEFAULTS[k] }
+        const n = properties.reduce((acc, p) => acc + (pasaFiltros(p, sin, resultadoBusqueda) ? 1 : 0), 0)
+        return { k, label: etiqueta[k], n }
+      })
+      .sort((a, b) => b.n - a.n)
+  }, [visibleProperties.length, filtrosUiActivos, nearbyOrigin, smartActivo, filters, typeOptions, properties, resultadoBusqueda])
+
+  const quitarFiltro = useCallback((k: FiltroRelajable) => {
+    haptico()
+    if (k === 'precio') setFilters(prev => ({ ...prev, priceMin: '', priceMax: '' }))
+    else setFilters(prev => ({ ...prev, [k]: DEFAULTS[k] }))
+    setMapBounds(null)
+  }, [])
+
+  // El texto del botón principal: la frase de lo que se gana, no el filtro técnico.
+  const textoRelajar = (r: { k: FiltroRelajable; label: string; n: number }) => {
+    const n = <span className="font-numeric">{r.n}</span>
+    if (r.k === 'location') return <>Ver {n} en toda la zona</>
+    if (r.k === 'precio') return <>Ver {n} con cualquier precio</>
+    if (r.k === 'operation') return <>Ver {n} en venta y alquiler</>
+    return <>Ver {n} sin «{r.label}»</>
+  }
+
+  // ── Compartir esta búsqueda ──────────────────────────────────────────────
+  // La URL ya lleva toda la búsqueda, pero no había botón: había que copiar la
+  // URL a mano (y en los navegadores de Instagram/WhatsApp ni se ve). En el
+  // celu abre la hoja nativa en un toque; en la compu copia el link.
+  const resumenActual = useMemo(() => resumenBusqueda({
+    operacion: filters.operation !== 'todos' ? filters.operation : null,
+    tipo: filters.type !== 'todos' ? filters.type : null,
+    dormitorios: filters.beds !== 'todos' ? filters.beds : null,
+    ubicacion: filters.location !== 'todos' ? filters.location : null,
+    precioMin: filters.priceMin,
+    precioMax: filters.priceMax,
+    moneda: filters.currency,
+    q: filters.search,
+  }), [filters])
+  const [busquedaCopiada, setBusquedaCopiada] = useState(false)
+  const compartirBusqueda = useCallback(() => {
+    // Siempre /propiedades (también si esta vista es el fondo de una ficha) y
+    // sin los utm con los que se llegó: compartirPagina pone los de este envío.
+    const qs = new URLSearchParams(queryDeBusqueda(searchParams, filters, sortBy))
+    for (const k of Array.from(qs.keys())) {
+      if (k.startsWith('utm_') || k === 'fbclid' || k === 'gclid') qs.delete(k)
+    }
+    const n = visibleProperties.length
+    const cuantas = `${n} propiedad${n !== 1 ? 'es' : ''}`
+    const titulo = resumenActual ? `${cuantas} · ${resumenActual}` : `${cuantas} en Funes, Roldán y Rosario`
+    // Sincrónico hasta la hoja nativa / el portapapeles (regla iOS): nada de await antes.
+    void compartirPagina({ titulo, ruta: qs.toString() ? `/propiedades?${qs}` : '/propiedades' }, 'busqueda').then(r => {
+      if (r === 'copiado') {
+        showToast('Link de la búsqueda copiado')
+        setBusquedaCopiada(true)
+        window.setTimeout(() => setBusquedaCopiada(false), 1600)
+      } else if (r === 'error') {
+        showToast('No se pudo compartir. Probá de nuevo.', { variant: 'error' })
+      }
+    })
+  }, [searchParams, filters, sortBy, visibleProperties.length, resumenActual])
+
+  // ── Feed caído: reintentar sin recargar toda la página ───────────────────
+  const [reintentando, startReintento] = useTransition()
+  const reintentarFeed = useCallback(() => {
+    haptico()
+    startReintento(() => router.refresh())
+  }, [router])
+
+  // ── Flecha "Volver" del header del celu ──────────────────────────────────
+  // En el celu es el único control de navegación de esta pantalla (el Navbar
+  // y el footer se esconden). Antes hacía history.back() a ciegas: a quien
+  // llegaba por un link compartido o por Google lo dejaba sin respuesta o lo
+  // sacaba del sitio. Ahora: atrás solo si atrás es SI; si no, al inicio.
+  const volverDesdeListado = useCallback(() => {
+    if (mobileView === 'map') { setViewManually('list'); return }
+    if (hayHistoriaDelSitio()) router.back()
+    else router.push('/')
+  }, [mobileView, setViewManually, router])
+
+  const hayResultados = !feedCaido && visibleProperties.length > 0
+  // Ficha de la tarjeta del mapa (celu), con la operación elegida si hay.
+  const hrefTarjetaMapa = selectedProperty
+    ? `/propiedades/${generatePropertySlug(selectedProperty)}${selectedOperationType === 'Rent' ? '?operacion=alquiler' : selectedOperationType === 'Temporary rent' ? '?operacion=temporario' : ''}`
+    : '/propiedades'
+  const textoCuantas = (
+    <>
+      <span className="font-numeric font-semibold text-gray-900">{visibleProperties.length}</span>
+      {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {visibleProperties.length === 1 && opLabel === 'disponibles' ? 'disponible' : opLabel}
+    </>
+  )
+
   return (
-    <div className="h-[100dvh] lg:h-[calc(100dvh-var(--header-height))] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
+    <div className="h-[100dvh] md:h-[calc(100dvh-61px)] lg:h-[calc(100dvh-var(--header-height))] flex flex-col bg-white overflow-hidden" style={{ overscrollBehaviorY: 'contain' }}>
       <h1 className="sr-only">Propiedades en venta y alquiler en Funes, Roldán y Rosario</h1>
+      {/* Animaciones propias del listado. Antes la hoja "Ordenar" pedía un
+          keyframe slideUp que solo existía mientras el sheet de Filtros estaba
+          abierto (su <style> se desmonta al cerrarlo): aparecía de golpe. Acá
+          viven siempre, con nombre propio para no chocar con el slideUp de
+          Tailwind, y se apagan con reducir movimiento. */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes si-listado-hoja { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes si-listado-velo { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes si-listado-cuenta { from { opacity: 0.35; } to { opacity: 1; } }
+        .si-listado-hoja { animation: si-listado-hoja 240ms cubic-bezier(0.22, 1, 0.36, 1); }
+        .si-listado-velo { animation: si-listado-velo 200ms ease-out; }
+        .si-listado-cuenta { animation: si-listado-cuenta 180ms ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .si-listado-hoja, .si-listado-velo, .si-listado-cuenta { animation: none; }
+        }
+      ` }} />
 
       {/* ── Mobile Filter Bar (shared between list and map views) ────────── */}
       <div className="md:hidden flex-shrink-0 bg-white border-b border-gray-200 shadow-sm">
         {/* Row 1: Back + Search + Location */}
-        <div className="flex items-center gap-2 px-3 pt-[env(safe-area-inset-top)] py-2">
+        {/* pb-2 + pt con max(): con py-2 el pt-[env()] le ganaba y, con el
+            inset en 0 (Safari con la barra visible), quedaba 0 px arriba. */}
+        <div className="flex items-center gap-2 px-3 pb-2 pt-[max(8px,env(safe-area-inset-top))]">
           <button
-            onClick={() => mobileView === 'map' ? setViewManually('list') : window.history.back()}
-            className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
-            aria-label="Volver"
+            onClick={volverDesdeListado}
+            className="si-tap w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+            aria-label={mobileView === 'map' ? 'Volver a la lista' : 'Volver'}
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div className="relative flex-1" ref={searchWrapRef}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
             <input
+              ref={inputMobileRef}
               type="text"
               placeholder="Dirección, ciudad o barrio..."
               value={filters.search}
               aria-label="Buscar dirección, ciudad o barrio"
               autoComplete="off"
+              enterKeyHint="search"
               onChange={e => {
                 set('search', e.target.value)
                 setSearchSuggestions(true)
@@ -1267,16 +1748,31 @@ export default function PropiedadesView({
                   ;(e.currentTarget as HTMLInputElement).blur()
                 }
               }}
-              className="w-full h-11 pl-10 pr-3 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 placeholder:text-gray-400"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 16, border: '1.5px solid #e5e7eb' }}
+              className={`w-full h-11 pl-10 ${filters.search ? 'pr-11' : 'pr-3'} rounded-xl bg-gray-50 border-[1.5px] border-gray-200 outline-none focus:outline-none focus:bg-white focus:border-gray-400 transition-colors placeholder:text-gray-400`}
+              style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 16 }}
             />
+            {/* × para borrar lo escrito (antes había que seleccionar el texto a
+                mano). 44 px de área; el foco vuelve al input para escribir otra cosa. */}
+            {filters.search && (
+              <button
+                type="button"
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => { set('search', ''); inputMobileRef.current?.focus() }}
+                aria-label="Borrar búsqueda"
+                className="absolute right-0 top-0 z-10 w-11 h-11 flex items-center justify-center"
+              >
+                <span className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center">
+                  <X className="w-3 h-3 text-white" strokeWidth={3} />
+                </span>
+              </button>
+            )}
             {/* Autocomplete dropdown */}
             {searchSuggestions && (
               <div
                 className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
                 style={{
                   top: '100%', marginTop: 4,
-                  border: '1px solid #e5e7eb', borderRadius: 12,
+                  border: '1px solid var(--theme-border, #e5e7eb)', borderRadius: 12,
                   boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
                   maxHeight: '50vh',
                 }}
@@ -1289,11 +1785,11 @@ export default function PropiedadesView({
                   disabled={locatingUser}
                   className="w-full flex items-center gap-3 text-left"
                   style={{
-                    padding: '14px 16px', fontSize: 15, color: '#1A5C38',
+                    padding: '14px 16px', fontSize: 15, color: 'var(--theme-accent, #1A5C38)',
                     background: 'transparent', border: 'none',
-                    borderBottom: '1px solid #f3f4f6',
+                    borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                     cursor: locatingUser ? 'wait' : 'pointer',
-                    minHeight: 48, fontFamily: "'Raleway', system-ui, sans-serif",
+                    minHeight: 48, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontWeight: 600,
                   }}
                 >
@@ -1307,14 +1803,14 @@ export default function PropiedadesView({
                   </span>
                 </button>
                 {locationError && (
-                  <div style={{ padding: '10px 16px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid #f3f4f6' }}>
+                  <div style={{ padding: '10px 16px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid var(--theme-border, #f3f4f6)' }}>
                     {locationError}
                   </div>
                 )}
                 {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
                 {filters.search.trim().length < 2 && searchHistory.length > 0 && (
                   <>
-                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                    <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
                       Búsquedas recientes
                     </div>
                     {searchHistory.map(term => (
@@ -1329,10 +1825,10 @@ export default function PropiedadesView({
                         }}
                         className="w-full flex items-center gap-3 text-left"
                         style={{
-                          padding: '12px 16px', fontSize: 15, color: '#111',
+                          padding: '12px 16px', fontSize: 15, color: 'var(--theme-ink, #111)',
                           background: 'transparent', border: 'none',
-                          borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
-                          minHeight: 44, fontFamily: "'Raleway', system-ui, sans-serif",
+                          borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
+                          minHeight: 44, fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                         }}
                       >
                         <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -1347,48 +1843,50 @@ export default function PropiedadesView({
                     type="button"
                     onMouseDown={e => e.preventDefault()}
                     onClick={() => {
-                      set('search', zona.nombre)
-                      pushToHistory(zona.nombre)
+                      set('search', nombreBuscable(zona))
+                      pushToHistory(nombreBuscable(zona))
                       setSearchSuggestions(false)
                     }}
                     className="w-full flex items-center gap-3 text-left"
                     style={{
                       padding: '14px 16px',
                       fontSize: 15,
-                      color: '#111',
+                      color: 'var(--theme-ink, #111)',
                       background: 'transparent',
                       border: 'none',
-                      borderBottom: '1px solid #f3f4f6',
+                      borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                       cursor: 'pointer',
                       minHeight: 48,
-                      fontFamily: "'Raleway', system-ui, sans-serif",
+                      fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     }}
                   >
                     <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
-                    <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>
-                      {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+                    <span className="flex-1 truncate">{highlightMatch(nombreBuscable(zona), filters.search)}</span>
+                    <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0 }}>
+                      {detalleZona(zona)}
                     </span>
                   </button>
                 ))}
               </div>
             )}
           </div>
+          <ThemeToggle />
         </div>
 
         {/* Row 2: Operation toggle + Filters button */}
         <div className="flex items-center gap-2 px-3 pb-2">
           {/* Segmented control */}
           <div className="flex rounded-full bg-gray-100 p-0.5 flex-1" style={{ minHeight: 44 }}>
-            {(['venta', 'alquiler'] as const).map(op => (
+            {operacionesUi.map(op => (
               <button
                 key={op}
-                onClick={() => updateOperation(filters.operation === op ? 'todos' : op)}
+                onClick={() => { haptico(); updateOperation(filters.operation === op ? 'todos' : op) }}
+                aria-pressed={filters.operation === op}
                 className="flex-1 py-2.5 rounded-full text-center transition-all"
                 style={{
                   background: filters.operation === op ? '#1A5C38' : 'transparent',
-                  color: filters.operation === op ? '#fff' : '#6b7280',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  color: filters.operation === op ? '#fff' : 'var(--theme-subtle, #6b7280)',
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontSize: 13,
                   fontWeight: filters.operation === op ? 600 : 500,
                   border: 'none',
@@ -1405,12 +1903,12 @@ export default function PropiedadesView({
             onClick={() => setMobileFiltersOpen(true)}
             className="relative flex items-center gap-1.5 h-11 rounded-xl px-4 flex-shrink-0 cursor-pointer"
             style={{
-              border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid #d1d5db',
-              background: '#fff',
-              fontFamily: "'Raleway', system-ui, sans-serif",
+              border: mobileActiveCount > 0 ? '1.5px solid #1A5C38' : '1.5px solid var(--theme-border, #d1d5db)',
+              background: 'var(--theme-surface, #fff)',
+              fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
               fontSize: 14,
               fontWeight: 500,
-              color: mobileActiveCount > 0 ? '#1A5C38' : '#0a0a0a',
+              color: mobileActiveCount > 0 ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
             }}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -1428,7 +1926,7 @@ export default function PropiedadesView({
       <div className="hidden md:flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white shadow-sm flex-shrink-0 overflow-x-auto scrollbar-none">
         <div className="relative min-w-[220px] max-w-[260px] flex-shrink-0" ref={searchWrapDesktopRef}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-          <input type="text" placeholder="Dirección, ciudad o barrio..." value={filters.search}
+          <input ref={inputDesktopRef} type="text" placeholder="Dirección, ciudad o barrio..." value={filters.search}
             aria-label="Buscar barrio o dirección"
             autoComplete="off"
             onChange={e => { set('search', e.target.value); setSearchDropdownDesktop(true) }}
@@ -1441,29 +1939,30 @@ export default function PropiedadesView({
                 ;(e.currentTarget as HTMLInputElement).blur()
               }
             }}
-            className="w-full h-10 pl-8 pr-9 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#1A5C38]/30 transition-all placeholder:text-gray-400"
-            style={{ border: '1.5px solid #d1d5db', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14 }}
+            className="w-full h-10 pl-8 pr-9 rounded-xl bg-white border-[1.5px] border-gray-300 outline-none focus:outline-none focus:border-gray-500 transition-colors placeholder:text-gray-400"
+            style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 14 }}
           />
-          <button
-            type="button"
-            onClick={useMyNearbyLocation}
-            disabled={locatingUser}
-            aria-label="Usar mi ubicación actual"
-            title="Usar mi ubicación"
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:text-[#1A5C38] hover:bg-gray-100 transition-colors disabled:cursor-wait"
-          >
-            {locatingUser ? (
-              <div className="w-3.5 h-3.5 border-2 border-[#1A5C38]/30 border-t-[#1A5C38] rounded-full animate-spin" />
-            ) : (
-              <LocateFixed className="w-4 h-4" />
-            )}
-          </button>
+          {/* × para borrar lo escrito. "Mi ubicación" vive en la primera fila del
+              desplegable (un solo camino; el ícono de acá hacía lo mismo con
+              otro texto de error). */}
+          {filters.search && (
+            <button
+              type="button"
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => { set('search', ''); inputDesktopRef.current?.focus() }}
+              aria-label="Borrar búsqueda"
+              title="Borrar búsqueda"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
           {searchDropdownDesktop && (
             <div
               className="absolute left-0 right-0 z-50 bg-white overflow-y-auto"
               style={{
                 top: '100%', marginTop: 4,
-                border: '1px solid #e5e7eb', borderRadius: 12,
+                border: '1px solid var(--theme-border, #e5e7eb)', borderRadius: 12,
                 boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
                 maxHeight: '60vh', minWidth: 280,
               }}
@@ -1476,14 +1975,14 @@ export default function PropiedadesView({
                 disabled={locatingUser}
                 className="w-full flex items-center gap-3 text-left"
                 style={{
-                  padding: '12px 14px', fontSize: 14, color: '#1A5C38',
+                  padding: '12px 14px', fontSize: 14, color: 'var(--theme-accent, #1A5C38)',
                   background: 'transparent', border: 'none',
-                  borderBottom: '1px solid #f3f4f6',
+                  borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                   cursor: locatingUser ? 'wait' : 'pointer',
-                  fontFamily: "'Raleway', system-ui, sans-serif",
+                  fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   fontWeight: 600,
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0f7f4' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f0f7f4)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               >
                 {locatingUser ? (
@@ -1496,14 +1995,14 @@ export default function PropiedadesView({
                 </span>
               </button>
               {locationError && (
-                <div style={{ padding: '10px 14px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid #f3f4f6' }}>
+                <div style={{ padding: '10px 14px', fontSize: 13, color: '#dc2626', background: '#fef2f2', borderBottom: '1px solid var(--theme-border, #f3f4f6)' }}>
                   {locationError}
                 </div>
               )}
               {/* Búsquedas recientes — solo si no está escribiendo y hay historial */}
               {filters.search.trim().length < 2 && searchHistory.length > 0 && (
                 <>
-                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: '#9ca3af', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Raleway', system-ui, sans-serif" }}>
+                  <div style={{ padding: '10px 14px 6px', fontSize: 11, fontWeight: 700, color: 'var(--theme-subtle, #9ca3af)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
                     Búsquedas recientes
                   </div>
                   {searchHistory.map(term => (
@@ -1518,12 +2017,12 @@ export default function PropiedadesView({
                       }}
                       className="w-full flex items-center gap-3 text-left"
                       style={{
-                        padding: '10px 14px', fontSize: 14, color: '#111',
+                        padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                         background: 'transparent', border: 'none',
-                        borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
-                        fontFamily: "'Raleway', system-ui, sans-serif",
+                        borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
+                        fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                     >
                       <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -1538,24 +2037,24 @@ export default function PropiedadesView({
                   type="button"
                   onMouseDown={e => e.preventDefault()}
                   onClick={() => {
-                    set('search', zona.nombre)
-                    pushToHistory(zona.nombre)
+                    set('search', nombreBuscable(zona))
+                    pushToHistory(nombreBuscable(zona))
                     setSearchDropdownDesktop(false)
                   }}
                   className="w-full flex items-center gap-3 text-left"
                   style={{
-                    padding: '10px 14px', fontSize: 14, color: '#111',
+                    padding: '10px 14px', fontSize: 14, color: 'var(--theme-ink, #111)',
                     background: 'transparent', border: 'none',
-                    borderBottom: '1px solid #f3f4f6', cursor: 'pointer',
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    borderBottom: '1px solid var(--theme-border, #f3f4f6)', cursor: 'pointer',
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--theme-surface-soft, #f9fafb)' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
                 >
                   <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="flex-1 truncate">{highlightMatch(zona.nombre, filters.search)}</span>
-                  <span style={{ fontSize: 12, color: '#9ca3af', flexShrink: 0 }}>
-                    {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
+                  <span className="flex-1 truncate">{highlightMatch(nombreBuscable(zona), filters.search)}</span>
+                  <span style={{ fontSize: 12, color: 'var(--theme-subtle, #9ca3af)', flexShrink: 0 }}>
+                    {detalleZona(zona)}
                   </span>
                 </button>
               ))}
@@ -1564,7 +2063,7 @@ export default function PropiedadesView({
         </div>
         <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
         <FilterSelect value={filters.operation} onChange={updateOperation}
-          options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'}]} />
+          options={[{value:'todos',label:'Operación'},{value:'venta',label:'Venta'},{value:'alquiler',label:'Alquiler'},...(operacionesUi.includes('temporario') ? [{value:'temporario' as const,label:'Temporario'}] : [])]} />
         <FilterSelect value={filters.type} onChange={v => set('type', v)}
           options={typeOptions} />
         <FilterSelect value={filters.beds} onChange={v => set('beds', v)}
@@ -1582,7 +2081,7 @@ export default function PropiedadesView({
             <div className="w-px h-6 bg-gray-200 flex-shrink-0" />
             <button onClick={reset}
               className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 transition-colors"
-              style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, fontWeight: 600, color: '#dc2626' }}
+              style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, fontWeight: 600, color: 'var(--theme-accent, #1A5C38)' }}
             >
               <X className="w-3.5 h-3.5" /> Borrar filtros
             </button>
@@ -1596,7 +2095,7 @@ export default function PropiedadesView({
             onClick={() => trackEvent('descargar_listado_alquileres')}
             className="ml-auto flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 transition-colors hover:opacity-90"
             style={{
-              fontFamily: "'Raleway', system-ui, sans-serif",
+              fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
               fontSize: 13,
               fontWeight: 600,
               color: '#fff',
@@ -1617,17 +2116,22 @@ export default function PropiedadesView({
         open={mobileFiltersOpen}
         onClose={() => setMobileFiltersOpen(false)}
         filters={filters}
-        onChangeFilter={(k, v) => set(k as keyof Filters, v as never)}
+        onChangeFilter={(k, v) => { haptico(); set(k as keyof Filters, v as never) }}
         onPriceChange={updatePrice}
-        onReset={() => { reset(); setMobileFiltersOpen(false) }}
+        onReset={() => { haptico(); limpiarSheet(); setMobileFiltersOpen(false) }}
         resultCount={visibleProperties.length}
+        typeOptions={typeOptions}
       />
 
       {/* ── Content ────────────────────────────────────────────────────────── */}
-      <div className="flex flex-1 min-h-0">
+      <div
+        ref={contenidoRef}
+        className={`flex flex-1 min-h-0 ${arrastrando ? 'select-none cursor-col-resize' : ''}`}
+        style={{ '--lista': `${listaPct}%` } as React.CSSProperties}
+      >
 
         {/* Left: Property list */}
-        <div className={`flex flex-col border-r border-gray-200 w-full md:w-[48%] ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex flex-col border-r border-gray-200 w-full md:w-[var(--lista,48%)] md:flex-shrink-0 ${mobileView === 'map' ? 'hidden md:flex' : 'flex'}`}>
 
           {/* Count header + sort + view toggle — desktop only */}
           <div className="hidden md:flex px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 items-center justify-between gap-2">
@@ -1662,50 +2166,211 @@ export default function PropiedadesView({
               )}
             </div>
 
-            <p className="text-[12px] text-gray-500 flex-1 text-center truncate">
-              <span className="font-bold text-gray-900 font-numeric">{visibleProperties.length}</span>
-              {' '}propiedad{visibleProperties.length !== 1 ? 'es' : ''} {opLabel}
+            <p className="text-[12px] text-gray-600 flex-1 text-center truncate">
+              {!feedCaido && <span key={visibleProperties.length} className="si-listado-cuenta">{textoCuantas}</span>}
             </p>
 
+            {hayResultados ? (
+              <button
+                type="button"
+                onClick={compartirBusqueda}
+                className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-gray-100"
+                style={{ color: 'var(--theme-accent, #1A5C38)', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}
+                title="Copiar el link de esta búsqueda"
+              >
+                {busquedaCopiada ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
+                {busquedaCopiada ? 'Copiado' : 'Compartir'}
+              </button>
+            ) : (
+              <span className="w-[92px] flex-shrink-0" aria-hidden="true" />
+            )}
           </div>
 
           {/* List */}
-          <div ref={listRef} className="flex-1 overflow-y-auto">
-            {visibleProperties.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center px-8 py-12">
-                <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" />
-                {nearbyOrigin ? (
+          <div ref={listRef} onScroll={alScrollearLista} className="flex-1 overflow-y-auto">
+            {/* Celu: cuántas hay + Compartir esta búsqueda. Antes el celu no
+                mostraba el total salvo con texto escrito: al tocar "Alquiler"
+                no había señal de escala (¿23 o 230?). Scrollea con la lista. */}
+            {hayResultados && (
+              <div className="md:hidden flex items-center justify-between gap-3 h-11 pl-4 pr-1" style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
+                <p className="text-[13px] text-gray-600 truncate" aria-live="polite">
+                  <span key={visibleProperties.length} className="si-listado-cuenta">{textoCuantas}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={compartirBusqueda}
+                  className="si-tap flex-shrink-0 inline-flex items-center gap-1.5 h-11 px-3 rounded-full text-[13px] font-semibold"
+                  style={{ color: 'var(--theme-accent, #1A5C38)' }}
+                  aria-label="Compartir esta búsqueda"
+                >
+                  {busquedaCopiada ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                  {busquedaCopiada ? 'Copiado' : 'Compartir'}
+                </button>
+              </div>
+            )}
+            {/* Lo que entendió el buscador (etiquetas) + botón para limpiar. Sin
+                aclaraciones de texto (lo que se aflojó no se explica). */}
+            {resultadoBusqueda && filters.search.trim() && visibleProperties.length > 0 && (
+              <div className="px-3 md:px-4 pt-2.5 pb-2 border-b border-gray-100" style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif" }}>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {resultadoBusqueda.etiquetas.map(et => (
+                    <span key={et} className="text-[12px] font-medium text-gray-800 bg-gray-100 rounded-full px-2.5 py-1 leading-none">
+                      {et}
+                    </span>
+                  ))}
+                  {/* Limpiar a la derecha (el total del celu ahora vive en el
+                      renglón de arriba, junto a Compartir). */}
+                  <span className="ml-auto inline-flex items-center gap-2 whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => set('search', '')}
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-gray-500 hover:text-gray-900 rounded-full px-2 py-1 -mr-2 transition-colors"
+                      aria-label="Limpiar búsqueda"
+                    >
+                      <X className="w-3.5 h-3.5" /> Limpiar
+                    </button>
+                  </span>
+                </div>
+              </div>
+            )}
+            {feedCaido && properties.length === 0 ? (
+              // El feed no respondió: no es "Sin resultados" (la persona
+              // probaba otros filtros que nunca iban a andar). Reintentar
+              // vuelve a pedir el listado al server sin recargar la página.
+              <div className="flex flex-col items-center justify-center min-h-[16rem] text-center px-8 py-12" role="alert">
+                <RotateCw className="w-9 h-9 text-gray-300 mb-3" aria-hidden="true" />
+                <p className="text-gray-900 font-semibold text-base mb-1">No pudimos cargar las propiedades</p>
+                <p className="text-gray-600 text-sm mb-5 max-w-[280px]">
+                  Es un problema nuestro, no de tu búsqueda. Probá de nuevo en unos segundos.
+                </p>
+                <button
+                  type="button"
+                  onClick={reintentarFeed}
+                  disabled={reintentando}
+                  className="si-tap inline-flex items-center gap-2 min-h-[44px] px-5 rounded-xl bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold transition-colors disabled:opacity-70"
+                >
+                  <RotateCw className={`w-4 h-4 ${reintentando ? 'animate-spin' : ''}`} aria-hidden="true" />
+                  {reintentando ? 'Cargando…' : 'Reintentar'}
+                </button>
+              </div>
+            ) : visibleProperties.length === 0 ? (
+              // Textos guía en gray-600 (AA): eran gray-400 (2,5:1) y es justo
+              // lo que la persona trabada necesita leer.
+              <>
+              <div className="flex flex-col items-center justify-center min-h-[16rem] text-center px-6 py-12">
+                <SlidersHorizontal className="w-9 h-9 text-gray-200 mb-3" aria-hidden="true" />
+                {mapBounds && propertiesSinZona.length > 0 ? (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      No hay propiedades en esta parte del mapa
+                    </p>
+                    <p className="text-gray-600 text-xs mb-4 max-w-[260px]">
+                      Alejá el mapa o mirá todas las que coinciden con tu búsqueda.
+                    </p>
+                    <button
+                      onClick={() => setMapBounds(null)}
+                      className="bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-4 min-h-[44px] rounded-lg transition-colors mb-2"
+                    >
+                      Ver las <span className="font-numeric">{propertiesSinZona.length}</span>
+                    </button>
+                  </>
+                ) : nearbyOrigin ? (
                   <>
                     <p className="text-gray-700 font-semibold text-sm mb-1">
                       No hay propiedades a {GEO_NEARBY_RADIUS_KM} km de tu ubicación.
                     </p>
-                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
+                    <p className="text-gray-600 text-xs mb-4 max-w-[260px]">
                       Probá ampliar la búsqueda o navegá el mapa.
                     </p>
                     <button
                       onClick={clearNearby}
-                      className="bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors mb-2"
+                      className="bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-4 min-h-[44px] rounded-lg transition-colors mb-2"
                     >
                       Ver todas las propiedades
                     </button>
                   </>
-                ) : (filters.priceMin || filters.priceMax) ? (
+                ) : resultadoBusqueda && resultadoBusqueda.ids.length === 0 ? (
                   <>
-                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
-                    <p className="text-gray-400 text-xs mb-4 max-w-[260px]">
-                      No encontramos propiedades en {filters.currency} en ese rango. Probá cambiar la moneda o ampliar el rango.
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      No encontramos «{filters.search.trim()}»
                     </p>
+                    <p className="text-gray-600 text-xs mb-4 max-w-[260px]">
+                      Probá con un barrio, una ciudad, una calle o un tipo de propiedad.
+                    </p>
+                  </>
+                ) : relajaciones.length > 0 ? (
+                  <>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">
+                      {resultadoBusqueda ? <>«{filters.search.trim()}» no tiene ninguna con estos filtros</> : 'Ninguna cumple todos los filtros a la vez'}
+                    </p>
+                    <p className="text-gray-600 text-xs mb-4 max-w-[280px]">
+                      {relajaciones[0].n > 0
+                        ? 'Sacá uno y aparecen más:'
+                        // Ningún filtro solo alcanza, pero lo escrito sí tiene:
+                        // el botón saca todos los de la barra, el texto lo dice.
+                        : resultadoBusqueda && resultadoBusqueda.ids.length > 0
+                          ? 'Sacando los filtros de la barra aparecen:'
+                        : filters.priceMin || filters.priceMax
+                          ? `No hay publicadas en ${filters.currency} en ese rango. Probá otra moneda o sacá filtros.`
+                          : 'Sacá filtros para ver más.'}
+                    </p>
+                    {/* Una sola acción principal: el filtro que más abre. Si
+                        ninguno solo alcanza pero lo escrito sí tiene, se
+                        sacan todos los de la barra y queda la búsqueda. */}
+                    {relajaciones[0].n > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => quitarFiltro(relajaciones[0].k)}
+                        className="si-tap bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-5 min-h-[44px] rounded-xl transition-colors mb-3"
+                      >
+                        {textoRelajar(relajaciones[0])}
+                      </button>
+                    ) : resultadoBusqueda && resultadoBusqueda.ids.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => { haptico(); quitarFiltrosUi() }}
+                        className="si-tap bg-[#1A5C38] hover:bg-[#145030] text-white text-sm font-semibold px-5 min-h-[44px] rounded-xl transition-colors mb-3"
+                      >
+                        Ver las <span className="font-numeric">{resultadoBusqueda.ids.length}</span> de «{filters.search.trim()}»
+                      </button>
+                    ) : null}
+                    {/* Una pastilla por filtro activo: × lo saca; el número es
+                        cuántas aparecen sin él. */}
+                    <div className="flex flex-wrap justify-center gap-2 mb-3 max-w-[320px]">
+                      {relajaciones.map(r => (
+                        <button
+                          key={r.k}
+                          type="button"
+                          onClick={() => quitarFiltro(r.k)}
+                          aria-label={`Quitar ${r.label}${r.n > 0 ? `: aparecen ${r.n}` : ''}`}
+                          className="si-tap inline-flex items-center gap-1.5 min-h-[36px] pl-3 pr-2 rounded-full border border-gray-300 text-[13px] font-medium text-gray-800 transition-colors hover:border-[#1A5C38]"
+                          style={{ background: 'var(--theme-surface, #fff)' }}
+                        >
+                          {r.label}
+                          {r.n > 0 && <span className="font-numeric text-[12px] text-gray-600">+{r.n}</span>}
+                          <X className="w-3.5 h-3.5 text-gray-500" aria-hidden="true" />
+                        </button>
+                      ))}
+                    </div>
                   </>
                 ) : (
                   <>
-                    <p className="text-gray-500 font-semibold text-sm mb-1">Sin resultados</p>
-                    <p className="text-gray-400 text-xs mb-4">Probá con otros filtros</p>
+                    <p className="text-gray-700 font-semibold text-sm mb-1">Sin resultados</p>
+                    <p className="text-gray-600 text-xs mb-4">Probá con otra búsqueda.</p>
                   </>
                 )}
-                <button onClick={() => { reset(); setMapBounds(null); clearNearby(); limpiarPerfil() }} className="text-accent-400 text-sm font-semibold hover:text-accent-500 transition-colors">
+                {/* Secundario y en verde de acción (era rojo de marca, que se
+                    leía como error y no llegaba a AA). */}
+                <button
+                  onClick={() => { haptico(); reset(); setMapBounds(null); clearNearby(); limpiarPerfil() }}
+                  className="min-h-[44px] px-3 text-sm font-semibold transition-colors hover:underline"
+                  style={{ color: 'var(--theme-accent, #1A5C38)' }}
+                >
                   {smartActivo ? 'Empezar de nuevo' : 'Borrar filtros'}
                 </button>
               </div>
+              {cajaAviso(false)}
+              </>
             ) : (
               <>
                 {/* Desktop grid — lazy + gate por viewport.
@@ -1714,6 +2379,7 @@ export default function PropiedadesView({
                     durante hidratación + descarga del chunk, luego el grid
                     real. El skeleton replica grid-cols/gap/aspect-ratio
                     para no causar CLS al swap. */}
+                <AgentesPropiedadProvider ids={idsRenderizadas}>
                 <div className="hidden md:block">
                   {isDesktopViewport ? (
                     <PropiedadesViewDesktopGrid
@@ -1729,22 +2395,25 @@ export default function PropiedadesView({
                   )}
                 </div>
                 {/* Mobile list */}
-                <div className="md:hidden px-4 pt-3 pb-[100px] space-y-3">
+                <div className={`md:hidden px-4 ${resultadoBusqueda && filters.search.trim() ? 'pt-3' : 'pt-1'} pb-[100px] space-y-3`} onClick={alTocarTarjeta}>
                   {renderedProperties.map((p, i) => (
                     <div key={p.id} data-property-id={p.id}>
                       {/* Mobile: el Link navega solo, sin onClick. El prefetch
-                          ocurre cuando la card entra al viewport. */}
+                          ocurre cuando la card entra al viewport. El toque se
+                          anota en el contenedor (alTocarTarjeta) para volver acá. */}
                       <PropiedadCardGrid
                         property={p}
                         isSelected={p.id === selectedId}
                         variant="mobile"
                         priority={i < 2}
+                        diferirFoto={i >= 3}
                         distanceKm={nearbyOrigin ? distanceToProperty(p, nearbyOrigin.lat, nearbyOrigin.lng) : null}
                       />
                       {smartActivo && <MotivosFit property={p} profile={smartProfile} />}
                     </div>
                   ))}
                 </div>
+                </AgentesPropiedadProvider>
                 {/* Carga incremental: el observer pinta la tanda siguiente al
                     acercarse, y el botón garantiza el control manual (y que
                     funcione aunque el observer no dispare en algún navegador). */}
@@ -1754,19 +2423,43 @@ export default function PropiedadesView({
                       type="button"
                       onClick={() => setTandas(t => t + 1)}
                       className="rounded-xl border-2 px-6 py-3 text-sm font-bold transition-colors"
-                      style={{ borderColor: '#1A5C38', color: '#1A5C38' }}
+                      style={{ borderColor: '#1A5C38', color: 'var(--theme-accent, #1A5C38)' }}
                     >
                       Ver más propiedades ({visibleProperties.length - renderedProperties.length} restantes)
                     </button>
                   </div>
                 )}
+                {!hayMas && cajaAviso(true)}
               </>
             )}
           </div>
         </div>
 
+        {/* Divisor arrastrable (solo compu) */}
+        <div className="hidden md:block relative w-0 z-[500]">
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Arrastrá para agrandar el mapa o la lista"
+            title="Arrastrá para agrandar el mapa o la lista"
+            onPointerDown={onDivisorDown}
+            onDoubleClick={() => { setListaPct(LISTA_PCT_DEFAULT); guardarListaPct(LISTA_PCT_DEFAULT) }}
+            className="group absolute inset-y-0 -left-2 w-4 cursor-col-resize flex items-center justify-center touch-none"
+          >
+            <span className={`absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] transition-colors ${arrastrando ? 'bg-[#1A5C38]' : 'bg-transparent group-hover:bg-[#1A5C38]/40'}`} />
+            <span className={`relative flex h-11 w-5 items-center justify-center rounded-full border bg-white shadow-md transition-colors ${arrastrando ? 'border-[#1A5C38] text-[#1A5C38]' : 'border-gray-200 text-gray-500 group-hover:text-[#1A5C38]'}`}>
+              <GripVertical className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        </div>
+
         {/* Right: Map */}
-        <div className={`relative w-full md:w-[52%] ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
+        {/* Fondo gris de entrada: en el SSR de la compu el mapa todavía no se
+            monta y la columna quedaba en blanco hasta hidratar. */}
+        <div
+          className={`relative w-full md:w-auto md:flex-1 md:min-w-0 ${mobileView === 'list' ? 'hidden md:block' : 'block'} ${mapaCompleto ? 'md:fixed md:inset-0 md:z-[9000] md:bg-white' : ''}`}
+          style={mapaCompleto ? undefined : { background: 'var(--theme-surface-soft, #f3f4f6)' }}
+        >
           {shouldRenderMap && (
             <PropiedadesMap
               // Con el asistente activo el mapa acompaña a la lista: si no,
@@ -1778,20 +2471,14 @@ export default function PropiedadesView({
               onDeselect={handleMapDeselect}
               onOpenDetail={(id) => setPanelPropertyId(id)}
               flyToCenter={flyToCenter}
-              onBoundsSearch={(bounds) => {
-                setRefreshing(true)
-                setMapBounds({
-                  south: bounds.getSouth(),
-                  north: bounds.getNorth(),
-                  west: bounds.getWest(),
-                  east: bounds.getEast(),
-                })
-                setTimeout(() => setRefreshing(false), 500)
-              }}
+              onZonaChange={handleZonaMapa}
+              zonaDelMapa={mapBounds}
+              pantallaCompleta={mapaCompleto}
               activeZona={activeZona}
               onMapMove={closeBottomSheet}
               onNearbyOrigin={handleNearbyOrigin}
               nearbyActive={nearbyOrigin != null}
+              busqueda={busquedaDiferida}
             />
           )}
           {/* Chip "modo cercanía" — cerrable, sobre el mapa, no tapa el contador. */}
@@ -1804,7 +2491,7 @@ export default function PropiedadesView({
                 transform: 'translateX(-50%)',
                 padding: '8px 12px 8px 14px',
                 borderRadius: 999,
-                fontFamily: "'Raleway', system-ui, sans-serif",
+                fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                 fontSize: 13,
                 fontWeight: 600,
                 maxWidth: 'calc(100% - 24px)',
@@ -1831,10 +2518,34 @@ export default function PropiedadesView({
               <span className="text-xs text-gray-500"> propiedades</span>
             </div>
           </div>
+          {/* Pantalla completa (solo compu): agranda el mapa sobre toda la
+              página; al salir, la lista muestra lo que quedó a la vista. */}
+          {mapaCompleto ? (
+            <button
+              type="button"
+              onClick={() => setMapaCompleto(false)}
+              className="hidden md:inline-flex absolute top-3 right-3 z-[1000] items-center gap-2 rounded-full bg-white text-gray-900 shadow-md border border-gray-200 hover:bg-gray-50 transition-colors"
+              style={{ padding: '9px 16px', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, fontWeight: 600 }}
+              title="Salir de pantalla completa (Esc)"
+            >
+              <Minimize2 className="w-4 h-4" /> Volver a la lista
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setMapaCompleto(true); trackEvent('mapa_pantalla_completa') }}
+              className="hidden md:flex absolute top-3 right-3 z-[1000] w-10 h-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-md border border-gray-200 hover:text-[#1A5C38] transition-colors"
+              title="Ver el mapa en pantalla completa"
+              aria-label="Ver el mapa en pantalla completa"
+            >
+              <Maximize2 className="w-[18px] h-[18px]" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── Mobile Bottom Buttons ───────────────────────────────────────── */}
+      {/* Separadas a propósito (Ordenar | Mapa): fusionarlas quedó para después. */}
       <div
         className={`md:hidden fixed left-1/2 -translate-x-1/2 z-[9999] flex gap-3 transition-opacity duration-200 ${
           showBottomSheet ? 'opacity-0 pointer-events-none' : 'opacity-100'
@@ -1844,26 +2555,16 @@ export default function PropiedadesView({
         {mobileView === 'list' && (
           <button
             onClick={() => setMobileSortOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full"
-            style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
+            className="si-tap inline-flex items-center gap-2 rounded-full"
+            style={PASTILLA}
           >
             <ArrowUpDown className="w-4 h-4" /> Ordenar
           </button>
         )}
-        {mobileView === 'map' && (
-          <button
-            onClick={() => { window.dispatchEvent(new Event('si-refresh-bounds')) }}
-            className="inline-flex items-center justify-center rounded-full"
-            style={{ background: '#111', color: '#fff', width: 44, height: 44, border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
-            aria-label="Buscar en esta zona"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-        )}
         <button
-          onClick={() => setViewManually(mobileView === 'list' ? 'map' : 'list')}
-          className="inline-flex items-center gap-2 rounded-full"
-          style={{ background: '#111', color: '#fff', padding: '12px 20px', fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 14, fontWeight: 600, border: 'none', minHeight: 44, boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
+          onClick={() => { haptico(); setViewManually(mobileView === 'list' ? 'map' : 'list') }}
+          className="si-tap inline-flex items-center gap-2 rounded-full"
+          style={PASTILLA}
         >
           {mobileView === 'list' ? (
             <><Map className="w-4 h-4" /> Mapa</>
@@ -1876,13 +2577,14 @@ export default function PropiedadesView({
       {/* ── Mobile Sort Sheet ─────────────────────────────────────────────── */}
       {mobileSortOpen && (
         <>
-          <div className="fixed inset-0 z-[10000] bg-black/50" onClick={() => setMobileSortOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[10001] bg-white flex flex-col"
-            style={{ borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)', animation: 'slideUp 250ms ease-out' }}>
+          <div className="si-listado-velo fixed inset-0 z-[10000] bg-black/50" onClick={() => setMobileSortOpen(false)} />
+          <div className="si-listado-hoja fixed bottom-0 left-0 right-0 z-[10001] bg-white flex flex-col"
+            role="dialog" aria-modal="true" aria-label="Ordenar por"
+            style={{ borderRadius: '24px 24px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)' }}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div />
-              <span style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: '#0a0a0a' }}>Ordenar por</span>
-              <button onClick={() => setMobileSortOpen(false)} className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
+              <span style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontWeight: 700, fontSize: 18, color: 'var(--theme-ink, #0a0a0a)' }}>Ordenar por</span>
+              <button onClick={() => setMobileSortOpen(false)} aria-label="Cerrar" className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
@@ -1890,16 +2592,17 @@ export default function PropiedadesView({
               {SORT_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
-                  onClick={() => { setSortBy(opt.value); setMobileSortOpen(false) }}
+                  onClick={() => { haptico(); setSortBy(opt.value); setMobileSortOpen(false) }}
+                  aria-pressed={sortBy === opt.value}
                   className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
                   style={{
-                    fontFamily: "'Raleway', system-ui, sans-serif",
+                    fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                     fontSize: 15,
                     fontWeight: sortBy === opt.value ? 600 : 400,
-                    color: sortBy === opt.value ? '#1A5C38' : '#0a0a0a',
+                    color: sortBy === opt.value ? 'var(--theme-accent, #1A5C38)' : 'var(--theme-ink, #0a0a0a)',
                     background: 'transparent',
                     border: 'none',
-                    borderBottom: '1px solid #f3f4f6',
+                    borderBottom: '1px solid var(--theme-border, #f3f4f6)',
                     minHeight: 48,
                     cursor: 'pointer',
                   }}
@@ -1916,37 +2619,35 @@ export default function PropiedadesView({
       {/* ── Mobile Property Preview Card (vertical Zillow-style) ──────── */}
       {selectedProperty && (
         <div
-          className={`md:hidden fixed left-3 right-3 z-[9998] transition-all duration-250 ${
+          // duration-250 no existe en Tailwind 3 (quedaba en 150 ms y con transition-all).
+          className={`md:hidden fixed left-3 right-3 z-[9998] transition-[opacity,transform] duration-200 ease-out ${
             showBottomSheet ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none'
           }`}
           style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', maxWidth: 'calc(100vw - 24px)' }}
         >
           <Link
-            href={`/propiedades/${generatePropertySlug(selectedProperty)}`}
+            href={hrefTarjetaMapa}
+            onClick={() => marcarSalidaDelListado(hrefTarjetaMapa)}
             className="relative block bg-white rounded-2xl shadow-2xl overflow-hidden"
-            style={{ border: '1px solid #e5e7eb' }}
+            style={{ border: '1px solid var(--theme-border, #e5e7eb)' }}
           >
-            {/* Photo — 16:9 (más bajo y compacto) */}
-            <div className="relative w-full aspect-[16/9] bg-gray-100">
-              {(() => {
-                const photo = getMainPhoto(selectedProperty)
-                return photo ? (
-                  <Image src={photo} alt={selectedProperty.publication_title || selectedProperty.address}
-                    fill className="object-cover" sizes="(max-width: 768px) 100vw, 400px" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <MapPin className="w-8 h-8 text-gray-300" />
-                  </div>
-                )
-              })()}
+            {/* Fotos 16:9 (más bajo y compacto): se pasan con las flechas o
+                con swipe sin abrir la ficha. */}
+            <FotosVistaPrevia
+              key={selectedProperty.id}
+              property={selectedProperty}
+              alt={tituloVisible(selectedProperty) || selectedProperty.address}
+              className="aspect-[16/9]"
+              style={{ borderRadius: 0 }}
+            >
               {/* Operation badge */}
               {(() => {
                 const op = getOperationType(selectedProperty)
                 return op ? (
-                  <span className="absolute top-2.5 left-2.5"
+                  <span className="absolute top-2.5 left-2.5 z-10"
                     style={{
                       background: operationBadgeColor(op),
-                      color: '#fff', fontFamily: "'Raleway', system-ui, sans-serif",
+                      color: '#fff', fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif",
                       fontWeight: 600, fontSize: 11, textTransform: 'uppercase',
                       padding: '5px 10px', borderRadius: 6,
                     }}>
@@ -1954,35 +2655,42 @@ export default function PropiedadesView({
                   </span>
                 ) : null
               })()}
-              {/* Close button — stopPropagation para no navegar al Link padre */}
+              {/* Cerrar y Compartir: 44 px de área cada uno y 12 px entre los
+                  círculos. Eran de 32 px a 6 px uno del otro, dentro del Link
+                  de la tarjeta: errar por poco abría la ficha en vez de cerrar.
+                  stopPropagation para no navegar al Link padre. */}
               <button
                 onClick={e => { e.preventDefault(); e.stopPropagation(); closeBottomSheet() }}
                 aria-label="Cerrar"
-                className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/95 backdrop-blur shadow-md flex items-center justify-center"
+                className="absolute top-1 right-1 z-20 w-11 h-11 flex items-center justify-center"
               >
-                <X className="w-4 h-4 text-gray-800" />
+                <span className="w-9 h-9 rounded-full bg-white/95 backdrop-blur shadow-md flex items-center justify-center">
+                  <X className="w-4 h-4 text-gray-800" />
+                </span>
               </button>
-              {/* Share button — al lado del X */}
+              {/* Círculo de 36 px (el botón suma 6 px de área alrededor). */}
               <PropertyShareButton
                 propertyId={selectedProperty.id}
                 slug={generatePropertySlug(selectedProperty)}
-                title={selectedProperty.publication_title || selectedProperty.address || ''}
+                title={tituloVisible(selectedProperty) || selectedProperty.address || ''}
                 priceLabel={formatPrice(selectedProperty)}
-                top={10}
-                right={48}
-                size={32}
+                ubicacion={formatUbicacion(selectedProperty, tituloVisible(selectedProperty)) || undefined}
+                contexto="mapa"
+                top={8}
+                right={56}
+                size={36}
               />
-            </div>
+            </FotosVistaPrevia>
 
             {/* Body — tap en cualquier parte abre la ficha completa */}
             <div style={{ padding: 14 }}>
-              <p style={{ fontFamily: "'Poppins', system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: '#0a0a0a', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
+              <p style={{ fontFamily: "var(--font-poppins, 'Poppins'), system-ui, sans-serif", fontWeight: 700, fontSize: 22, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 4px', fontVariantNumeric: 'tabular-nums' }}>
                 {formatPrice(selectedProperty)}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 13, color: '#6b7280', margin: '0 0 6px' }}>
+              <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 13, color: 'var(--theme-subtle, #6b7280)', margin: '0 0 6px' }}>
                 {(() => {
                   const specs: string[] = []
-                  const r = getRoofedArea(selectedProperty)
+                  const r = getTotalSurface(selectedProperty)
                   const land2 = isLand(selectedProperty)
                   const lot = getLotSurface(selectedProperty)
                   if (!land2 && isMonoambiente(selectedProperty))
@@ -1991,17 +2699,17 @@ export default function PropiedadesView({
                     specs.push(`${selectedProperty.suite_amount || selectedProperty.room_amount} dorm`)
                   if (!land2 && selectedProperty.bathroom_amount > 0)
                     specs.push(`${selectedProperty.bathroom_amount} baño${selectedProperty.bathroom_amount > 1 ? 's' : ''}`)
-                  if (r != null && r > 0) specs.push(`${r} m² cub`)
-                  if (lot != null && lot > 0 && lot !== r) specs.push(`${lot.toLocaleString('es-AR')} m² lote`)
-                  if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${lot.toLocaleString('es-AR')} m²`)
+                  if (!land2 && r != null && r > 0) specs.push(`${Math.round(r).toLocaleString('es-AR')} m²`)
+                  if (lot != null && lot > 0 && lot !== r) specs.push(`${Math.round(lot).toLocaleString('es-AR')} m² lote`)
+                  if (land2 && lot != null && lot > 0 && specs.length === 0) specs.push(`${Math.round(lot).toLocaleString('es-AR')} m²`)
                   return specs.join(' · ')
                 })()}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: '#0a0a0a', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {propertyTypeLabelById(selectedProperty.type?.id)}{selectedProperty.type?.name && (selectedProperty.fake_address || selectedProperty.address) ? ' · ' : ''}{selectedProperty.fake_address || selectedProperty.address}
+              <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontWeight: 500, fontSize: 14, color: 'var(--theme-ink, #0a0a0a)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {propertyTypeLabelById(selectedProperty.type?.id)}
               </p>
-              <p style={{ fontFamily: "'Raleway', system-ui, sans-serif", fontSize: 12, color: '#6b7280', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {selectedProperty.location?.short_location || selectedProperty.location?.name || ''}
+              <p style={{ fontFamily: "var(--font-raleway, 'Raleway'), system-ui, sans-serif", fontSize: 12, color: 'var(--theme-subtle, #6b7280)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {formatDireccionCompleta(selectedProperty, selectedProperty.fake_address || selectedProperty.address, ' | ')}
               </p>
             </div>
           </Link>

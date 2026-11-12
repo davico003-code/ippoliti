@@ -2,10 +2,11 @@
 
 import 'leaflet/dist/leaflet.css'
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { ESTILO_TITULO_SECCION, TITULO_SECCION } from './property-detail/titulo-seccion'
+import { MapContainer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import Link from 'next/link'
-import { VOYAGER_TILES } from '@/lib/map-tiles'
+import CapaCalles from './CapaCalles'
 
 export interface NearbyProperty {
   id: number
@@ -22,7 +23,7 @@ function createPriceBubble(price: string) {
     html: `<div style="position:relative;display:inline-block" class="price-bubble">
       <div style="
         background:#1A5C38;color:#fff;
-        font-family:'Poppins',system-ui,sans-serif;
+        font-family:var(--font-poppins, 'Poppins'),system-ui,sans-serif;
         font-weight:700;font-size:11px;
         padding:4px 8px;border-radius:6px;
         white-space:nowrap;line-height:1.2;
@@ -59,7 +60,7 @@ function createCurrentMarker() {
 function SetView({ center }: { center: [number, number] }) {
   const map = useMap()
   useEffect(() => {
-    map.setView(center, 13)
+    map.setView(center, 15)
   }, [center, map])
   return null
 }
@@ -75,7 +76,7 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 overflow-hidden max-w-full">
-      <h2 style={{ fontFamily: "'Raleway', system-ui, sans-serif" }} className="text-[18px] font-extrabold text-gray-900 mb-1">Otras propiedades en la zona</h2>
+      <h2 style={ESTILO_TITULO_SECCION} className={`${TITULO_SECCION} mb-1`}>Otras propiedades en la zona</h2>
       <p className="text-gray-500 text-[13px] mb-4 font-poppins">Explorá propiedades cercanas en el mapa · {nearbyProperties.length} propiedad{nearbyProperties.length !== 1 ? 'es' : ''}</p>
 
       <div className="w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden">
@@ -103,17 +104,13 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
         ` }} />
         <MapContainer
           center={[lat, lng]}
-          zoom={13}
+          zoom={15}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={false}
           zoomControl
           className="nearby-map"
         >
-          <TileLayer
-            url={VOYAGER_TILES.url}
-            attribution={VOYAGER_TILES.attribution}
-            maxZoom={19}
-          />
+          <CapaCalles maxZoom={19} />
           <SetView center={[lat, lng]} />
 
           {/* Current property — red dot */}
@@ -124,8 +121,8 @@ export default function NearbyPropertiesMap({ lat, lng, nearbyProperties }: Prop
             <Marker key={np.id} position={[np.lat, np.lng]} icon={createPriceBubble(np.price)}>
               <Popup>
                 <div style={{ minWidth: 180, fontFamily: 'Poppins, sans-serif' }}>
-                  <p style={{ fontWeight: 800, fontSize: 15, color: '#1A5C38', margin: '0 0 4px' }}>{np.price}</p>
-                  <p style={{ fontSize: 12, color: '#374151', margin: '0 0 10px', lineHeight: 1.4 }}>{np.title}</p>
+                  <p style={{ fontWeight: 800, fontSize: 15, color: 'var(--theme-accent, #1A5C38)', margin: '0 0 4px' }}>{np.price}</p>
+                  <p style={{ fontSize: 12, color: 'var(--theme-muted, #374151)', margin: '0 0 10px', lineHeight: 1.4 }}>{np.title}</p>
                   <Link
                     href={`/propiedades/${np.slug}`}
                     style={{ display: 'block', textAlign: 'center', background: '#1A5C38', color: 'white', fontSize: 12, fontWeight: 700, padding: '8px 14px', borderRadius: '8px', textDecoration: 'none' }}

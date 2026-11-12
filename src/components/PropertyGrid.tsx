@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { MapPin, Maximize2, Home, Bed, Bath } from 'lucide-react'
 import PropertyShareButton from '@/components/PropertyShareButton'
@@ -8,10 +8,11 @@ import {
   getMainPhoto,
   formatPrice,
   getOperationType,
-  getRoofedArea,
+  getTotalSurface,
   getLotSurface,
   isLand,
   translatePropertyType,
+  tituloVisible,
 } from '@/lib/tokko'
 
 function PropertyCard({ property }: { property: TokkoProperty }) {
@@ -19,7 +20,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
   const slug = generatePropertySlug(property)
   const operation = getOperationType(property)
   const price = formatPrice(property)
-  const roofed = getRoofedArea(property)
+  const total = getTotalSurface(property)
   const lot = getLotSurface(property)
   const land = isLand(property)
 
@@ -30,7 +31,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
           {photo ? (
             <Image
               src={photo}
-              alt={property.publication_title || property.address}
+              alt={tituloVisible(property) || property.address}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -55,7 +56,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             </p>
           )}
           <h3 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 group-hover:text-brand-700 transition-colors">
-            {property.publication_title || property.address}
+            {tituloVisible(property) || property.address}
           </h3>
           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1.5">
             {land ? (
@@ -64,10 +65,10 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
               )
             ) : (
               <>
-                {roofed != null && roofed > 0 && (
-                  <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{roofed}</span> m² cub.</span>
+                {!land && total != null && total > 0 && (
+                  <span className="flex items-center gap-0.5"><Home className="w-3 h-3" /><span className="font-numeric">{total.toLocaleString('es-AR')}</span> m²</span>
                 )}
-                {lot != null && lot > 0 && lot !== roofed && (
+                {lot != null && lot > 0 && lot !== total && (
                   <span className="flex items-center gap-0.5"><Maximize2 className="w-3 h-3" /><span className="font-numeric">{lot}</span> m² lote</span>
                 )}
               </>
@@ -84,7 +85,7 @@ function PropertyCard({ property }: { property: TokkoProperty }) {
             <PropertyShareButton
               propertyId={property.id}
               slug={slug}
-              title={property.publication_title || property.address || ''}
+              title={tituloVisible(property) || property.address || ''}
               priceLabel={price}
               inline
               size={36}

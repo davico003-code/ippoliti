@@ -1,23 +1,12 @@
 'use client'
 
-// D — "Avisame si baja" (diseño v4 FINAL). Card gradiente verde con ícono 🔔
-// + fila de input (WhatsApp o email) y botón BLANCO. Sin login. Captura un lead
-// anónimo. El canal se detecta solo: si tiene "@" es email, si no WhatsApp.
-//
-// Specs (_referencias/feedback/…, sección D):
-//   alert-card gradiente 135deg verde→verde-oscuro · ico 38px · h3 Raleway 13.5
-//   "¿Te frena el precio?" + p "Te avisamos si baja o si entra algo parecido."
-//   alert-row: input "Tu WhatsApp o email" + botón blanco "Avisame"
-//   note italic "Sin spam · sin crear cuenta · cancelás cuando quieras."
+// D — "Avisame si baja", versión compacta: una línea discreta con campanita
+// que al tocarla se abre en input (WhatsApp o email) + botón. Sin login.
+// Captura un lead anónimo. El canal se detecta solo: con "@" es email, si no
+// WhatsApp.
 
 import { useState } from 'react'
-
-const POPPINS = "'Poppins', system-ui, sans-serif"
-const RALEWAY = "'Raleway', system-ui, sans-serif"
-const VERDE = '#1A5C38'
-const VERDE_OSCURO = '#0F3F26'
-const GRIS = '#7C8488'
-const CARBON = '#24292B'
+import { Bell, Check } from 'lucide-react'
 
 function detectCanal(v: string): 'whatsapp' | 'email' {
   return v.includes('@') ? 'email' : 'whatsapp'
@@ -31,6 +20,7 @@ export default function AvisameSiBaja({
   /** Valor actual del slider de valuación (si lo movió), para guardar con el lead. */
   valuacion?: number | null
 }) {
+  const [open, setOpen] = useState(false)
   const [contacto, setContacto] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
 
@@ -57,82 +47,64 @@ export default function AvisameSiBaja({
       .catch(() => setStatus('error'))
   }
 
-  return (
-    <div>
-      {/* Card gradiente con ícono + texto */}
-      <div
-        className="flex items-center"
-        style={{
-          background: `linear-gradient(135deg, ${VERDE}, ${VERDE_OSCURO})`,
-          color: '#fff',
-          borderRadius: 14,
-          padding: '15px 16px',
-          gap: 13,
-        }}
-      >
-        <div
-          className="grid place-items-center flex-none"
-          style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,.15)', fontSize: 18 }}
-        >
-          🔔
-        </div>
-        <div>
-          <h3 style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13.5, color: '#fff', lineHeight: 1.25 }}>
-            ¿Te frena el precio?
-          </h3>
-          <p style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
-            Te avisamos si baja o si entra algo parecido.
-          </p>
-        </div>
-      </div>
+  if (status === 'done') {
+    return (
+      <p className="flex items-center gap-1.5 py-3 text-[12.5px] font-medium text-[#1A5C38]">
+        <Check className="h-3.5 w-3.5" strokeWidth={2.5} />
+        Listo, te avisamos si baja o si entra algo parecido.
+      </p>
+    )
+  }
 
-      {/* Fila input + botón */}
-      <form onSubmit={submit} className="flex" style={{ gap: 7, marginTop: 11 }}>
+  if (!open) {
+    return (
+      <div className="py-2">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="group -mx-1 flex items-center gap-2 rounded-lg px-1 py-1 text-left text-[12.5px] text-gray-500 transition-colors hover:text-[#1A5C38]"
+        >
+          <Bell className="h-3.5 w-3.5 text-[#1A5C38]" strokeWidth={2} />
+          <span>
+            ¿Te frena el precio?{' '}
+            <span className="font-semibold text-[#1A5C38] underline-offset-2 group-hover:underline">
+              Avisame si baja
+            </span>
+          </span>
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="py-3">
+      <form onSubmit={submit} className="flex gap-1.5">
         <input
           type="text"
+          autoFocus
           value={contacto}
           onChange={(e) => {
             setContacto(e.target.value)
-            if (status === 'error' || status === 'done') setStatus('idle')
+            if (status === 'error') setStatus('idle')
           }}
-          placeholder={status === 'done' ? '✓ Listo, te avisamos' : 'Tu WhatsApp o email'}
+          placeholder="Tu WhatsApp o email"
           aria-label="Tu WhatsApp o email"
-          className="flex-1 border-0"
-          style={{ borderRadius: 9, padding: '10px 12px', fontFamily: POPPINS, fontSize: 12.5, color: CARBON }}
+          className={`min-w-0 flex-1 rounded-lg border bg-white px-3 py-2 text-[13px] text-[#24292B] outline-none transition-colors placeholder:text-gray-400 focus:border-[#1A5C38] ${
+            status === 'error' ? 'border-[#F40009]/50' : 'border-gray-200'
+          }`}
         />
         <button
           type="submit"
           disabled={status === 'sending'}
-          className="cursor-pointer border-0"
-          style={{
-            background: '#fff',
-            color: VERDE,
-            borderRadius: 9,
-            padding: '0 16px',
-            fontFamily: RALEWAY,
-            fontWeight: 700,
-            fontSize: 12.5,
-          }}
+          className="flex-none rounded-lg bg-[#1A5C38] px-3.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#154a2d] disabled:opacity-60"
         >
           {status === 'sending' ? '…' : 'Avisame'}
         </button>
       </form>
-
-      <p
-        style={{
-          fontSize: 11,
-          color: status === 'done' ? VERDE : GRIS,
-          textAlign: 'center',
-          marginTop: 9,
-          fontStyle: 'italic',
-          lineHeight: 1.5,
-        }}
-      >
-        {status === 'done'
-          ? '✓ Te vamos a escribir. ¡Gracias!'
-          : status === 'error'
-            ? 'Escribí tu WhatsApp o email para activarlo.'
-            : 'Sin spam · sin crear cuenta · cancelás cuando quieras.'}
+      <p className="mt-1.5 text-[11px] text-gray-400">
+        {status === 'error'
+          ? 'Escribí tu WhatsApp o email para activarlo.'
+          : 'Te avisamos si baja o si entra algo parecido. Sin spam.'}
       </p>
     </div>
   )

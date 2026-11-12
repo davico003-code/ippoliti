@@ -9,6 +9,11 @@
 //   ficha:{slug}             → JSON Ficha (TTL 60d)
 //   ficha:{slug}:stats       → JSON FichaStats (TTL 60d, mismo que ficha)
 //   fichas:all               → SET con slugs vivos (sin TTL, cleanup lazy)
+//   fichas:prop:{propertyId} → SET con los slugs de UNA propiedad (TTL 60d,
+//                              se renueva con cada ficha). Lo lee Hilo para la
+//                              tarjeta "Feedback" de la ficha interna.
+//   ficha:{slug}:compartida  → contador de toques en "Compartir" dentro de la
+//                              ficha (colega → su cliente). TTL 60d.
 
 import { customAlphabet } from 'nanoid'
 import { redis } from './redis'
@@ -32,11 +37,14 @@ import {
   parseStreetOnly,
   type TokkoProperty,
 } from './tokko'
+import { esFotoR2 } from './fotos-fijas'
 
 const TTL_SECONDS = 60 * 24 * 60 * 60 // 60d
 const SET_KEY = 'fichas:all'
 const KEY = (slug: string) => `ficha:${slug}`
 const STATS_KEY = (slug: string) => `ficha:${slug}:stats`
+const PROP_KEY = (propertyId: number) => `fichas:prop:${propertyId}`
+const SHARES_KEY = (slug: string) => `ficha:${slug}:compartida`
 
 // Alfabeto sin caracteres ambiguos (sin 0, O, l, I, 1)
 const slugGen = customAlphabet('abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8)
@@ -57,7 +65,12 @@ export interface FichaSnapshot {
   tituloGenerico: string             // "Casa 4 amb en Funes"
   zonaAprox: string                  // "Funes" — último segmento de short_location
   zonaCompleta: string               // "Charquito, Roldán" — barrio, ciudad
-  direccionCalle: string             // "Bv Sarmiento" — sin número
+  direccionCalle: string             // "Bv Sarmiento" — sin número (fichas viejas)
+  // La dirección que muestra la ficha (David, 5-oct-2026: "exacta, o
+  // aproximada si no la tenemos"), sin la zona: "Aconcagua 348", "Lote 56",
+  // "Aconcagua al 300". Ausente = solo la zona. Las que arma Hilo la traen
+  // exacta; las que se arman acá, la que ya publica la web.
+  direccion?: string
   m2cubiertos: number | null
   m2totales: number | null
   m2terreno: number | null
@@ -81,8 +94,8 @@ export interface FichaSnapshot {
   extras?: Array<{ name: string; value: string }>  // extra_attributes filtrados
   descripcion: string
   caracteristicas: string[]
-  // Coords con offset 30-50m aplicado al crear (NO son las coords reales).
-  // Se renombraron a lat/lng para retrocompat del consumer.
+  // El punto del mapa. Desde el 5-oct-2026 es el REAL (la ficha ya muestra la
+  // dirección); las fichas anteriores lo tienen corrido 30-50 m.
   lat: number | null
   lng: number | null
 }
@@ -96,6 +109,8 @@ export interface Ficha {
   createdAt: string            // ISO
   expiresAt: string            // ISO (createdAt + 60d)
   revokedAt: string | null     // ISO si fue revocada manualmente
+  /** 'no_disponible' = Hilo la revocó porque la propiedad se vendió/bajó: la página lo dice (30-sep-2026). */
+  revokedReason?: 'no_disponible' | null
   generadoDesde: {
     ip: string
     userAgent: string
@@ -146,15 +161,27 @@ function deriveTituloGenerico(tipo: string, ambientes: number | null, zona: stri
   return [tipoStr, ambStr, zonaStr].filter(Boolean).join(' ')
 }
 
-// Aplica un offset aleatorio de 30..50 metros a las coords reales para que el
-// pin del mapa no exponga la dirección exacta. Calculado al crear la ficha y
-// fijado durante sus 60 días de vida.
-function applyOffset(lat: number, lng: number): { lat: number; lng: number } {
-  const angle = Math.random() * 2 * Math.PI
-  const distM = 30 + Math.random() * 20
-  const dLat = (distM * Math.cos(angle)) / 111000
-  const dLng = (distM * Math.sin(angle)) / (111000 * Math.cos((lat * Math.PI) / 180))
-  return { lat: lat + dLat, lng: lng + dLng }
+// La dirección para la ficha: sin los tramos que repiten la zona ("- Cotos de
+// la Alameda - Roldán") y solo si ubica algo más que el barrio (una altura, un
+// lote o una esquina). La regla completa vive en Hilo
+// (lib/fichas/direccion-ficha.ts); esta es la de las fichas que se arman acá.
+const SEPARADOR_DIRECCION = /\s*[|,]\s*|\s+-\s*|\s*-\s+/
+function normalizarLugar(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+export function direccionParaFicha(cruda: string | null | undefined, zona: Array<string | null | undefined>): string | undefined {
+  const nombres = new Set(zona.flatMap(z => (z || '').split(SEPARADOR_DIRECCION)).map(normalizarLugar).filter(Boolean))
+  const d = (cruda || '')
+    .replace(/\s+/g, ' ')
+    .split(SEPARADOR_DIRECCION)
+    .map(t => t.trim())
+    .filter(t => {
+      const n = normalizarLugar(t).replace(/^barrio (privado |cerrado |abierto )?/, '')
+      return n && !nombres.has(n) && n !== 'argentina' && n !== 'santa fe' && !/^zona\b/.test(n)
+    })
+    .join(', ')
+  const ubica = /\d/.test(d) || /\s(y|esq\.?|esquina)\s/i.test(d)
+  return d && (d.match(/[a-záéíóúñ]/gi) || []).length >= 3 && ubica ? d.slice(0, 120) : undefined
 }
 
 function parseNum(v: unknown): number | null {
@@ -180,13 +207,27 @@ function pickExtras(property: TokkoProperty): Array<{ name: string; value: strin
 }
 
 export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
-  const fotosPlanas = (property.photos || [])
+  const fotosOrdenadas = (property.photos || [])
     .filter(p => !p.is_blueprint)
     .sort((a, b) => a.order - b.order)
-    .map(p => p.original || p.image)
-    .filter(u => typeof u === 'string' && u.startsWith('https://'))
+  const esHttps = (u: unknown): u is string => typeof u === 'string' && u.startsWith('https://')
 
+  // Galería: la copia de R2 (fotos.verficha.casa) cuando la hay, no la firmada
+  // de Supabase. La firmada vence a los 90 días de firmada y Hilo la rota cada
+  // 45 (ver lib/fotos-fijas.ts): una ficha creada al final del ciclo podía
+  // quedarse sin fotos antes de sus 60 días, en un link que el agente ya mandó,
+  // y fichas-salud no la curaba (trata .supabase.co como propia). La de R2 es
+  // permanente, ya viene achicada (Imagen.tsx pide el ancho justo) y su dominio
+  // es el neutro: no asoma la marca.
+  const fotosPlanas = fotosOrdenadas
+    .map(p => (esFotoR2(p.r2) ? p.r2 : p.original || p.image))
+    .filter(esHttps)
+
+  // La vista previa (og:image) sigue saliendo de la JPG: la copia de R2 es
+  // WebP y la tarjeta de WhatsApp no siempre se arma con WebP. Si no hay JPG,
+  // cualquiera de la galería.
   const ogImage =
+    pickOgImage(fotosOrdenadas.map(p => p.original || p.image).filter(esHttps)) ||
     pickOgImage(fotosPlanas) ||
     (() => {
       const main = getMainPhoto(property)
@@ -200,21 +241,24 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
   const ambientes = property.room_amount || null
   const zonaAprox = deriveZonaAprox(property)
 
-  // Coords con offset
+  // El punto real (la ficha ya muestra la dirección; correrlo no protegía nada)
   const realLat = property.geo_lat ? parseFloat(property.geo_lat) : NaN
   const realLng = property.geo_long ? parseFloat(property.geo_long) : NaN
-  let lat: number | null = null
-  let lng: number | null = null
-  if (Number.isFinite(realLat) && Number.isFinite(realLng)) {
-    const off = applyOffset(realLat, realLng)
-    lat = off.lat
-    lng = off.lng
-  }
+  const hayPunto = Number.isFinite(realLat) && Number.isFinite(realLng) && !(realLat === 0 && realLng === 0)
+  const lat: number | null = hayPunto ? realLat : null
+  const lng: number | null = hayPunto ? realLng : null
 
   // Direccion calle: prefiero real_address (sin marketing) sobre address
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const realAddr = (property as any).real_address || property.address || ''
   const direccionCalle = parseStreetOnly(realAddr)
+  // La que ya publica la web (el feed de Hilo no trae la exacta: Hilo se la
+  // completa a las fichas que arma un agente).
+  const direccion = direccionParaFicha(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (property as any).real_address || property.fake_address || property.address,
+    [property.location?.full_location, property.location?.name],
+  )
 
   // Expensas — undefined si 0 o no aplica
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -241,6 +285,7 @@ export function buildSnapshotFromTokko(property: TokkoProperty): FichaSnapshot {
     zonaAprox,
     zonaCompleta: deriveZonaCompleta(property),
     direccionCalle,
+    ...(direccion ? { direccion } : {}),
     m2cubiertos: getRoofedArea(property),
     m2totales: getTotalSurface(property),
     m2terreno: getLotSurface(property),
@@ -314,6 +359,7 @@ export async function crearFicha(input: {
   await redis.set(KEY(slug), JSON.stringify(ficha), { ex: TTL_SECONDS })
   await redis.set(STATS_KEY(slug), JSON.stringify(initialStats), { ex: TTL_SECONDS })
   await redis.sadd(SET_KEY, slug)
+  await indexarFichaPorPropiedad(input.propertyId, slug)
 
   // El audio narrado YA NO se precachea automáticamente al crear la ficha.
   // Pasamos a opt-in: la generación se dispara desde /admin/audio para evitar
@@ -395,15 +441,11 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     stripPortal(input.titulo) || deriveTituloGenerico(tipo, ambientes, zonaAprox)
   const fotos = (input.fotos || []).filter(u => typeof u === 'string' && u.startsWith('https://'))
 
-  // Coords: si vienen (del portal o geocodificadas), les aplicamos el mismo
-  // offset de privacidad que a las de Tokko para no exponer la ubicación exacta.
-  let lat: number | null = null
-  let lng: number | null = null
-  if (input.lat != null && input.lng != null && Number.isFinite(input.lat) && Number.isFinite(input.lng)) {
-    const off = applyOffset(input.lat, input.lng)
-    lat = off.lat
-    lng = off.lng
-  }
+  // Coords: si vienen (del portal o geocodificadas), tal cual.
+  const hayPunto = input.lat != null && input.lng != null && Number.isFinite(input.lat) && Number.isFinite(input.lng)
+  const lat: number | null = hayPunto ? (input.lat as number) : null
+  const lng: number | null = hayPunto ? (input.lng as number) : null
+  const direccion = direccionParaFicha(stripPortal(input.direccion || ''), [zonaAprox])
 
   return {
     fotos,
@@ -418,6 +460,7 @@ export function buildSnapshotManual(input: FichaExternaInput): FichaSnapshot {
     zonaAprox,
     zonaCompleta: zonaAprox,
     direccionCalle: stripPortal(input.direccion || ''),
+    ...(direccion ? { direccion } : {}),
     m2cubiertos: input.m2cubiertos,
     m2totales: null,
     m2terreno: input.m2terreno,
@@ -554,6 +597,31 @@ export const BOT_UA_RE =
 export function isLikelyBot(userAgent: string | null | undefined): boolean {
   if (!userAgent) return false
   return BOT_UA_RE.test(userAgent)
+}
+
+// Índice propiedad → slugs (para que Hilo cuente cuántas veces se compartió
+// una propiedad sin recorrer todas las fichas). Los slugs vencidos quedan en
+// el SET hasta que expire: el lector los descarta porque ya no tienen stats.
+export async function indexarFichaPorPropiedad(propertyId: number, slug: string): Promise<void> {
+  if (!propertyId || propertyId <= 0) return
+  try {
+    await redis.sadd(PROP_KEY(propertyId), slug)
+    await redis.expire(PROP_KEY(propertyId), TTL_SECONDS)
+  } catch {
+    // El índice es para métricas: nunca rompe la creación de la ficha.
+  }
+}
+
+// Toque en "Compartir" dentro de la ficha. Un mismo dispositivo (IP) cuenta
+// una vez cada 10 min por ficha, para que abrir y cerrar el menú no infle.
+export async function trackShare(slug: string, ip: string): Promise<boolean> {
+  const ttl = await redis.ttl(KEY(slug))
+  if (ttl <= 0) return false
+  const dedupe = await redis.set(`ficha:${slug}:compartida:ip:${(ip || 'unknown').slice(0, 64)}`, 1, { nx: true, ex: 600 })
+  if (dedupe === null) return false
+  const n = await redis.incr(SHARES_KEY(slug))
+  if (n === 1) await redis.expire(SHARES_KEY(slug), ttl)
+  return true
 }
 
 // Tracking de view: incrementa contador, anota IP (cap 50). Preserva TTL.

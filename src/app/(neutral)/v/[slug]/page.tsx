@@ -1,9 +1,17 @@
 // Página pública white-label de la ficha. Server component dinámico.
 //
-// Orquesta las 9 secciones de la versión premium. Llama getFicha() del lib
-// directo (no hop al endpoint /api) para preservar la IP real del usuario en
-// el tracking. generateMetadata y la page comparten getFichaCached vía
-// React.cache para no leer Redis dos veces por request.
+// Diseño "foto protagonista" (3-oct-2026, David: "se ve muy larga"; de 5
+// pantallas de celu a ~2):
+//   • Celu/tablet: foto grande con operación, precio y zona encima + tira de
+//     miniaturas, titular, fila de datos, descripción plegada, datos chicos,
+//     plano (alto, para que entre entero) y mapa grande, "Cerca" en chips y
+//     barra fija abajo (¿Te gusta? + Compartir).
+//   • Compu (≥1024): mosaico de fotos, contenido a la izquierda y tarjeta fija
+//     a la derecha (precio, datos, Compartir, ¿Qué te parece?). Plano y mapa
+//     uno debajo del otro, a todo el ancho de la columna.
+// Llama getFicha() del lib directo (no hop al endpoint /api) para preservar
+// la IP real del usuario en el tracking. generateMetadata y la page comparten
+// getFichaCached vía React.cache para no leer Redis dos veces por request.
 //
 // NO renderiza ninguna referencia a SI: la única identidad visible es el
 // dominio "verficha.casa" en el footer.
@@ -15,27 +23,64 @@ import { cache } from 'react'
 
 import { getFicha, isLikelyBot, trackView } from '@/lib/ficha'
 import { publicImageUrl } from '@/lib/external-images'
+import { titularDeDescripcion } from '@/lib/ficha-titular'
+import { limpiarTextoNeutro } from '@/lib/texto-neutro'
+import { formatDescription } from '@/lib/formatDescription'
 import HeroGallery from '@/components/v/HeroGallery'
 import AudioSummaryNeutral from '@/components/v/AudioSummaryNeutral'
-import PriceHero from '@/components/v/PriceHero'
-import KeyDataGrid from '@/components/v/KeyDataGrid'
-import Surfaces from '@/components/v/Surfaces'
+import { DatosFicha, StatsFicha } from '@/components/v/DatosClave'
 import StructuredDescription from '@/components/v/StructuredDescription'
 import AmenityChips from '@/components/v/AmenityChips'
 import BlueprintGallery from '@/components/v/BlueprintGallery'
 import LocationMap from '@/components/v/LocationMap'
-import NearbyPlacesNeutral from '@/components/v/NearbyPlacesNeutral'
-import ShareCTA from '@/components/v/ShareCTA'
-import FloatingShareButton from '@/components/v/FloatingShareButton'
-import FeedbackColega from '@/components/neutral/FeedbackColega'
+import CercaChips from '@/components/v/CercaChips'
+import CompartirMenu from '@/components/v/CompartirMenu'
+import BarraAccionesMovil from '@/components/v/BarraAccionesMovil'
+import { VotoColega } from '@/components/neutral/FeedbackColega'
+import { APAGADO, FONDO_SUAVE, LINEA, SUAVE, TINTA, tituloSeccion, volanta } from '@/components/v/estilos'
 
 const NEUTRAL_DOMAIN = process.env.NEXT_PUBLIC_NEUTRAL_DOMAIN || 'verficha.casa'
 
+// Revocada a secas (baja manual de SI) = 404 genérico. Revocada por Hilo con
+// motivo 'no_disponible' (la propiedad se vendió o el colega la bajó) = la
+// página lo dice, sin fotos ni precio: el cliente que guardó el link no tiene
+// que seguir viendo una casa que ya no se vende (30-sep-2026).
 const getFichaCached = cache(async (slug: string) => {
   const f = await getFicha(slug)
-  if (!f || f.revokedAt) return null
+  if (!f) return null
+  if (f.revokedAt && f.revokedReason !== 'no_disponible') return null
   return f
 })
+
+function NoDisponible({ titulo, zona }: { titulo: string; zona: string }) {
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '60px 24px',
+        position: 'relative',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div style={{ textAlign: 'center', maxWidth: 480 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: '#9A9A9A', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
+          {[titulo, zona].filter(Boolean).join(' · ')}
+        </p>
+        <h1 style={{ fontSize: 22, fontWeight: 600, color: '#1A1A1A', margin: '12px 0 0', letterSpacing: '-0.01em' }}>
+          Esta propiedad ya no está disponible
+        </h1>
+        <p style={{ fontSize: 14, color: '#6B6B6B', marginTop: 12, lineHeight: 1.6 }}>
+          Se vendió o se retiró de la venta.
+        </p>
+      </div>
+      <footer style={{ position: 'absolute', bottom: 24, fontSize: 12, color: '#9A9A9A' }}>{NEUTRAL_DOMAIN}</footer>
+    </main>
+  )
+}
 
 interface Props {
   params: { slug: string }
@@ -51,6 +96,25 @@ function firstParagraph(text: string, maxLen = 160): string {
   return (lastSpace > 80 ? cut.slice(0, lastSpace) : cut).trim() + '…'
 }
 
+// Sin precio publicado el snapshot trae "Consultar" (fichas externas) o
+// "Consultar precio" (las de Tokko/HILO, vía formatPrice).
+function tienePrecio(precio: string | null | undefined): boolean {
+  return Boolean(precio) && !/^consultar/i.test(String(precio).trim())
+}
+
+// Con titular, la descripción de la tarjeta de WhatsApp sale del primer párrafo
+// de verdad (o de la primera lista): el primer renglón ES el titular y se
+// repetía abajo del título, casi siempre EN MAYÚSCULAS.
+function resumenSinTitular(texto: string, titular: string | null): string {
+  if (!titular || !texto) return texto
+  const bloques = formatDescription(texto)
+  for (const b of bloques) {
+    if (b.type === 'paragraph') return b.content
+    if (b.type === 'list') return b.items.join(' · ')
+  }
+  return ''
+}
+
 // Defensa en profundidad: si una descripción de Tokko trajera branding SI,
 // se filtra antes de meterlo en el preview de la ficha neutra.
 const SI_TERMS = /\b(SI INMOBILIARIA|Susana Ippoliti|SusanaIppoliti|siinmobiliaria\.com|@davidflores\.pov|@inmobiliaria\.si)\b/gi
@@ -60,6 +124,7 @@ function stripSI(s: string): string {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ficha = await getFichaCached(params.slug)
+  if (ficha?.revokedAt) return { title: 'Propiedad ya no disponible', robots: { index: false, follow: false } }
 
   if (!ficha) {
     return {
@@ -70,12 +135,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const s = ficha.snapshot
-  const tituloBase =
-    s.precio && s.precio !== 'Consultar'
-      ? `${s.tituloGenerico} · ${s.precio}`
-      : s.tituloGenerico
+  // El mismo titular que la página: es lo que se ve en la tarjeta de WhatsApp
+  // cuando un colega reenvía el link.
+  // Sin "Consultanos…", marca ni teléfonos (ver limpiarTextoNeutro).
+  const descripcion = limpiarTextoNeutro(s.descripcion)
+  const titularDesc = titularDeDescripcion(descripcion, [s.zonaCompleta || s.zonaAprox || ''])
+  const nombre = titularDesc || s.tituloGenerico
+  // Sin precio el título va solo: "· Consultar precio" en la tarjeta de
+  // WhatsApp invitaba a consultar (la ficha neutra nunca lo hace).
+  const tituloBase = tienePrecio(s.precio) ? `${nombre} · ${s.precio}` : nombre
   const titulo = stripSI(tituloBase) || 'Ficha de propiedad'
-  const descRaw = firstParagraph(s.descripcion, 160)
+  const descRaw = firstParagraph(resumenSinTitular(descripcion, titularDesc), 160)
   const desc = stripSI(descRaw) || stripSI(s.tituloGenerico) || 'Ficha de propiedad'
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
   const img = publicImageUrl(s.ogImage || s.fotos[0] || null, `https://${NEUTRAL_DOMAIN}`)
@@ -115,6 +185,7 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
 
   const s = ficha.snapshot
   const url = `https://${NEUTRAL_DOMAIN}/${params.slug}`
+  if (ficha.revokedAt) return <NoDisponible titulo={s.tituloGenerico} zona={s.zonaCompleta || s.zonaAprox || ''} />
 
   // Tracking — fire-after-await, ignorando errores. Misma regla de bots que
   // el endpoint /api/ficha/[slug] (compartido vía isLikelyBot del lib).
@@ -137,153 +208,158 @@ export default async function NeutralFichaPage({ params, searchParams }: Props) 
   const tieneAmenities = (s.caracteristicas?.length ?? 0) > 0 || (s.extras?.length ?? 0) > 0
   const isEmbedded = searchParams?.embed === '1'
 
-  // "Bv Sarmiento y alrededores · Charquito, Roldán" — sin número
-  const ubicTexto = (() => {
-    const parts: string[] = []
-    if (s.direccionCalle) parts.push(`${s.direccionCalle} y alrededores`)
-    if (s.zonaCompleta) parts.push(s.zonaCompleta)
-    else if (s.zonaAprox) parts.push(s.zonaAprox)
-    return parts.join(' · ')
-  })()
+  const zona = s.zonaCompleta || s.zonaAprox || ''
+  // La dirección (David, 5-oct-2026: "exacta, o aproximada si no la tenemos"):
+  // "Aconcagua 348 · Cotos de la Alameda, Roldán", debajo del titular.
+  const direccion = s.direccion?.trim() || ''
+  const ubicacion = direccion ? [direccion, zona].filter(Boolean).join(' · ') : ''
+  // Fichas de antes del 5-oct: solo la calle, sin altura, debajo del mapa
+  // ("Bv Sarmiento y alrededores · Charquito, Roldán").
+  const ubicTexto = !direccion && s.direccionCalle ? [`${s.direccionCalle} y alrededores`, zona].filter(Boolean).join(' · ') : ''
+  const precio = tienePrecio(s.precio) ? s.precio : 'Consultar precio'
+  // "Casa en venta · a estrenar"
+  const volantaTxt = [
+    [s.tipo, s.operacion ? (s.tipo ? `en ${s.operacion.toLowerCase()}` : s.operacion) : ''].filter(Boolean).join(' '),
+    s.antiguedad === 0 ? 'a estrenar' : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  // La descripción vino escrita para la web propia: se le sacan las oraciones
+  // que invitan a contactar y las de marca/matrícula/teléfono.
+  const descripcion = limpiarTextoNeutro(s.descripcion)
+  const titularDesc = titularDeDescripcion(descripcion, [zona])
+  const titular = stripSI(titularDesc || s.tituloGenerico) || s.tituloGenerico
 
   return (
     <>
-      {/* Sección 1: hero galería full-bleed mobile, contenida desktop */}
-      <HeroGallery photos={s.fotos} />
+      <div className="vf-hero-wrap">
+        <HeroGallery photos={s.fotos} overlay={{ volanta: volantaTxt, precio, zona }} />
+      </div>
 
-      {/* Container central para todo lo demás */}
-      <main
-        className="ficha-main"
-        style={{
-          maxWidth: 880,
-          margin: '0 auto',
-          padding: '0 20px 40px',
-        }}
-      >
-        {/* Sección 1b: audio narrado (entre hero y precio) */}
-        <AudioSummaryNeutral propertyId={ficha.propertyId} title={s.tituloGenerico} />
+      <main className={`vf-cuerpo${isEmbedded ? ' vf-sin-barra' : ''}`}>
+        <div style={{ minWidth: 0 }}>
+          <div className="hidden lg:block" style={{ ...volanta, color: APAGADO }}>{volantaTxt}</div>
+          <h1 className="vf-h1">{titular}</h1>
+          {ubicacion ? (
+            <p className="vf-ubicacion">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+                <circle cx="12" cy="9.5" r="2.5" />
+              </svg>
+              <span>{ubicacion}</span>
+            </p>
+          ) : (
+            <div className="hidden lg:block" style={{ fontSize: 16, color: APAGADO, marginTop: 4 }}>{zona}</div>
+          )}
 
-        {/* Sección 2: precio + operación + tipología + zona */}
-        <PriceHero snapshot={s} />
+          <div style={{ marginTop: 16 }}>
+            <StatsFicha snapshot={s} />
+          </div>
 
-        {/* H1 oculto pero presente para SEO/accessibility */}
-        <h1
-          style={{
-            position: 'absolute',
-            width: 1,
-            height: 1,
-            padding: 0,
-            margin: -1,
-            overflow: 'hidden',
-            clip: 'rect(0, 0, 0, 0)',
-            whiteSpace: 'nowrap',
-            border: 0,
-          }}
-        >
-          {s.tituloGenerico} {s.precio && s.precio !== 'Consultar' ? `· ${s.precio}` : ''}
-        </h1>
+          <AudioSummaryNeutral propertyId={ficha.propertyId} title={s.tituloGenerico} />
 
-        {/* Sección 3a: datos clave (sin superficies) */}
-        <KeyDataGrid snapshot={s} />
+          <StructuredDescription text={descripcion} omitirTituloInicial={Boolean(titularDesc)} />
 
-        {/* Sección 3b: superficies (cubierta / total / terreno / frente / fondo) */}
-        <Surfaces snapshot={s} />
+          {/* En la compu estos datos van en la tarjeta de la derecha */}
+          <div className="lg:hidden" style={{ marginTop: 22 }}>
+            <DatosFicha snapshot={s} />
+          </div>
 
-        {/* Sección 4: descripción estructurada (parser SI replicado) */}
-        <StructuredDescription text={s.descripcion} />
+          {tieneAmenities && <AmenityChips caracteristicas={s.caracteristicas} extras={s.extras} />}
 
-        {/* Sección 5: características */}
-        {tieneAmenities && (
-          <AmenityChips
-            caracteristicas={s.caracteristicas}
-            extras={s.extras}
-          />
-        )}
+          {(hasBlueprints || hasCoords) && (
+            <div className="vf-medios">
+              {hasBlueprints && (
+                <section style={{ minWidth: 0 }}>
+                  <h2 style={tituloSeccion}>{s.blueprints.length > 1 ? 'Planos' : 'Plano'}</h2>
+                  <BlueprintGallery blueprints={s.blueprints} />
+                </section>
+              )}
+              {hasCoords && (
+                <section style={{ minWidth: 0 }}>
+                  <h2 style={tituloSeccion}>Dónde queda</h2>
+                  <LocationMap lat={s.lat as number} lng={s.lng as number} />
+                </section>
+              )}
+            </div>
+          )}
 
-        {/* Sección 6: planos */}
-        {hasBlueprints && (
-          <section style={{ marginTop: 36 }}>
-            <h2
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#1A1A1A',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                marginBottom: 14,
-              }}
-            >
-              Planos
-            </h2>
-            <BlueprintGallery blueprints={s.blueprints} />
-          </section>
-        )}
+          {hasCoords && (
+            <div style={{ marginTop: 14 }}>
+              {ubicTexto && <p style={{ fontSize: 14, color: APAGADO, margin: '0 0 10px', lineHeight: 1.5 }}>{ubicTexto}</p>}
+              <CercaChips lat={s.lat as number} lng={s.lng as number} />
+            </div>
+          )}
 
-        {/* Sección 7: ubicación + mapa */}
-        {hasCoords && (
-          <section style={{ marginTop: 36 }}>
-            <h2
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: '#1A1A1A',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                marginBottom: 8,
-              }}
-            >
-              Ubicación
-            </h2>
-            {ubicTexto && (
-              <p style={{ fontSize: 15, color: '#4A4A4A', margin: '0 0 14px', lineHeight: 1.5 }}>
-                {ubicTexto}
-              </p>
-            )}
-            <LocationMap lat={s.lat as number} lng={s.lng as number} />
-          </section>
-        )}
+          {!isEmbedded && (
+            <div className="lg:hidden" style={{ marginTop: 36, padding: '18px 20px', background: FONDO_SUAVE, borderRadius: 16, textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: 17, fontWeight: 700, color: TINTA }}>¿Te gustó?</p>
+              <p style={{ margin: '4px 0 0', fontSize: 15, color: APAGADO, lineHeight: 1.5 }}>Compartila con un amigo.</p>
+            </div>
+          )}
 
-        {/* Sección 7b: lugares cercanos (Overpass / OSM, lazy) */}
-        {hasCoords && (
-          <NearbyPlacesNeutral lat={s.lat as number} lng={s.lng as number} />
-        )}
+          {!isEmbedded && <footer className="vf-footer">{NEUTRAL_DOMAIN}</footer>}
+        </div>
 
-        {!isEmbedded && (
-          <>
-            {/* Sección 7c: feedback anónimo de colegas (final del scroll, antes del CTA) */}
-            <FeedbackColega slug={params.slug} />
-
-            {/* Sección 8: CTA compartir */}
-            <ShareCTA url={url} />
-          </>
-        )}
-
-        {!isEmbedded && (
-          /* Sección 9: footer mínimo */
-          <footer
+        {/* Tarjeta fija de la compu */}
+        <aside className="vf-lado">
+          <div
             style={{
-              marginTop: 56,
-              paddingTop: 24,
-              paddingBottom: 32,
-              borderTop: '1px solid #E5E7EB',
-              textAlign: 'center',
-              fontSize: 12,
-              color: '#9CA3AF',
+              border: `1px solid ${LINEA}`,
+              borderRadius: 20,
+              padding: 26,
+              background: '#fff',
+              boxShadow: '0 10px 36px rgba(0,0,0,0.07)',
             }}
           >
-            {NEUTRAL_DOMAIN}
-          </footer>
-        )}
+            {s.operacion && <div style={{ ...volanta, color: APAGADO }}>{s.operacion}</div>}
+            <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.15, color: TINTA, marginTop: 2 }}>
+              {precio}
+            </div>
+            <div style={{ marginTop: 18 }}>
+              <DatosFicha snapshot={s} />
+            </div>
+            {!isEmbedded && (
+              <>
+                <p style={{ margin: '20px 0 0', fontSize: 14, color: APAGADO, lineHeight: 1.5 }}>
+                  <b style={{ color: TINTA, fontWeight: 600 }}>¿Te gustó?</b> Compartila con un amigo.
+                </p>
+                <div style={{ marginTop: 12 }}>
+                  <CompartirMenu url={url} slug={params.slug} variante="tarjeta" />
+                </div>
+                <div style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${LINEA}` }}>
+                  <div style={{ fontSize: 13, color: APAGADO, marginBottom: 10 }}>¿Qué te parece?</div>
+                  <VotoColega slug={params.slug} />
+                </div>
+              </>
+            )}
+          </div>
+        </aside>
       </main>
 
-      {!isEmbedded && (
-        /* FAB — mobile only (CSS media query oculta en ≥768px) */
-        <FloatingShareButton url={url} />
-      )}
+      {!isEmbedded && <BarraAccionesMovil url={url} slug={params.slug} />}
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @media (min-width: 768px) {
-          .ficha-main { padding: 0 32px 60px !important; }
+        button, a { touch-action: manipulation; }
+        .vf-cuerpo { max-width: 760px; margin: 0 auto; padding: 22px 20px 112px; box-sizing: border-box; }
+        .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
+        .vf-h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.28; color: ${TINTA}; margin: 0; }
+        .vf-ubicacion { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0 0; font-size: 16px; font-weight: 500; line-height: 1.4; color: ${APAGADO}; overflow-wrap: anywhere; }
+        .vf-ubicacion svg { flex-shrink: 0; margin-top: 2px; }
+        .vf-lado { display: none; }
+        .vf-plano { height: 320px; }
+        .vf-mapa { height: 300px; }
+        .vf-medios { display: grid; gap: 28px; margin-top: 32px; }
+        .vf-footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid ${LINEA}; text-align: center; font-size: 12px; color: ${SUAVE}; }
+        @media (min-width: 1024px) {
+          .vf-hero-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 40px 0; box-sizing: border-box; }
+          .vf-cuerpo { max-width: 1180px; padding: 32px 40px 56px; display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 56px; align-items: start; }
+          .vf-cuerpo.vf-sin-barra { padding-bottom: 40px; }
+          .vf-h1 { font-size: 30px; line-height: 1.2; margin-top: 6px; }
+          .vf-lado { display: block; position: sticky; top: 24px; }
+          .vf-plano { height: 320px; }
+          .vf-mapa { height: 320px; }
+          .vf-medios { margin-top: 40px; gap: 36px; }
         }
       ` }} />
     </>

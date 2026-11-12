@@ -142,6 +142,9 @@ const ICON = {
   nautico: "Sailboat",
   muelle: "Anchor",
   electrogeno: "Battery",
+  market: "ShoppingCart",
+  sauna: "Flame",
+  jacuzzi: "Bath",
 };
 
 export const BARRIOS: Barrio[] = [
@@ -982,7 +985,7 @@ export const BARRIOS: Barrio[] = [
     tier: "Consolidado",
     estado: "consolidado",
     zona: "funes",
-    subtitulo: "El consolidado de la zona sur de Funes",
+    subtitulo: "Barrio consolidado, acceso directo por autopista y zona comercial frente al barrio (Calmo)",
     ubicacion: {
       direccionIngreso: "H. Yrigoyen, Funes",
       referencia:
@@ -996,23 +999,22 @@ export const BARRIOS: Barrio[] = [
       medidaLoteDesde: 800,
       medidaLoteHasta: 1176,
       distintivos: [
-        "Masterplan de 234 lotes con Club House y putting green",
+        "Masterplan de 234 lotes con SUM y Mini Market",
         "Doble ingreso: H. Yrigoyen y colectora de autopista",
-        "Piscina climatizada y kínder dentro del barrio",
+        "Sauna y jacuzzi dentro del barrio",
         "CCTV digital con acceso web (cámaras internas y perimetrales)",
         "Lote estándar 800 m² (20 × 40 m)",
       ],
     },
     amenities: [
-      { id: "clubhouse", label: "Club House", icon: ICON.clubhouse },
-      { id: "pileta-climatizada", label: "Piscina climatizada", icon: ICON.pileta },
-      { id: "putting-green", label: "Putting green", icon: ICON.golf },
-      { id: "tenis", label: "Canchas de tenis", icon: ICON.tenis },
-      { id: "gym", label: "Gimnasio", icon: ICON.gym },
-      { id: "seguridad-24", label: "Seguridad 24hs", icon: ICON.seguridad },
+      { id: "mini-market", label: "Mini Market", icon: ICON.market },
+      { id: "tenis", label: "Cancha de tenis", icon: ICON.tenis },
       { id: "futbol", label: "Cancha de fútbol", icon: ICON.futbol },
-      { id: "juegos", label: "Juegos infantiles y kínder", icon: ICON.juegos },
-      { id: "bar", label: "Bar y restaurant", icon: ICON.bar },
+      { id: "sum", label: "SUM", icon: ICON.clubhouse },
+      { id: "sauna", label: "Sauna", icon: ICON.sauna },
+      { id: "jacuzzi", label: "Jacuzzi", icon: ICON.jacuzzi },
+      { id: "juegos", label: "Juegos de plaza", icon: ICON.juegos },
+      { id: "gym-aire-libre", label: "Juegos de gimnasia para adultos", icon: ICON.gym },
     ],
     infraestructura: [
       "Agua corriente, gas natural y desagüe cloacal",
@@ -1024,22 +1026,22 @@ export const BARRIOS: Barrio[] = [
       "Cámaras internas y perimetrales con monitoreo digital",
     ],
     miradaBroker: {
-      titular: "El consolidado discreto de la zona sur — y vecino del futuro Aguadas Lakes.",
+      titular: "Barrio consolidado, entrada directa desde la autopista y vecino del futuro Aguadas Lakes.",
       parrafo:
-        "Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Masterplan prolijo de 234 lotes con Club House, putting green y piscina climatizada, servicios completos con cableado subterráneo, y doble acceso que te pone en la autopista en un minuto. El dato que miro como broker: al lado se desarrolla Aguadas Lakes, y cuando un sector recibe un proyecto de esa escala, los barrios consolidados linderos son los primeros en capitalizarlo.",
+        "Aguadas es de esos barrios que no hacen ruido pero acumulan valor. Masterplan prolijo de 234 lotes con SUM, sauna, jacuzzi y canchas de tenis y fútbol, servicios completos con cableado subterráneo, y doble acceso, uno con entrada directa desde la autopista. El dato que miro como broker: al lado se desarrolla Aguadas Lakes, y cuando un sector recibe un proyecto de esa escala, los barrios consolidados linderos son los primeros en capitalizarlo.",
     },
     perfilComprador: [
       "Familias que buscan un consolidado con amenities completos sin ticket premium",
       "Compradores que priorizan el acceso rápido a la autopista",
       "Inversores atentos a la revalorización de la zona sur por Aguadas Lakes",
     ],
-    tags: ["consolidado", "tenis", "futbol", "pileta"],
+    tags: ["consolidado", "tenis", "futbol"],
     tokko: { matchByTitle: ["aguadas"] },
     imagenes: { hero: "/barrios/aguadas/01.webp" },
     seo: {
       metaTitle: "Aguadas Barrio Cerrado, Funes — Lotes y casas en venta | SI INMOBILIARIA",
       metaDescription:
-        "Aguadas: barrio cerrado consolidado en la zona sur de Funes, sobre la colectora de la autopista. 234 lotes desde 800 m², Club House, piscina climatizada y seguridad 24hs. SI INMOBILIARIA.",
+        "Aguadas: barrio cerrado consolidado en la zona sur de Funes, sobre la colectora de la autopista. 234 lotes desde 800 m², SUM, sauna, jacuzzi, canchas de tenis y fútbol y seguridad 24hs. SI INMOBILIARIA.",
       keywordsLongTail: [
         "aguadas barrio cerrado funes",
         "lote en aguadas funes precio",
@@ -1426,8 +1428,8 @@ const HUB_DATA: Record<string, Omit<HubBarrio, "nombre" | "tier" | "slug">> = {
   },
   "aguadas": {
     sigla: "AG",
-    descripcion: "El consolidado discreto de la zona sur, vecino del futuro Aguadas Lakes.",
-    datos: ["234 lotes", "800 m² típico", "Club House"],
+    descripcion: "Consolidado, con acceso directo por autopista y la zona comercial Calmo enfrente.",
+    datos: ["234 lotes", "800 m² típico", "SUM y Mini Market"],
     amenities: [],
     lat: -32.9394, lng: -60.8117,
     imagenHero: "/barrios/aguadas/02.webp",
@@ -1514,32 +1516,77 @@ export const TIER_HUB_META: Record<HubTierId, { label: string; badgeBg: string; 
   proximamente: { label: "Próximamente",  badgeBg: "#0a0a0a",                badgeColor: "#ffffff" },
 };
 
-/**
- * Matchea una propiedad (por su título/dirección/ubicación) al barrio privado
- * correspondiente usando `tokko.matchByTitle`. Devuelve el Barrio o null. Se usa
- * en la ficha para mostrar el panel del barrio cuando la propiedad está en uno.
- */
-export function findBarrioForProperty(p: {
-  publication_title?: string | null;
-  fake_address?: string | null;
-  address?: string | null;
-  location?: { name?: string | null; short_location?: string | null; full_location?: string | null } | null;
-}): Barrio | null {
-  const hay = [
-    p.publication_title,
-    p.fake_address,
-    p.address,
-    p.location?.name,
-    p.location?.short_location,
-    p.location?.full_location,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-  if (!hay) return null;
-  for (const b of BARRIOS) {
-    const needles = b.tokko?.matchByTitle ?? [];
-    if (needles.some((n) => n && hay.includes(n.toLowerCase()))) return b;
+// Detector del barrio de una propiedad: el MISMO que usa Hilo para el plano del
+// barrio (si-crm src/lib/barrios/planos-barrio.ts). Mira la ubicación y después
+// el título (nunca la descripción, que nombra barrios vecinos), sin tildes, y es
+// certeza o nada: si un texto nombra dos barrios, no cuenta. Antes se buscaba
+// `tokko.matchByTitle` literal y "San Sebastián" (con tilde, sin "barrio
+// privado" al lado) o la ubicación "Barrio Vida" no matcheaban nunca.
+// Orden: los sub-barrios de Vida primero (el genérico va al final).
+const PATRONES_BARRIO: Array<[slug: string, patrones: RegExp[]]> = [
+  ["vida-lagoon", [/\bvida (crystal )?lagoon\b/]],
+  ["vida-club-de-campo", [/\bvida club de campo\b/]],
+  ["vida-green", [/\bvida green\b/]],
+  ["vida-jardin", [/\bvida jardin\b/]],
+  ["vida-barrio-cerrado", [/\bvida barrio cerrado\b/, /\bbarrio (privado |cerrado )?vida\b/]],
+  ["aguadas", [/\baguadas\b/]],
+  ["funes-hills-miraflores", [/\bmiraflores\b/]],
+  ["funes-hills-san-marino", [/\bsan marino\b/]],
+  ["funes-hills-cadaques", [/\bcadaques\b/]],
+  ["funes-lakes", [/\bfunes lakes?\b/]],
+  ["haras-de-funes", [/\bharas de funes\b/]],
+  ["kentucky", [/\bkentucky\b/]],
+  ["la-finca-2", [/\bla finca (2|ii)\b/]],
+  // "La Finca Country Club" es el nodo de Tokko de La Finca 1 (la original).
+  ["la-finca-1", [/\bla finca (1|i)\b/, /\bla finca country( club)?\b/]],
+  ["san-sebastian", [/\bsan sebastian\b/]],
+];
+
+const normalizarBarrio = (s: string): string =>
+  s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+/** Slug inequívoco nombrado en un texto, o null (ninguno o más de uno). */
+function barrioEnTexto(texto: string | null | undefined): string | null {
+  if (!texto) return null;
+  const t = normalizarBarrio(texto);
+  let hits = PATRONES_BARRIO.filter(([, ps]) => ps.some((re) => re.test(t))).map(([slug]) => slug);
+  // "Barrio Privado Vida Green" matchea también el genérico: gana el específico.
+  if (hits.length > 1 && hits.some((s) => s.startsWith("vida-") && s !== "vida-barrio-cerrado")) {
+    hits = hits.filter((s) => s !== "vida-barrio-cerrado");
   }
-  return null;
+  return hits.length === 1 ? hits[0] : null;
+}
+
+// Solo vivienda y lotes: un galpón del área industrial de Roldán estaba cargado
+// con ubicación "Aguadas" (caso real en Hilo, 22-sep).
+const TIPOS_SIN_BARRIO = new Set(["GL", "LO", "OF", "GA"]);
+
+/** Slug del barrio privado de una propiedad: ubicación → título. */
+export function barrioSlugDeLaPropiedad(p: {
+  publication_title?: string | null;
+  type?: { code?: string | null } | null;
+  location?: { name?: string | null } | null;
+}): string | null {
+  if (p.type?.code && TIPOS_SIN_BARRIO.has(p.type.code)) return null;
+  const nodo = p.location?.name;
+  return (
+    barrioEnTexto(nodo) ??
+    barrioEnTexto(p.publication_title) ??
+    // "Barrio Vida" / "Vida" como nodo es el Vida original.
+    (nodo && normalizarBarrio(nodo) === "vida" ? "vida-barrio-cerrado" : null)
+  );
+}
+
+/**
+ * Barrio privado de una propiedad (o null). Se usa en la ficha para mostrar el
+ * panel "Sobre el barrio" cuando la propiedad está en uno.
+ */
+export function findBarrioForProperty(p: Parameters<typeof barrioSlugDeLaPropiedad>[0]): Barrio | null {
+  const slug = barrioSlugDeLaPropiedad(p);
+  return slug ? getBarrioBySlug(slug) ?? null : null;
 }

@@ -28,7 +28,8 @@ export type CategoriaNota =
   | 'barrios'
   | 'coyuntura';
 
-export type CtaId = 'web' | 'instagram' | 'whatsapp';
+export type { CtaId } from './config/ctas';
+import type { CtaId } from './config/ctas';
 
 export interface NotaDraft {
   titulo: string;

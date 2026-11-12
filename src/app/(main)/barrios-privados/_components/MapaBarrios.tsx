@@ -10,7 +10,7 @@ export default function MapaBarrios() {
     <section
       className="bp-mapa-section"
       style={{
-        background: "#fff",
+        background: "var(--theme-surface, #fff)",
         padding: "80px 0",
         borderTop: "1px solid #e8e2d5",
         borderBottom: "1px solid #e8e2d5",
@@ -26,7 +26,7 @@ export default function MapaBarrios() {
             fontWeight: 700,
             fontSize: 36,
             letterSpacing: "-0.015em",
-            color: "#0a0a0a",
+            color: "var(--theme-ink, #0a0a0a)",
             margin: "0 0 8px",
           }}
         >
@@ -35,7 +35,7 @@ export default function MapaBarrios() {
         <p
           style={{
             fontSize: 14,
-            color: "#777",
+            color: "var(--theme-subtle, #777)",
             margin: 0,
             fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
           }}

@@ -1,10 +1,9 @@
 import { Redis } from '@upstash/redis';
 import { BLOG_REDIS_KEYS } from '../lib/redis-keys';
-import { seleccionarCTA } from '../config/ctas';
 import { obtenerContextoEconomico } from '../lib/datos-economicos';
 import { registrarActividad } from '../lib/actividad';
 import { generarNotaConRetries } from './generar-nota';
-import { generarImagenPortada } from './generar-imagen';
+import { elegirPortadaReal } from './elegir-portada';
 import { publicarNota } from './publicador';
 import { filtrarTemasUsados } from '../lib/dedupe';
 import { TEMAS_EVERGREEN } from '../radar/temas-evergreen';
@@ -117,17 +116,17 @@ export async function ejecutarWriterDia(
     });
   }
 
-  // 4. Elegir CTA (rotar)
+  // 4. El cierre lo elige el writer según el tema (catálogo en config/ctas.ts);
+  //    acá solo se guarda el historial.
   const ultimosCTAsRaw = await redis.get<string[]>(BLOG_REDIS_KEYS.ultimosCTAs);
   const ultimosCTAs = ultimosCTAsRaw ?? [];
-  const cta = seleccionarCTA(ultimosCTAs);
 
   // 5. Contexto económico
   await obtenerContextoEconomico(); // para log; el writer lo obtiene internamente también
 
   // 6. Generar nota con retries
-  console.log(`[orquestador] ${dia}: generando nota para "${tema.titulo}" con CTA "${cta.id}"`);
-  const resultado = await generarNotaConRetries(tema, cta);
+  console.log(`[orquestador] ${dia}: generando nota para "${tema.titulo}"`);
+  const resultado = await generarNotaConRetries(tema);
 
   if (!resultado.ok) {
     const razonesTxt = resultado.razones.map((r, i) => `${i + 1}. ${r}`).join('; ');
@@ -144,11 +143,11 @@ export async function ejecutarWriterDia(
   console.log(`[orquestador] Publicando "${resultado.nota.titulo}"`);
   const publicada = await publicarNota(resultado.nota);
 
-  // 7b. Portada única con IA (OpenAI, ver generar-imagen.ts). No crítico: si
-  //     falla, la nota queda publicada con la imagen por defecto y se puede
-  //     regenerar desde /admin/notas.
+  // 7b. Portada real del banco de fotos (ver elegir-portada.ts): nada de IA
+  //     ni stock extranjero. No crítico: si falla, la nota queda publicada
+  //     con la imagen por defecto y se puede elegir otra desde /admin/notas.
   try {
-    const portada = await generarImagenPortada({
+    const portada = await elegirPortadaReal({
       slug: publicada.slug,
       titulo: publicada.titulo,
       imagen_sugerida: publicada.imagen_sugerida,
@@ -158,12 +157,12 @@ export async function ejecutarWriterDia(
     if (!portada.ok) {
       await registrarActividad({
         tipo: 'info',
-        mensaje: `Portada IA no generada (${portada.error}). La nota salió con la imagen por defecto; se puede regenerar desde el panel.`,
+        mensaje: `Portada no asignada (${portada.error}). La nota salió con la imagen por defecto; se puede elegir otra desde el panel.`,
         titulo: publicada.titulo,
       });
     }
   } catch (e) {
-    console.warn('[orquestador] error generando portada IA (no crítico):', e);
+    console.warn('[orquestador] error asignando portada (no crítico):', e);
   }
 
   // 8. Dedup permanente: sumar el título publicado a temasUsados (últimos 30).

@@ -29,7 +29,7 @@ export default function CtaWhatsapp({
   return (
     <div
       className="rounded-2xl px-7 py-6 text-center shadow-sm"
-      style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+      style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
     >
       <p
         className="text-[18px] font-bold tracking-tight m-0 mb-1.5"

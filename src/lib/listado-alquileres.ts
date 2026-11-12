@@ -4,16 +4,24 @@
 // exactamente lo mismo.
 
 import {
-  formatLocation,
   getMainPhoto,
   getTotalSurface,
   type TokkoProperty,
 } from './tokko'
+import {
+  BARRIOS_CANONICOS,
+  normUbicacion as norm,
+  resolverUbicacion,
+} from './ubicacion'
 
 export interface AlquilerItem {
   id: number
+  /** Calle y altura; si la propiedad no tiene dirección cargada, el barrio. */
   direccion: string
+  /** "Barrio, Ciudad" — sin repetir lo que ya diga la dirección. */
   ubicacion: string
+  barrio: string | null
+  ciudad: string | null
   tipoId: number | null
   foto: string | null
   /** null → "Consultar" (web_price false o sin monto cargado) */
@@ -26,6 +34,40 @@ export interface AlquilerItem {
   referencia: string
 }
 
+// Barrio y ciudad salen de lib/ubicacion (resolverUbicacion), el mismo helper
+// que usan la ficha, /comparar, los barrios y los kioscos.
+
+// Barrios genéricos: sirven como dato de ubicación, no como título de la fila.
+const BARRIOS_GENERICOS = new Set([
+  'centro',
+  'microcentro',
+  'macrocentro',
+  'zona norte',
+  'zona sur',
+  'zona oeste',
+  'zona centro',
+])
+
+// Saca de la dirección los segmentos que sólo repiten el barrio o la ciudad,
+// que van en la línea de abajo: "Catamarca 755 - PA /Roldán" → "Catamarca 755
+// - PA"; "Acequias del Aire, Roldán" → "" (la fila se titula con el barrio).
+function calleSola(direccion: string, barrio: string | null, ciudad: string | null): string {
+  const lugares = [barrio, ciudad].filter((v): v is string => !!v).map(norm)
+  // Separadores capturados (índices impares) para rearmar la dirección tal
+  // como se cargó en el CRM.
+  const tokens = direccion.split(/(\s*[,/|]\s*|\s+[-–—]\s+)/)
+  let out = ''
+  for (let i = 0; i < tokens.length; i += 2) {
+    const seg = (tokens[i] ?? '').trim()
+    if (!seg || lugares.includes(norm(seg))) continue
+    out = out ? `${out}${tokens[i - 1] ?? ' - '}${seg}` : seg
+  }
+  const limpia = out.replace(/[\s,\-–—/|]+$/, '').trim()
+  // Misma escritura que el barrio cuando la dirección ES el barrio ("Area
+  // Industrial Roldán" y "Área Industrial Roldán" no pueden convivir).
+  return BARRIOS_CANONICOS[norm(limpia)] ?? limpia
+}
+
 // Precio de la operación de ALQUILER específicamente — no operacionPrincipal,
 // que en una propiedad publicada en venta Y alquiler puede elegir la venta.
 export function proyectarAlquiler(p: TokkoProperty): AlquilerItem | null {
@@ -33,10 +75,25 @@ export function proyectarAlquiler(p: TokkoProperty): AlquilerItem | null {
   if (!op) return null
   const pr = op.prices?.[0]
   const conPrecio = p.web_price !== false && !!pr?.price
+
+  const { barrio, ciudad } = resolverUbicacion(p)
+  const calle = calleSola(p.address || '', barrio, ciudad)
+  // Sin calle, el barrio titula la fila (salvo que sea genérico: "Centro" solo
+  // no identifica nada, ahí manda el título de publicación).
+  const barrioTitulable = barrio && !BARRIOS_GENERICOS.has(norm(barrio)) ? barrio : null
+  const direccion = calle || barrioTitulable || p.publication_title || ciudad || ''
+  // Barrio y ciudad van siempre; sólo se omite la parte que ya ES el título de
+  // la fila (p. ej. la fila titulada "Tierra de Sueños 1" no lo repite abajo).
+  const ubicacion = [barrio, ciudad]
+    .filter((v): v is string => !!v && norm(v) !== norm(direccion))
+    .join(', ')
+
   return {
     id: p.id,
-    direccion: p.address || p.publication_title,
-    ubicacion: formatLocation(p),
+    direccion,
+    ubicacion,
+    barrio,
+    ciudad,
     tipoId: p.type?.id ?? null,
     foto: getMainPhoto(p),
     precio: conPrecio ? pr.price : null,

@@ -47,7 +47,7 @@ export const CLUSTERS: Cluster[] = [
     segments: ['funes', 'casas'],
     rango: null,
     h1: 'Casas en venta en Funes',
-    metaTitle: 'Casas en venta en Funes | Precios reales y fotos | SI INMOBILIARIA',
+    metaTitle: 'Casas en venta en Funes | Precios reales y fotos',
     metaDescription:
       'Todas las casas en venta en Funes con precio, fotos y m². Barrios abiertos y countries. Asesoramiento de SI INMOBILIARIA, en Funes desde 1983.',
     keywords: 'casas en venta funes, comprar casa funes, casas funes precios',
@@ -63,7 +63,7 @@ export const CLUSTERS: Cluster[] = [
     segments: ['funes', 'casas', '180000-250000'],
     rango: { min: 180_000, max: 250_000 },
     h1: 'Casas en Funes de USD 180.000 a 250.000',
-    metaTitle: 'Casas en venta en Funes entre USD 180.000 y 250.000 | SI INMOBILIARIA',
+    metaTitle: 'Casas en venta en Funes entre USD 180.000 y 250.000',
     metaDescription:
       'Casas en venta en Funes entre USD 180.000 y 250.000: el rango donde más se vende. Fotos, m² y asesoramiento directo de SI INMOBILIARIA.',
     keywords: 'casas funes 200000 dolares, casa funes 180000, casas funes hasta 250000',
@@ -79,7 +79,7 @@ export const CLUSTERS: Cluster[] = [
     segments: ['funes', 'casas', '250000-400000'],
     rango: { min: 250_000, max: 400_000 },
     h1: 'Casas en Funes de USD 250.000 a 400.000',
-    metaTitle: 'Casas en venta en Funes entre USD 250.000 y 400.000 | SI INMOBILIARIA',
+    metaTitle: 'Casas en venta en Funes entre USD 250.000 y 400.000',
     metaDescription:
       'Casas amplias y en barrios cerrados de Funes entre USD 250.000 y 400.000. Fotos, m² y asesoramiento de SI INMOBILIARIA.',
     keywords: 'casas funes 300000, casas barrio cerrado funes, casas funes hills precio',
@@ -97,7 +97,7 @@ export const CLUSTERS: Cluster[] = [
     operacion: 'Sale',
     rango: null,
     h1: 'Lotes y terrenos en venta en Funes',
-    metaTitle: 'Lotes en venta en Funes | Barrios abiertos y cerrados | SI INMOBILIARIA',
+    metaTitle: 'Lotes en venta en Funes | Barrios abiertos y cerrados',
     metaDescription:
       'Terrenos y lotes en venta en Funes: barrios abiertos y countries. Medidas, precios y asesoramiento para construir. SI INMOBILIARIA.',
     keywords: 'lotes funes, terrenos en venta funes, lote barrio cerrado funes',
@@ -115,7 +115,7 @@ export const CLUSTERS: Cluster[] = [
     operacion: 'Sale',
     rango: null,
     h1: 'Casas en venta en Roldán',
-    metaTitle: 'Casas en venta en Roldán | Precios reales y fotos | SI INMOBILIARIA',
+    metaTitle: 'Casas en venta en Roldán | Precios reales y fotos',
     metaDescription:
       'Casas en venta en Roldán con precio, fotos y m². Tierra de Sueños, Punta Chacra y más. Sucursal propia en Roldán. SI INMOBILIARIA.',
     keywords: 'casas en venta roldan, comprar casa roldan, casas tierra de sueños',
@@ -133,7 +133,7 @@ export const CLUSTERS: Cluster[] = [
     operacion: 'Sale',
     rango: null,
     h1: 'Lotes y terrenos en venta en Roldán',
-    metaTitle: 'Lotes en venta en Roldán | Medidas y precios | SI INMOBILIARIA',
+    metaTitle: 'Lotes en venta en Roldán | Medidas y precios',
     metaDescription:
       'Terrenos y lotes en venta en Roldán: Tierra de Sueños, Punta Chacra y más. Medidas, precios y financiación. SI INMOBILIARIA con sucursal en Roldán.',
     keywords: 'lotes roldan, terrenos en venta roldan, lote tierra de sueños',
@@ -151,7 +151,7 @@ export const CLUSTERS: Cluster[] = [
     operacion: 'Rent',
     rango: null,
     h1: 'Alquileres en Roldán',
-    metaTitle: 'Alquileres en Roldán | Casas y departamentos | SI INMOBILIARIA',
+    metaTitle: 'Alquileres en Roldán | Casas y departamentos',
     metaDescription:
       'Casas y departamentos en alquiler en Roldán, con requisitos claros y atención directa de nuestra sucursal en Roldán. SI INMOBILIARIA.',
     keywords: 'alquileres roldan, casa en alquiler roldan, alquiler tierra de sueños',
@@ -169,7 +169,7 @@ export const CLUSTERS: Cluster[] = [
     operacion: 'Sale',
     rango: null,
     h1: 'Departamentos en venta en Rosario',
-    metaTitle: 'Departamentos en venta en Rosario | Fisherton y más | SI INMOBILIARIA',
+    metaTitle: 'Departamentos en venta en Rosario | Fisherton y más',
     metaDescription:
       'Departamentos en venta en Rosario: Fisherton, Pichincha, Puerto Norte y más. Precios reales, fotos y asesoramiento de SI INMOBILIARIA.',
     keywords: 'departamentos en venta rosario, departamento fisherton, comprar departamento rosario',

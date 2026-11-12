@@ -3,7 +3,8 @@
 // servidor para que los chips pinten con la página, sin layout shift.
 //
 // Query params: ?barrio=<slug>&tipo=casa|lote|depto (los anuncios linkean así;
-// ?zona=<nombre> es compat con el link viejo del tasador de /tasar).
+// ?zona=<nombre>&ciudad=<ciudad> lo manda /tasar: si la lista no tiene ese
+// barrio, el pedido va igual con el nombre).
 
 import TasacionFlow from '@/components/tasaciones/TasacionFlow'
 import { obtenerBarrios } from '@/lib/tasacion/hilo'
@@ -19,6 +20,7 @@ export default async function TasacionesPage({ searchParams }: { searchParams: S
       barrioInicial={first(searchParams.barrio)}
       tipoInicial={first(searchParams.tipo)}
       zonaInicial={first(searchParams.zona)}
+      ciudadInicial={first(searchParams.ciudad)}
     />
   )
 }

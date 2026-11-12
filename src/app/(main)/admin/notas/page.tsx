@@ -251,7 +251,7 @@ export default function AdminNotasPage() {
     }
   }
 
-  // Portada generada con IA (OpenAI): tarda 15-60s, se muestra spinner en el
+  // Portada real elegida del banco de fotos (sin IA): tarda unos segundos, spinner en el
   // botón de la nota. El resultado queda como override, igual que la subida
   // manual, y se puede regenerar las veces que haga falta.
   const generarImagen = async (slug: string) => {
@@ -267,10 +267,10 @@ export default function AdminNotasPage() {
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
-        setErr(d.error ?? 'no se pudo generar la portada')
+        setErr(d.error ?? 'no se pudo asignar la portada')
         return
       }
-      setMsg(`Portada generada con IA: ${slug}`)
+      setMsg(`Portada nueva del banco de fotos: ${slug}`)
       await cargar()
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'error de red')
@@ -316,7 +316,7 @@ export default function AdminNotasPage() {
               {items.length} notas · {items.filter(i => i.eliminada).length} eliminadas
             </p>
             <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-              <ImageUp className="w-3.5 h-3.5" /> Portada: subí una imagen (JPG/PNG) o generala con IA (✦). Se recorta y optimiza a 1200×630 automáticamente.
+              <ImageUp className="w-3.5 h-3.5" /> Portada: subí una foto real (JPG/PNG) o elegí otra del banco de fotos (✦). Nada de imágenes generadas con IA. Se recorta y optimiza a 1200×630 automáticamente.
             </p>
           </div>
           <button
@@ -473,7 +473,7 @@ export default function AdminNotasPage() {
                       <ImageUp className="w-4 h-4 text-gray-600" />
                     </button>
                     <button
-                      title="Generar portada con IA (tarda ~30s)"
+                      title="Elegir otra foto del banco (fotos reales)"
                       onClick={() => generarImagen(n.slug)}
                       disabled={working}
                       className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-300 hover:bg-gray-50"

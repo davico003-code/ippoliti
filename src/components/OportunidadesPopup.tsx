@@ -5,37 +5,52 @@
 // comercial (vendedor motivado / permuta / negociable / bajó el precio).
 //
 // Desktop: card compacta abajo a la derecha, arriba de la burbuja de WhatsApp.
-// Mobile: "smart peek" lateral que no pisa mapa, compartir ni acciones fijas.
-// Cerrable → no reaparece por 3 días (localStorage).
+// Mobile: pastilla a la derecha que se puede arrastrar (se pega al borde más
+// cercano y recuerda dónde la dejaron); al tocarla se agranda en una ficha.
+// Cerrar (X) → no vuelve a aparecer nunca más en ese navegador (localStorage).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { X } from 'lucide-react'
+import { haptico } from '@/lib/haptico'
 
 const GREEN = '#1A5C38'
-const POPPINS = "var(--font-poppins), 'Poppins', system-ui, sans-serif"
-const RALEWAY = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
+const POPPINS = "var(--font-poppins, 'Poppins'), system-ui, sans-serif"
+const RALEWAY = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 
-const DISMISS_KEY = 'si_oportunidades_dismiss'
-const DISMISS_DAYS = 3
+// Cierre definitivo: una vez cerrado no vuelve (clave nueva, sin vencimiento).
+const DISMISS_KEY = 'si_oportunidades_cerrado'
 const SHOW_DELAY_MS = 5000
 const ROTATE_MS = 11000
-// Si la persona se va (cierra, cambia de pestaña o de app) y vuelve después de
-// este tiempo, el popup reaparece aunque lo haya cerrado antes.
-const LASTSEEN_KEY = 'si_oportunidades_lastseen'
-const AWAY_RESET_MS = 10 * 60 * 1000
+// Posición de la pastilla mobile que eligió la persona al arrastrarla.
+const POS_KEY = 'si_oportunidades_pos'
+const PEEK_H = 46
+const PEEK_MARGIN = 10
+const DRAG_THRESHOLD = 6
+
+type PeekPos = { side: 'left' | 'right'; yPct: number }
+const DEFAULT_POS: PeekPos = { side: 'right', yPct: 52 }
+const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max)
 
 // Rutas internas/flujos donde el popup no corresponde.
 // /dockgarden: landing de venta compartida por WhatsApp — sin distracciones.
-const HIDE_PREFIXES = ['/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden']
+// /recursos/si-school: la card tapaba la columna de capacitaciones.
+// /hausing: landing de casas premium — experiencia limpia, sin tarjetas encima.
+// /emprendimientos/: en las landings la pastilla tapaba el selector de piso de Dock Garden
+// (el listado /emprendimientos la sigue mostrando).
+// /consulta/: landing de la pauta con UNA sola acción (el formulario); a los
+// segundos le mostraba OTRAS casas al que venía del anuncio y lo sacaba de ahí.
+const HIDE_PREFIXES = ['/conoce-tu-hogar', '/tasar', '/vender', '/tasaciones', '/agentes', '/admin', '/school', '/seleccion', '/autorizacion', '/v/', '/guia/leer', '/propiedades/', '/dockgarden', '/recursos/si-school', '/hausing', '/como-trabajamos', '/emprendimientos/', '/consulta/']
 
+// Todos los ganchos en verde de marca: el naranja, el azul y el magenta de
+// antes rompían la paleta (blanco + verde). Los distingue la palabra, no el color.
 const HOOK_META: Record<string, { badge: string; cta: string; color: string; bg: string }> = {
-  motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: '#B5562F', bg: '#FCEBE3' },
-  permuta: { badge: 'Acepta permuta', cta: 'Pasá a conocerla', color: '#2B5C9B', bg: '#E7F0FB' },
-  negociable: { badge: 'Margen para negociar', cta: 'Hacé tu oferta', color: '#1A5C38', bg: '#E8F4EC' },
-  'bajo-precio': { badge: 'Bajó el precio', cta: 'Miralá ahora', color: '#A83C66', bg: '#FBE9F0' },
+  motivado: { badge: 'Vendedor motivado', cta: 'Pasá a conocerla', color: GREEN, bg: '#E8F4EC' },
+  permuta: { badge: 'Acepta permuta', cta: 'Pasá a conocerla', color: GREEN, bg: '#E8F4EC' },
+  negociable: { badge: 'Margen para negociar', cta: 'Hacé tu oferta', color: GREEN, bg: '#E8F4EC' },
+  'bajo-precio': { badge: 'Bajó el precio', cta: 'Miralá ahora', color: GREEN, bg: '#E8F4EC' },
 }
 
 interface Item {
@@ -55,28 +70,29 @@ export default function OportunidadesPopup() {
   const [visible, setVisible] = useState(false)
   const [mobileExpanded, setMobileExpanded] = useState(false)
   const [idx, setIdx] = useState(0)
-  const timerRef = useRef<number | null>(null)
-
-  // Refs espejo para leer el estado actual dentro de listeners (visibility/focus).
-  const itemsRef = useRef<Item[]>([])
-  const visibleRef = useRef(false)
-  useEffect(() => { itemsRef.current = items }, [items])
-  useEffect(() => { visibleRef.current = visible }, [visible])
+  // La rotación se frena mientras la persona la está usando (mouse o foco
+  // encima en la compu, ficha abierta en el celu), con la pestaña oculta y con
+  // "reducir movimiento": si no, la casa cambiaba justo al ir a tocarla y
+  // terminaba abriendo otra. `ciclo` reinicia la cuenta al elegir una a mano.
+  const [enUso, setEnUso] = useState(false)
+  const [pestanaOculta, setPestanaOculta] = useState(false)
+  const [menosMovimiento, setMenosMovimiento] = useState(false)
+  const [ciclo, setCiclo] = useState(0)
+  // Tamaño del viewport para ubicar la pastilla con transform (ver abajo).
+  const [vp, setVp] = useState({ w: 0, h: 0 })
+  const [peekPos, setPeekPos] = useState<PeekPos>(DEFAULT_POS)
+  const [dragXY, setDragXY] = useState<{ x: number; y: number } | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; offX: number; offY: number; w: number; moved: boolean } | null>(null)
+  const justDraggedRef = useRef(false)
+  const sheetRef = useRef<HTMLElement | null>(null)
 
   const enRutaOculta = useCallback(
     () => HIDE_PREFIXES.some((p) => pathname?.startsWith(p)),
     [pathname],
   )
 
-  const marcarVisto = useCallback(() => {
-    try { window.localStorage.setItem(LASTSEEN_KEY, String(Date.now())) } catch {}
-  }, [])
-
   const dismissActivo = useCallback(() => {
-    try {
-      const dismissed = Number(window.localStorage.getItem(DISMISS_KEY) || 0)
-      return Date.now() - dismissed < DISMISS_DAYS * 24 * 60 * 60 * 1000
-    } catch { return false }
+    try { return window.localStorage.getItem(DISMISS_KEY) === '1' } catch { return false }
   }, [])
 
   const cargarItems = useCallback(async (): Promise<Item[]> => {
@@ -88,19 +104,16 @@ export default function OportunidadesPopup() {
     } catch { return [] }
   }, [])
 
-  // Montaje: si vuelve tras estar +10 min afuera (cerró la pestaña y reabrió),
-  // se limpia el "cerrado por 3 días" para que reaparezca. Luego, flujo normal.
+  // Montaje: si ya lo cerró alguna vez, no se muestra más.
   useEffect(() => {
     if (enRutaOculta()) return
+    if (dismissActivo()) return
     try {
-      const lastSeen = Number(window.localStorage.getItem(LASTSEEN_KEY) || 0)
-      if (lastSeen && Date.now() - lastSeen > AWAY_RESET_MS) {
-        window.localStorage.removeItem(DISMISS_KEY)
+      const saved = JSON.parse(window.localStorage.getItem(POS_KEY) || 'null') as PeekPos | null
+      if (saved && (saved.side === 'left' || saved.side === 'right') && typeof saved.yPct === 'number') {
+        setPeekPos({ side: saved.side, yPct: clamp(saved.yPct, 10, 82) })
       }
     } catch {}
-    marcarVisto()
-
-    if (dismissActivo()) return
 
     let alive = true
     let removeMobileScroll: (() => void) | null = null
@@ -134,52 +147,45 @@ export default function OportunidadesPopup() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Reaparición al volver: marcamos cuándo se fue (hidden/blur/pagehide) y, al
-  // volver a la pestaña (visible/focus), si pasó +10 min, mostramos de nuevo
-  // aunque lo hubiera cerrado.
+  // Pestaña oculta, preferencia de movimiento y tamaño del viewport.
   useEffect(() => {
-    const alSalir = () => marcarVisto()
-
-    const alVolver = async () => {
-      if (document.visibilityState !== 'visible') return
-      if (enRutaOculta() || visibleRef.current) { marcarVisto(); return }
-      let lastSeen = 0
-      try { lastSeen = Number(window.localStorage.getItem(LASTSEEN_KEY) || 0) } catch {}
-      const afuera = Date.now() - lastSeen
-      marcarVisto()
-      if (!lastSeen || afuera <= AWAY_RESET_MS) return
-      try { window.localStorage.removeItem(DISMISS_KEY) } catch {}
-      let list = itemsRef.current
-      if (!list.length) {
-        list = await cargarItems()
-        if (list.length) setItems(list)
-      }
-      if (list.length) { setIdx(0); setVisible(true) }
-    }
-
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') alSalir()
-      else alVolver()
-    }
-
-    document.addEventListener('visibilitychange', onVisibility)
-    window.addEventListener('pagehide', alSalir)
-    window.addEventListener('blur', alSalir)
-    window.addEventListener('focus', alVolver)
+    const onVis = () => setPestanaOculta(document.hidden)
+    onVis()
+    document.addEventListener('visibilitychange', onVis)
+    const medir = () => setVp({ w: window.innerWidth, h: window.innerHeight })
+    medir()
+    window.addEventListener('resize', medir)
+    let mq: MediaQueryList | null = null
+    const onMq = () => setMenosMovimiento(!!mq?.matches)
+    try {
+      mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      onMq()
+      mq.addEventListener('change', onMq)
+    } catch {}
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
-      window.removeEventListener('pagehide', alSalir)
-      window.removeEventListener('blur', alSalir)
-      window.removeEventListener('focus', alVolver)
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('resize', medir)
+      try { mq?.removeEventListener('change', onMq) } catch {}
     }
-  }, [enRutaOculta, marcarVisto, cargarItems])
+  }, [])
 
   // Rotación automática entre oportunidades.
   useEffect(() => {
     if (!visible || items.length <= 1) return
-    timerRef.current = window.setInterval(() => setIdx((i) => (i + 1) % items.length), ROTATE_MS)
-    return () => { if (timerRef.current) window.clearInterval(timerRef.current) }
-  }, [visible, items.length])
+    if (enUso || mobileExpanded || pestanaOculta || menosMovimiento) return
+    const t = window.setInterval(() => setIdx((i) => (i + 1) % items.length), ROTATE_MS)
+    return () => window.clearInterval(t)
+  }, [visible, items.length, enUso, mobileExpanded, pestanaOculta, menosMovimiento, ciclo])
+
+  // Ficha abierta: tocar afuera la vuelve a achicar a pastilla (no la cierra).
+  useEffect(() => {
+    if (!mobileExpanded) return
+    const onDown = (e: PointerEvent) => {
+      if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) setMobileExpanded(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [mobileExpanded])
 
   if (!visible || items.length === 0) return null
   if (HIDE_PREFIXES.some((p) => pathname?.startsWith(p))) return null
@@ -188,39 +194,92 @@ export default function OportunidadesPopup() {
   const meta = HOOK_META[it.hook] ?? HOOK_META.negociable
   const esBaja = it.hook === 'bajo-precio' && it.precioAnterior
   const compactMobile = pathname === '/propiedades'
+  const peekW = compactMobile ? PEEK_H : 134
 
+  // Cierre definitivo (X): no vuelve a aparecer.
   const dismiss = () => {
     setVisible(false)
     setMobileExpanded(false)
-    try { window.localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
+    try { window.localStorage.setItem(DISMISS_KEY, '1') } catch {}
+  }
+
+  // Tocar la oportunidad: se oculta mientras navega, sin marcarla como cerrada.
+  const ocultar = () => {
+    setVisible(false)
+    setMobileExpanded(false)
+  }
+
+  // ── Arrastre de la pastilla mobile ──
+  const onPeekPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    dragRef.current = { startX: e.clientX, startY: e.clientY, offX: e.clientX - r.left, offY: e.clientY - r.top, w: r.width, moved: false }
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch {}
+  }
+
+  const onPeekPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current
+    if (!d) return
+    if (!d.moved && Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return
+    d.moved = true
+    setDragXY({
+      x: clamp(e.clientX - d.offX, 4, window.innerWidth - d.w - 4),
+      y: clamp(e.clientY - d.offY, 64, window.innerHeight - PEEK_H - 12),
+    })
+  }
+
+  const onPeekPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current
+    dragRef.current = null
+    if (!d?.moved) return
+    justDraggedRef.current = true
+    const x = clamp(e.clientX - d.offX, 4, window.innerWidth - d.w - 4)
+    const y = clamp(e.clientY - d.offY, 64, window.innerHeight - PEEK_H - 12)
+    const next: PeekPos = {
+      side: x + d.w / 2 < window.innerWidth / 2 ? 'left' : 'right',
+      yPct: clamp((y / window.innerHeight) * 100, 10, 82),
+    }
+    setPeekPos(next)
+    setDragXY(null)
+    // Golpecito al acomodarse contra el borde: confirma que quedó ahí.
+    haptico()
+    try { window.localStorage.setItem(POS_KEY, JSON.stringify(next)) } catch {}
+  }
+
+  const onPeekPointerCancel = () => {
+    dragRef.current = null
+    setDragXY(null)
+  }
+
+  const onPeekClick = () => {
+    if (justDraggedRef.current) { justDraggedRef.current = false; return }
+    setMobileExpanded(true)
   }
 
   const goTo = (i: number) => {
     setIdx(i)
-    if (timerRef.current) window.clearInterval(timerRef.current)
-    timerRef.current = window.setInterval(() => setIdx((x) => (x + 1) % items.length), ROTATE_MS)
+    setCiclo((c) => c + 1)
   }
 
-  const precioNode = esBaja ? (
-    <span style={{ fontFamily: POPPINS, fontSize: 12.5, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-      <s style={{ color: '#A1A1AA', fontSize: 11.5 }}>{it.precioAnterior}</s>
-      <b style={{ color: '#111' }}>{it.precio}</b>
-      {typeof it.pctBaja === 'number' && (
-        <span style={{ background: '#FBE9F0', color: '#A83C66', fontWeight: 700, fontSize: 10.5, borderRadius: 5, padding: '1px 6px' }}>
-          −{String(it.pctBaja).replace('.', ',')}%
-        </span>
-      )}
-    </span>
-  ) : (
-    <span style={{ fontFamily: POPPINS, fontSize: 12.5, color: '#111', fontWeight: 600 }}>{it.precio}</span>
-  )
+  // La pastilla se ubica con transform (no con left/top, que son propiedades
+  // de layout y animarlas cuesta cuadros en el celu). Mismas posiciones que
+  // antes: pegada a un costado y al yPct del alto visible.
+  const peekX = dragXY
+    ? dragXY.x
+    : peekPos.side === 'left'
+      ? PEEK_MARGIN
+      : vp.w - peekW - PEEK_MARGIN
+  const peekY = dragXY ? dragXY.y : (peekPos.yPct / 100) * vp.h
+  const activo = idx % items.length
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes si-oport-in { from { opacity: 0; transform: translateY(18px) scale(.97) } to { opacity: 1; transform: none } }
         @keyframes si-oport-swap { from { opacity: 0; transform: translateX(10px) } to { opacity: 1; transform: none } }
-        @keyframes si-oport-peek { 0% { transform: translateX(-12px); opacity: 0 } 100% { transform: translateX(0); opacity: 1 } }
+        /* Entrada de la pastilla: un solo nombre (antes dependía del lado y, al
+           soltarla del otro costado, se repetía la entrada junto con el
+           desplazamiento). Usa scale y no transform: el transform la ubica. */
+        @keyframes si-oport-peek { from { opacity: 0; scale: .9 } to { opacity: 1; scale: 1 } }
         @keyframes si-oport-sheet { from { opacity: 0; transform: translateY(12px) scale(.98) } to { opacity: 1; transform: none } }
         .si-oport-desktop { display: block; }
         .si-oport-peek, .si-oport-sheet { display: none; }
@@ -229,84 +288,118 @@ export default function OportunidadesPopup() {
           .si-oport-peek { display: inline-flex; }
           .si-oport-sheet { display: block; }
         }
+        /* "Reducir movimiento": la rotación ya se frena (menosMovimiento); acá
+           se apagan también las entradas y el deslizamiento de la pastilla, que
+           van inline y por eso necesitan !important. */
+        @media (prefers-reduced-motion: reduce) {
+          .si-oport-desktop, .si-oport-desktop a, .si-oport-peek, .si-oport-sheet, .si-oport-sheet a { animation: none !important; transition: none !important; }
+        }
       ` }} />
 
-      {/* ── Desktop: card compacta rotativa ── */}
+      {/* ── Desktop: card compacta rotativa, foto enmarcada (casa entera) ── */}
       <aside
         className="si-oport-desktop"
         aria-label="Oportunidades"
+        onMouseEnter={() => setEnUso(true)}
+        onMouseLeave={() => setEnUso(false)}
+        onFocus={() => setEnUso(true)}
+        onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setEnUso(false) }}
         style={{
-          position: 'fixed', right: 0, bottom: 176, zIndex: 45, width: 316,
-          background: '#fff', borderRadius: 18, border: '1px solid #ECECEE',
-          boxShadow: '0 18px 50px rgba(9, 30, 20, 0.16)', overflow: 'hidden',
-          animation: 'si-oport-in .45s cubic-bezier(.22,1,.36,1)',
+          position: 'fixed', right: 6, bottom: 176, zIndex: 45, width: 244,
+          background: 'var(--theme-surface, #fff)', borderRadius: 16, border: '1px solid #ECECEE', padding: 6,
+          boxShadow: '0 16px 44px rgba(9, 30, 20, 0.16)',
+          animation: 'si-oport-in .25s cubic-bezier(.22,1,.36,1)',
         }}
       >
         <button
           type="button" onClick={dismiss} aria-label="Cerrar"
-          style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,.92)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ position: 'absolute', top: 11, right: 11, zIndex: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--theme-overlay, rgba(255,255,255,.92))', border: 'none', cursor: 'pointer', color: 'var(--theme-muted, #52525B)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,.12)' }}
         >
-          <X size={13} strokeWidth={2.2} />
+          <X size={12} strokeWidth={2.4} />
         </button>
 
-        <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .35s ease' }}>
-          {it.foto && (
-            <div style={{ position: 'relative', height: 118, background: '#f2f2f2' }}>
-              <Image src={it.foto} alt="" fill sizes="316px" style={{ objectFit: 'cover', display: 'block' }} />
-              <span style={{ position: 'absolute', left: 10, bottom: 10, fontFamily: POPPINS, fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: meta.color, background: 'rgba(255,255,255,.95)', borderRadius: 999, padding: '4px 10px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
-                {meta.badge}
-              </span>
-            </div>
-          )}
-          <div style={{ padding: '11px 14px 12px' }}>
-            <div style={{ fontFamily: RALEWAY, fontWeight: 700, fontSize: 13.5, color: '#1c1c1e', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical' }}>
+        <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'block', textDecoration: 'none', animation: 'si-oport-swap .22s ease-out' }}>
+          <div style={{ position: 'relative', height: 132, borderRadius: 11, overflow: 'hidden', background: '#EEF2F0' }}>
+            {it.foto && (
+              <Image src={it.foto} alt="" fill sizes="232px" style={{ objectFit: 'cover', objectPosition: 'center 60%' }} />
+            )}
+            <span style={{ position: 'absolute', left: 7, top: 7, fontFamily: POPPINS, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, background: 'var(--theme-surface, #fff)', borderRadius: 999, padding: '3px 8px', boxShadow: '0 2px 8px rgba(0,0,0,.12)' }}>
+              {meta.badge}
+            </span>
+          </div>
+          <div style={{ padding: '8px 5px 2px' }}>
+            <div style={{ fontFamily: RALEWAY, fontWeight: 800, fontSize: 12.5, color: 'var(--theme-ink, #1c1c1e)', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {it.titulo}
             </div>
-            <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-              {precioNode}
-              <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta} →</span>
+            <div style={{ marginTop: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+              {esBaja ? (
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                  <b style={{ color: 'var(--theme-ink, #111)', whiteSpace: 'nowrap' }}>{it.precio}</b>
+                  {typeof it.pctBaja === 'number' ? (
+                    <span style={{ background: 'var(--theme-tint, #E8F4EC)', color: `var(--theme-accent, ${GREEN})`, fontWeight: 700, fontSize: 10, borderRadius: 5, padding: '1px 5px', whiteSpace: 'nowrap' }}>
+                      −{String(Math.round(it.pctBaja))}%
+                    </span>
+                  ) : (
+                    <s style={{ color: '#A1A1AA', fontSize: 10.5, whiteSpace: 'nowrap' }}>{it.precioAnterior}</s>
+                  )}
+                </span>
+              ) : (
+                <span style={{ fontFamily: POPPINS, fontSize: 11.5, fontWeight: 600, color: 'var(--theme-ink, #111)', whiteSpace: 'nowrap' }}>{it.precio}</span>
+              )}
+              <span style={{ fontFamily: POPPINS, fontSize: 10.5, fontWeight: 600, color: 'var(--theme-accent, #1A5C38)', whiteSpace: 'nowrap' }}>{meta.cta} →</span>
             </div>
           </div>
         </Link>
 
         {items.length > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 5, paddingBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 4, padding: '6px 0 2px' }}>
             {items.map((x, i) => (
               <button
                 key={x.propertyId} type="button" onClick={() => goTo(i)} aria-label={`Oportunidad ${i + 1}`}
-                style={{ width: i === idx % items.length ? 16 : 6, height: 6, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                style={{ width: i === activo ? 14 : 5, height: 5, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === activo ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
               />
             ))}
           </div>
         )}
       </aside>
 
-      {/* ── Mobile: acceso lateral + ficha bajo demanda, sin tapar mapa/share ── */}
+      {/* ── Mobile: pastilla arrastrable + ficha bajo demanda ── */}
       {!mobileExpanded && (
         <button
           type="button"
           className="si-oport-peek"
-          aria-label="Ver oportunidad destacada"
-          onClick={() => setMobileExpanded(true)}
+          aria-label="Ver oportunidad destacada (se puede arrastrar)"
+          onClick={onPeekClick}
+          onPointerDown={onPeekPointerDown}
+          onPointerMove={onPeekPointerMove}
+          onPointerUp={onPeekPointerUp}
+          onPointerCancel={onPeekPointerCancel}
           style={{
             position: 'fixed',
-            left: 10,
-            top: compactMobile ? '44%' : '52%',
+            left: 0,
+            top: 0,
+            transform: `translate3d(${peekX}px, ${peekY}px, 0)`,
+            transition: dragXY ? 'none' : 'transform .25s cubic-bezier(.22,1,.36,1)',
             zIndex: 44,
-            width: compactMobile ? 46 : 134,
-            height: 46,
+            width: peekW,
+            height: PEEK_H,
+            flexDirection: peekPos.side === 'right' ? 'row-reverse' : 'row',
             borderRadius: 999,
             border: '1px solid rgba(26,92,56,.16)',
-            background: '#FFFFFF',
-            color: GREEN,
+            background: 'var(--theme-surface, #FFFFFF)',
+            color: 'var(--theme-accent, #1A5C38)',
             boxShadow: '0 12px 30px rgba(9, 30, 20, 0.16)',
-            padding: compactMobile ? 0 : '5px 10px 5px 5px',
-            cursor: 'pointer',
-            animation: 'si-oport-peek .42s cubic-bezier(.22,1,.36,1)',
+            padding: compactMobile ? 0 : peekPos.side === 'right' ? '5px 5px 5px 12px' : '5px 12px 5px 5px',
+            cursor: dragXY ? 'grabbing' : 'grab',
+            animation: 'si-oport-peek .24s cubic-bezier(.22,1,.36,1)',
             alignItems: 'center',
             justifyContent: compactMobile ? 'center' : 'flex-start',
             gap: 8,
-            touchAction: 'manipulation',
+            // Sin gestos del navegador sobre la pastilla: el dedo la arrastra.
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            WebkitTouchCallout: 'none',
           }}
         >
           {it.foto ? (
@@ -317,11 +410,11 @@ export default function OportunidadesPopup() {
             <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#EEF2F0', flexShrink: 0 }} />
           )}
           {!compactMobile && (
-            <span style={{ display: 'flex', minWidth: 0, flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.05 }}>
-              <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, whiteSpace: 'nowrap' }}>
+            <span style={{ display: 'flex', minWidth: 0, flexDirection: 'column', alignItems: peekPos.side === 'right' ? 'flex-end' : 'flex-start', lineHeight: 1.05 }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, whiteSpace: 'nowrap' }}>
                 Oportunidad
               </span>
-              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 800, color: '#1C1C1E', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 12.5, fontWeight: 800, color: 'var(--theme-ink, #1C1C1E)', whiteSpace: 'nowrap' }}>
                 Ver ahora
               </span>
             </span>
@@ -331,34 +424,41 @@ export default function OportunidadesPopup() {
 
       {mobileExpanded && (
         <aside
+          ref={sheetRef}
           className="si-oport-sheet"
           aria-label="Oportunidad destacada"
           style={{
             position: 'fixed',
             left: 10,
             right: 10,
-            zIndex: 46,
+            // 51, arriba de la burbuja de WhatsApp (z-50): con 46 la burbuja
+            // quedaba encima de la esquina de la ficha y un toque ahí abría
+            // WhatsApp en vez de la propiedad. La ficha la tapa entera.
+            zIndex: 51,
             bottom: compactMobile
               ? 'calc(env(safe-area-inset-bottom, 0px) + 86px)'
               : 'calc(env(safe-area-inset-bottom, 0px) + 12px)',
-            background: '#fff',
+            background: 'var(--theme-surface, #fff)',
             borderRadius: 18,
             border: '1px solid rgba(26,92,56,.12)',
             boxShadow: '0 18px 44px rgba(9, 30, 20, 0.18)',
             overflow: 'hidden',
-            animation: 'si-oport-sheet .3s cubic-bezier(.22,1,.36,1)',
+            animation: 'si-oport-sheet .22s cubic-bezier(.22,1,.36,1)',
           }}
         >
+          {/* Área de toque de 44 px (antes 32) con el mismo círculo visible. */}
           <button
             type="button"
-            onClick={() => setMobileExpanded(false)}
-            aria-label="Minimizar oportunidad"
-            style={{ position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,.94)', border: '1px solid #ECECEE', cursor: 'pointer', color: '#71717A', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={dismiss}
+            aria-label="Cerrar oportunidades"
+            style={{ position: 'absolute', top: 2, right: 2, zIndex: 2, width: 44, height: 44, padding: 0, background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <X size={15} strokeWidth={2.2} />
+            <span aria-hidden style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--theme-overlay, rgba(255,255,255,.94))', border: '1px solid #ECECEE', color: 'var(--theme-muted, #71717A)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={15} strokeWidth={2.2} />
+            </span>
           </button>
 
-          <Link key={it.propertyId} href={it.href} onClick={dismiss} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .28s ease' }}>
+          <Link key={it.propertyId} href={it.href} onClick={ocultar} style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 12, padding: 10, minHeight: 98, textDecoration: 'none', animation: 'si-oport-swap .22s ease-out' }}>
             {it.foto ? (
               <span style={{ position: 'relative', width: 96, height: 82, borderRadius: 12, overflow: 'hidden', background: '#EEF2F0' }}>
                 <Image src={it.foto} alt="" fill sizes="96px" style={{ objectFit: 'cover' }} />
@@ -366,32 +466,38 @@ export default function OportunidadesPopup() {
             ) : (
               <span style={{ width: 96, height: 82, borderRadius: 12, background: '#EEF2F0' }} />
             )}
-            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, paddingRight: 30 }}>
-              <span style={{ alignSelf: 'flex-start', fontFamily: POPPINS, fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: meta.color, background: meta.bg, borderRadius: 999, padding: '3px 8px', whiteSpace: 'nowrap' }}>
+            <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, paddingRight: 38 }}>
+              <span style={{ alignSelf: 'flex-start', fontFamily: POPPINS, fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: `var(--theme-accent, ${meta.color})`, background: `var(--theme-tint, ${meta.bg})`, borderRadius: 999, padding: '3px 8px', whiteSpace: 'nowrap' }}>
                 {meta.badge}{esBaja && typeof it.pctBaja === 'number' ? ` · -${String(it.pctBaja).replace('.', ',')}%` : ''}
               </span>
-              <span style={{ fontFamily: RALEWAY, fontSize: 13.5, fontWeight: 800, color: '#1C1C1E', lineHeight: 1.18, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+              <span style={{ fontFamily: RALEWAY, fontSize: 13.5, fontWeight: 800, color: 'var(--theme-ink, #1C1C1E)', lineHeight: 1.18, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                 {it.titulo}
               </span>
-              <span style={{ fontFamily: POPPINS, fontSize: 12, color: '#3A3A3A', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
+              <span style={{ fontFamily: POPPINS, fontSize: 12, color: 'var(--theme-muted, #3A3A3A)', display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.precio}</span>
-                <b style={{ color: GREEN, whiteSpace: 'nowrap' }}>{meta.cta}</b>
+                <b style={{ color: 'var(--theme-accent, #1A5C38)', whiteSpace: 'nowrap' }}>{meta.cta}</b>
               </span>
             </span>
           </Link>
 
+          {/* Puntitos de 7 px imposibles de tocar con el pulgar → un solo
+              control de 44 px de alto que pasa a la siguiente, como el
+              indicador de páginas del iPhone. */}
           {items.length > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, padding: '0 10px 10px' }}>
+            <button
+              type="button"
+              onClick={() => goTo((activo + 1) % items.length)}
+              aria-label={`Ver otra oportunidad (${activo + 1} de ${items.length})`}
+              style={{ display: 'flex', width: '100%', minHeight: 44, marginTop: -8, alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 10px', background: 'transparent', border: 'none', cursor: 'pointer' }}
+            >
               {items.map((x, i) => (
-                <button
+                <span
                   key={x.propertyId}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={`Oportunidad ${i + 1}`}
-                  style={{ width: i === idx % items.length ? 18 : 7, height: 7, borderRadius: 999, border: 'none', cursor: 'pointer', background: i === idx % items.length ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s', padding: 0 }}
+                  aria-hidden
+                  style={{ width: i === activo ? 18 : 7, height: 7, borderRadius: 999, background: i === activo ? GREEN : '#DEDEE2', transition: 'width .25s, background .25s' }}
                 />
               ))}
-            </div>
+            </button>
           )}
         </aside>
       )}

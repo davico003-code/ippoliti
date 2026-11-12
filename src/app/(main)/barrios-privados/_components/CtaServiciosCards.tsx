@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { MapPin, MessageCircle, TrendingUp, type LucideIcon } from "lucide-react";
+import BurbujaDavid from "@/components/BurbujaDavid";
 
 interface CardSpec {
   icon: LucideIcon;
@@ -186,9 +187,11 @@ export default function CtaServiciosCards() {
             fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
           }}
         >
-          Tres formas de avanzar — elegí la que más te convenga. Atiende David
-          Flores · Mat. N° 0621.
+          Tres formas de avanzar — elegí la que más te convenga. Te atiende:
         </p>
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "center" }}>
+          <BurbujaDavid tono="oscuro" />
+        </div>
       </div>
 
       <div

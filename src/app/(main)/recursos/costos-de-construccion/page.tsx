@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import TrackPageView from '@/components/recursos/TrackPageView'
 import RecursoHero from '@/components/recursos/RecursoHero'
 import CalculadoraCostos from './CalculadoraCostos'
+import BurbujaDavid from '@/components/BurbujaDavid'
 import { COSTOS_STYLES } from './styles'
 import {
   MATRIZ_RESIDENCIAL_BASE,
@@ -23,7 +24,7 @@ export const revalidate = 86400
 // Raleway títulos / Poppins datos vía next/font.
 
 export const metadata: Metadata = {
-  title: '¿Cuánto cuesta construir en Funes y Roldán? Índice de Costos | SI INMOBILIARIA',
+  title: '¿Cuánto cuesta construir en Funes y Roldán? Índice de Costos',
   description:
     '¿Cuánto cuesta construir en Funes? Valores por m² llave en mano y por cuenta propia, casos reales de inversión y calculadora para proyectar tu obra.',
   alternates: { canonical: 'https://siinmobiliaria.com/recursos/costos-de-construccion' },
@@ -429,6 +430,9 @@ export default async function CostosConstruccionPage() {
 
             <div className="costos-cta-footer">
               <h4>Tomemos un café y definamos juntos qué se adapta más a vos.</h4>
+              <div className="mb-6 flex justify-center">
+                <BurbujaDavid />
+              </div>
               <div className="costos-cta-botones">
                 <a
                   href={WHATSAPP_CAFE}

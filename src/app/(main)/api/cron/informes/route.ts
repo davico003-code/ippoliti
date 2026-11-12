@@ -77,7 +77,10 @@ export async function GET(req: Request) {
   //    (el dashboard compara at(-1) contra at(-13) para la variación anual).
   //    `ultimo` conserva el valor diario más reciente.
   try {
-    const diarios = await fetchSerieBCRA(40, 14)
+    // El ICL se publica por adelantado: sin cortar en hoy, el "último valor"
+    // era el de un mes futuro y la tabla cerraba en un mes que no llegó.
+    const hoy = new Date().toISOString().slice(0, 10)
+    const diarios = (await fetchSerieBCRA(40, 15)).filter(d => d.fecha <= hoy)
     const datos = mensualizar(diarios).slice(-13)
     results.icl = { datos, ultimo: diarios.at(-1) ?? null, fetchedAt: timestamp }
   } catch (e) {
@@ -107,7 +110,17 @@ export async function GET(req: Request) {
       url: process.env.KV_REST_API_URL!,
       token: process.env.KV_REST_API_TOKEN!,
     })
-    await redis.set('informes:data', JSON.stringify(results))
+    // Si una fuente falla esta semana se conserva lo que había (antes la
+    // sección quedaba "Sin datos" toda la semana). Sin nada nuevo, no se pisa.
+    if (Object.keys(results).length === 0) {
+      return Response.json({ error: 'Todas las fuentes fallaron; se conserva lo anterior' }, { status: 502 })
+    }
+    const prevRaw = await redis.get('informes:data')
+    let prev: Record<string, unknown> | null = null
+    try {
+      prev = (typeof prevRaw === 'string' ? JSON.parse(prevRaw) : prevRaw) as Record<string, unknown> | null
+    } catch { /* dato viejo corrupto: se reemplaza entero */ }
+    await redis.set('informes:data', JSON.stringify({ ...(prev ?? {}), ...results }))
     await redis.set('informes:lastUpdate', timestamp)
   } catch (e) {
     console.error('Redis error:', e)

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 import { pushLeadToHilo } from '@/lib/hilo-leads'
 import { rateLimit } from '@/lib/feedback'
-import { esMockTasacion, TIPOS_TASACION } from '@/lib/tasacion/hilo'
-import { celularArValido, fmtMiles, normalizarCelularAr, TEXTO_TIPO } from '@/lib/tasacion/formato'
+import { esMockTasacion, obtenerBarrios, TIPOS_TASACION } from '@/lib/tasacion/hilo'
+import { barrioParaPedido } from '@/lib/tasacion/barrio-de-zona'
+import { celularArValido, fmtMiles, normalizarCelularAr, parsePlazo, PLAZOS_VENTA, TEXTO_TIPO } from '@/lib/tasacion/formato'
 import type { NivelComparables, TasacionLead, TipoTasacion, UtmTasacion } from '@/lib/tasacion/types'
 
 // POST /api/tasacion/solicitud — el pedido de tasación de la web.
@@ -73,22 +74,26 @@ function leerTasacion(raw: unknown): TasacionLead | null {
     lng: lat != null && lng != null ? lng : null,
     utm: utm && (utm.source || utm.medium || utm.campaign || utm.content) ? utm : null,
     paginaUrl: /^https?:\/\//.test(paginaUrl) ? paginaUrl : 'https://siinmobiliaria.com/tasaciones',
+    plazo: parsePlazo(t.plazo),
   }
 }
 
 /** Resumen corto para el inbox de Hilo (lo lee el agente de un vistazo). */
-function armarBrief(t: TasacionLead): string {
+function armarBrief(t: TasacionLead, antiguedad: string | null): string {
   const tipo = TEXTO_TIPO[t.tipo].singular
   const Tipo = tipo[0].toUpperCase() + tipo.slice(1)
   const partes = [`Tasación web · ${Tipo} en ${t.barrioNombre}${t.ciudad ? ` (${t.ciudad})` : ''}`]
   if (t.m2Lote) partes.push(`lote ${fmtMiles(t.m2Lote)} m²`)
   if (t.m2Cubiertos) partes.push(`${fmtMiles(t.m2Cubiertos)} m² cub.`)
+  if (antiguedad) partes.push(antiguedad.toLowerCase())
   if (t.rangoVisto) {
     const unidad = t.tipo === 'lote' && t.rangoVisto.max < 5000 ? '/m²' : ''
     partes.push(`vio USD ${fmtMiles(t.rangoVisto.min)}–${fmtMiles(t.rangoVisto.max)}${unidad} (nivel ${t.nivel}, ${t.n} comparables)`)
-  } else {
+  } else if (!t.plazo) {
     partes.push('sin rango (nivel 4: pocos comparables)')
   }
+  const plazo = PLAZOS_VENTA.find((p) => p.v === t.plazo)
+  if (plazo) partes.push(plazo.brief)
   if (t.utm?.source) partes.push(`origen ${t.utm.source}${t.utm.campaign ? ` / ${t.utm.campaign}` : ''}`)
   return partes.join(' · ')
 }
@@ -128,9 +133,25 @@ export async function POST(request: NextRequest) {
   if (!tasacion) {
     return NextResponse.json({ error: 'Falta el barrio o el tipo de propiedad. Volvé al paso 1.' }, { status: 400 })
   }
+  // El tasador de /tasar y /vender manda el barrio por nombre (el de los avisos):
+  // acá se busca el de la lista de Hilo, o uno propio con la ciudad (Hilo
+  // rechaza un pedido sin barrioId). Mismo criterio que /tasaciones.
+  if (!tasacion.barrioId) {
+    const barrios = await obtenerBarrios().catch(() => [])
+    const b = barrioParaPedido(barrios, tasacion.barrioNombre, tasacion.ciudad || undefined)
+    if (!b) {
+      return NextResponse.json({ error: 'Falta la ciudad del barrio. Elegilo de nuevo y probá otra vez.' }, { status: 400 })
+    }
+    tasacion.barrioId = b.id
+    tasacion.barrioNombre = b.nombre
+    tasacion.ciudad = b.ciudad
+    tasacion.esCerrado = b.esCerrado
+  }
+  const raw = body.tasacion && typeof body.tasacion === 'object' ? (body.tasacion as Record<string, unknown>) : {}
+  const antiguedad = str(raw.antiguedad, 40) || null
 
   const phone = `+549${celular}`
-  const brief = armarBrief(tasacion)
+  const brief = armarBrief(tasacion, antiguedad)
 
   // Respaldo en Redis: si Hilo falla, el pedido no se pierde igual.
   try {
@@ -143,12 +164,25 @@ export async function POST(request: NextRequest) {
     console.error('[tasacion] Redis error:', err)
   }
 
+  // Los utm del pedido viajan además como `attribution`: así Hilo ata la tasación
+  // al anuncio de Meta (utm_content = ref), igual que una consulta de ficha.
+  // Antes solo iban dentro de `tasacion` y el contacto quedaba sin anuncio.
+  const u = tasacion.utm
+  const attribution = u && (u.source || u.medium || u.campaign || u.content)
+    ? Object.fromEntries(Object.entries({
+        utm_source: u.source, utm_medium: u.medium, utm_campaign: u.campaign, utm_content: u.content,
+        captured_at: new Date().toISOString(),
+      }).filter(([, v]) => v))
+    : null
+
   let aceptado = await pushLeadToHilo({
     name: nombre,
     phone,
     origen: 'tasacion',
     message: brief,
     tasacion,
+    sourceUrl: tasacion.paginaUrl || null,
+    attribution,
   })
 
   // Solo en desarrollo con mock y sin secreto: simulamos la aceptación para

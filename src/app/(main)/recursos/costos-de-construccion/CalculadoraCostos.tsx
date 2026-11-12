@@ -127,9 +127,13 @@ export default function CalculadoraCostos({ calidades }: { calidades: CalidadOpt
     const s = Number(params.get('semi')) || 0
     const p = Number(params.get('pis')) || 0
     const calParam = Number(params.get('cal')) || 0
-    const cal = calidades.some((o) => o.value === calParam)
-      ? calParam
-      : (calidades[2]?.value ?? calidades[0]?.value ?? 0)
+    // Los links viejos traen el USD/m² de cuando se compartieron y los valores
+    // suben 2% por mes: se toma la calidad más cercana (antes no matcheaba y
+    // caía en Línea Alta).
+    const cercana = calParam > 0 && calidades.length
+      ? calidades.reduce((a, b) => (Math.abs(b.value - calParam) < Math.abs(a.value - calParam) ? b : a))
+      : null
+    const cal = cercana?.value ?? calidades[2]?.value ?? calidades[0]?.value ?? 0
 
     setLote(campoDe(l))
     setCub(campoDe(c))

@@ -10,7 +10,10 @@
 //     datos cliente, servicios, expensas, precios avanzados)
 //   - Botonera Copiar / WhatsApp (deshabilitada hasta tener dirección)
 //   - Card de resultado post-creación
-//   - Tabla de las últimas 20 autorizaciones
+//   - Tabla de las últimas autorizaciones (paginada con "Cargar más")
+//   - Modo administrador: con la SI_DELETE_CODE (localStorage
+//     'si_admin_delete') aparecen los botones de borrar en cada fila y el
+//     borrado múltiple. Las firmadas no se borran (Ley 25.506).
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -22,8 +25,11 @@ import {
   ExternalLink,
   FileText,
   Loader2,
+  Lock,
   LogOut,
   MessageCircle,
+  ShieldCheck,
+  Trash2,
 } from 'lucide-react'
 
 import type {
@@ -37,6 +43,9 @@ import MoneyInput from '@/components/forms/MoneyInput'
 import BackLink from '@/components/ui/BackLink'
 
 const STORAGE_KEY = 'si_team_access'
+const ADMIN_KEY = 'si_admin_delete'
+const PAGE_SIZE = 20
+const RED = '#B91C1C'
 const GREEN = '#1A5C38'
 const GREEN_TINT = '#E8F2EC'
 const GREEN_DARK_TEXT = '#0F3C24'
@@ -292,12 +301,27 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
   const [list, setList] = useState<Autorizacion[]>([])
   const [listLoading, setListLoading] = useState(true)
   const [listError, setListError] = useState<string | null>(null)
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  const fetchList = useCallback(async () => {
-    setListLoading(true)
+  const [adminCode, setAdminCode] = useState<string | null>(null)
+  useEffect(() => {
+    try { setAdminCode(window.localStorage.getItem(ADMIN_KEY)) } catch { /* sin storage */ }
+  }, [])
+  const onAdmin = (code: string | null) => {
+    try {
+      if (code) window.localStorage.setItem(ADMIN_KEY, code)
+      else window.localStorage.removeItem(ADMIN_KEY)
+    } catch { /* sin storage */ }
+    setAdminCode(code)
+  }
+
+  const fetchList = useCallback(async (offset = 0) => {
+    if (offset === 0) setListLoading(true)
+    else setLoadingMore(true)
     setListError(null)
     try {
-      const res = await fetch('/api/autorizaciones/listar?status=all&limit=20', {
+      const res = await fetch(`/api/autorizaciones/listar?status=all&limit=${PAGE_SIZE}&offset=${offset}`, {
         headers: { 'x-team-code': teamCode },
       })
       if (res.status === 401) {
@@ -309,15 +333,49 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
         setListError(data?.error || `Error ${res.status}`)
         return
       }
-      setList(data.items || [])
+      const items: Autorizacion[] = data.items || []
+      setList(prev => (offset === 0 ? items : [...prev, ...items.filter(i => !prev.some(p => p.slug === i.slug))]))
+      setHasMore(!!data.hasMore)
     } catch {
       setListError('Error de red')
     } finally {
       setListLoading(false)
+      setLoadingMore(false)
     }
   }, [teamCode, onUnauth])
 
   useEffect(() => { void fetchList() }, [fetchList])
+
+  /** Borra en el server; devuelve los slugs que no se pudieron borrar. */
+  const deleteMany = async (slugs: string[]): Promise<string[]> => {
+    if (!adminCode) return slugs
+    const fallidos: string[] = []
+    let claveMala = false
+    await Promise.all(slugs.map(async slug => {
+      try {
+        const res = await fetch(`/api/autorizaciones/${slug}`, {
+          method: 'DELETE',
+          headers: { 'content-type': 'application/json', 'x-team-code': teamCode },
+          body: JSON.stringify({ delete_code: adminCode }),
+        })
+        if (res.status === 403) claveMala = true
+        // 404 = ya no existe: para la lista cuenta como borrada.
+        if (!res.ok && res.status !== 404) fallidos.push(slug)
+      } catch {
+        fallidos.push(slug)
+      }
+    }))
+    setList(prev => prev.filter(a => !slugs.includes(a.slug) || fallidos.includes(a.slug)))
+    if (claveMala) {
+      onAdmin(null)
+      setListError('La clave de administrador cambió. Volvé a activarlo.')
+    } else if (fallidos.length) {
+      setListError(fallidos.length === 1
+        ? 'No se pudo borrar 1 autorización. Probá de nuevo.'
+        : `No se pudieron borrar ${fallidos.length} autorizaciones. Probá de nuevo.`)
+    }
+    return fallidos
+  }
 
   const plazoFinal = (): number => {
     if (form.plazoPreset !== 'otro') return form.plazoPreset
@@ -501,7 +559,19 @@ function Panel({ teamCode, onUnauth, onLogout }: PanelProps) {
 
         <NotaCard />
 
-        <ListadoTable items={list} loading={listLoading} error={listError} onRefresh={() => void fetchList()} />
+        <ListadoTable
+          items={list}
+          loading={listLoading}
+          error={listError}
+          onRefresh={() => void fetchList()}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          onLoadMore={() => void fetchList(list.length)}
+          teamCode={teamCode}
+          admin={!!adminCode}
+          onAdmin={onAdmin}
+          onDelete={deleteMany}
+        />
       </main>
 
       <style dangerouslySetInnerHTML={{ __html: `
@@ -1614,34 +1684,145 @@ function ListadoTable({
   loading,
   error,
   onRefresh,
+  hasMore,
+  loadingMore,
+  onLoadMore,
+  teamCode,
+  admin,
+  onAdmin,
+  onDelete,
 }: {
   items: Autorizacion[]
   loading: boolean
   error: string | null
   onRefresh: () => void
+  hasMore: boolean
+  loadingMore: boolean
+  onLoadMore: () => void
+  teamCode: string
+  admin: boolean
+  onAdmin: (code: string | null) => void
+  onDelete: (slugs: string[]) => Promise<string[]>
 }) {
+  const [unlockOpen, setUnlockOpen] = useState(false)
+  const [selected, setSelected] = useState<string[]>([])
+  const [confirmSlug, setConfirmSlug] = useState<string | null>(null)
+  const [bulkConfirm, setBulkConfirm] = useState(false)
+  const [deleting, setDeleting] = useState<string[]>([])
+
+  // La selección sólo vive en modo admin y sobre filas que siguen en la lista.
+  useEffect(() => {
+    if (!admin) { setSelected([]); setBulkConfirm(false); setConfirmSlug(null) }
+  }, [admin])
+  useEffect(() => {
+    setSelected(prev => prev.filter(s => items.some(i => i.slug === s)))
+  }, [items])
+
+  const borrables = items.filter(a => a.status !== 'firmada')
+  const allSelected = borrables.length > 0 && borrables.every(a => selected.includes(a.slug))
+  const toggle = (slug: string) =>
+    setSelected(prev => (prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]))
+
+  const run = async (slugs: string[]) => {
+    setDeleting(prev => [...prev, ...slugs])
+    const fallidos = await onDelete(slugs)
+    setDeleting(prev => prev.filter(s => !slugs.includes(s)))
+    setSelected(prev => prev.filter(s => fallidos.includes(s) || !slugs.includes(s)))
+    setConfirmSlug(null)
+    setBulkConfirm(false)
+  }
+
   return (
     <section style={{ marginTop: 40 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: TEXT_DARK, margin: 0 }}>
           Últimas autorizaciones
         </h2>
-        <button
-          type="button"
-          onClick={onRefresh}
-          style={{
-            fontSize: 13,
-            color: TEXT_MUTED,
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          Actualizar
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          {admin ? (
+            <button
+              type="button"
+              onClick={() => onAdmin(null)}
+              title="Salir del modo administrador"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontSize: 12, fontWeight: 600, color: RED, fontFamily: R,
+                background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 999,
+                padding: '4px 10px', cursor: 'pointer',
+              }}
+            >
+              <ShieldCheck size={13} /> Modo admin · Salir
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setUnlockOpen(o => !o)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontSize: 13, color: TEXT_MUTED, fontFamily: R,
+                background: 'transparent', border: 'none', cursor: 'pointer',
+              }}
+            >
+              <Lock size={13} /> Administrar
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onRefresh}
+            style={{
+              fontSize: 13,
+              color: TEXT_MUTED,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Actualizar
+          </button>
+        </div>
       </div>
 
-      {error && <p style={{ color: '#B91C1C', fontSize: 13 }}>{error}</p>}
+      {unlockOpen && !admin && (
+        <AdminUnlock
+          teamCode={teamCode}
+          onClose={() => setUnlockOpen(false)}
+          onOk={code => { onAdmin(code); setUnlockOpen(false) }}
+        />
+      )}
+
+      {admin && selected.length > 0 && (
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+            background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10,
+            padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#7F1D1D',
+          }}
+        >
+          <span>
+            {selected.length === 1 ? '1 seleccionada' : `${selected.length} seleccionadas`}
+          </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {bulkConfirm ? (
+              <>
+                <SmallBtn onClick={() => setBulkConfirm(false)} disabled={deleting.length > 0}>Cancelar</SmallBtn>
+                <SmallBtn danger onClick={() => void run(selected)} disabled={deleting.length > 0}>
+                  {deleting.length > 0 ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                  Sí, eliminar {selected.length}
+                </SmallBtn>
+              </>
+            ) : (
+              <>
+                <SmallBtn onClick={() => setSelected([])}>Deseleccionar</SmallBtn>
+                <SmallBtn danger onClick={() => setBulkConfirm(true)}>
+                  <Trash2 size={13} /> Eliminar seleccionadas
+                </SmallBtn>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {error && <p style={{ color: RED, fontSize: 13 }}>{error}</p>}
 
       <div
         style={{
@@ -1665,6 +1846,18 @@ function ListadoTable({
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: R }}>
               <thead>
                 <tr style={{ background: BG, borderBottom: `1px solid ${LINE}` }}>
+                  {admin && (
+                    <Th>
+                      <input
+                        type="checkbox"
+                        aria-label="Seleccionar todas las que se pueden borrar"
+                        checked={allSelected}
+                        disabled={borrables.length === 0}
+                        onChange={() => setSelected(allSelected ? [] : borrables.map(a => a.slug))}
+                        style={{ width: 16, height: 16, accentColor: RED, cursor: 'pointer' }}
+                      />
+                    </Th>
+                  )}
                   <Th>Fecha</Th>
                   <Th>Agente</Th>
                   <Th>Dirección</Th>
@@ -1676,8 +1869,36 @@ function ListadoTable({
                 </tr>
               </thead>
               <tbody>
-                {items.map(a => (
-                  <tr key={a.slug} style={{ borderBottom: `1px solid ${LINE}` }}>
+                {items.map(a => {
+                  const firmada = a.status === 'firmada'
+                  const isSel = selected.includes(a.slug)
+                  const isDeleting = deleting.includes(a.slug)
+                  return (
+                  <tr
+                    key={a.slug}
+                    style={{
+                      borderBottom: `1px solid ${LINE}`,
+                      background: isSel ? '#FFF7F7' : undefined,
+                      opacity: isDeleting ? 0.5 : 1,
+                    }}
+                  >
+                    {admin && (
+                      <Td>
+                        {firmada ? (
+                          <span title="Firmada: registro legal, no se borra (Ley 25.506)" style={{ color: '#C4C4BD', display: 'inline-flex' }}>
+                            <Lock size={14} />
+                          </span>
+                        ) : (
+                          <input
+                            type="checkbox"
+                            aria-label={`Seleccionar ${a.direccion}`}
+                            checked={isSel}
+                            onChange={() => toggle(a.slug)}
+                            style={{ width: 16, height: 16, accentColor: RED, cursor: 'pointer' }}
+                          />
+                        )}
+                      </Td>
+                    )}
                     <Td>{fmtDate(a.created_at)}</Td>
                     <Td>
                       {a.agente_creador ? (
@@ -1696,16 +1917,169 @@ function ListadoTable({
                     <Td><StatusBadge status={a.status} /></Td>
                     <Td><SaludLucesMini salud={a.salud} /></Td>
                     <Td align="right">
-                      <RowActions auth={a} />
+                      {admin && confirmSlug === a.slug ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: 12, color: '#7F1D1D', fontWeight: 600 }}>¿Eliminar?</span>
+                          <SmallBtn onClick={() => setConfirmSlug(null)} disabled={isDeleting}>No</SmallBtn>
+                          <SmallBtn danger onClick={() => void run([a.slug])} disabled={isDeleting}>
+                            {isDeleting ? <Loader2 size={13} className="animate-spin" /> : null}
+                            Sí
+                          </SmallBtn>
+                        </div>
+                      ) : (
+                        <RowActions
+                          auth={a}
+                          onAskDelete={admin && !firmada ? () => setConfirmSlug(a.slug) : undefined}
+                        />
+                      )}
                     </Td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {hasMore && !loading && (
+        <div style={{ textAlign: 'center', marginTop: 14 }}>
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 13, fontWeight: 600, color: GREEN, fontFamily: R,
+              background: '#fff', border: `1px solid ${LINE}`, borderRadius: 999,
+              padding: '8px 18px', cursor: loadingMore ? 'wait' : 'pointer',
+            }}
+          >
+            {loadingMore && <Loader2 size={13} className="animate-spin" />}
+            Cargar más
+          </button>
+        </div>
+      )}
     </section>
+  )
+}
+
+function SmallBtn({
+  children,
+  onClick,
+  danger = false,
+  disabled = false,
+}: {
+  children: React.ReactNode
+  onClick: () => void
+  danger?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5,
+        fontSize: 12, fontWeight: 600, fontFamily: R,
+        padding: '5px 10px', borderRadius: 8,
+        border: danger ? 'none' : `1px solid ${LINE}`,
+        background: danger ? RED : '#fff',
+        color: danger ? '#fff' : TEXT_DARK,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.7 : 1,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function AdminUnlock({
+  teamCode,
+  onClose,
+  onOk,
+}: {
+  teamCode: string
+  onClose: () => void
+  onOk: (code: string) => void
+}) {
+  const [code, setCode] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    if (!code.trim() || submitting) return
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/autorizaciones/admin', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-team-code': teamCode },
+        body: JSON.stringify({ delete_code: code.trim() }),
+      })
+      if (res.status === 403) { setError('Clave incorrecta'); return }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data?.error || `Error ${res.status}`)
+        return
+      }
+      onOk(code.trim())
+    } catch {
+      setError('Error de red')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      style={{
+        background: '#fff', border: `1px solid ${LINE}`, borderRadius: 12,
+        padding: 14, marginBottom: 12,
+      }}
+    >
+      <p style={{ fontSize: 13, color: TEXT_SOFT, margin: '0 0 10px', lineHeight: 1.5 }}>
+        Ingresá la clave de eliminación para poder borrar autorizaciones desde esta lista.
+        Queda activa en este dispositivo hasta que salgas.
+      </p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <input
+          type="password"
+          autoComplete="off"
+          autoFocus
+          value={code}
+          onChange={e => { setCode(e.target.value); if (error) setError(null) }}
+          placeholder="Clave de eliminación"
+          disabled={submitting}
+          style={{
+            flex: '1 1 200px', minWidth: 0, boxSizing: 'border-box',
+            padding: '9px 12px', borderRadius: 10,
+            border: `1px solid ${error ? '#FECACA' : LINE}`,
+            fontSize: 16, fontFamily: R, outline: 'none', background: '#fff', color: TEXT_DARK,
+          }}
+        />
+        <SmallBtn onClick={onClose} disabled={submitting}>Cancelar</SmallBtn>
+        <button
+          type="submit"
+          disabled={submitting || !code.trim()}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '9px 14px', borderRadius: 10, border: 'none',
+            background: GREEN, color: '#fff', fontFamily: R, fontSize: 13, fontWeight: 600,
+            cursor: submitting ? 'wait' : 'pointer',
+            opacity: submitting || !code.trim() ? 0.7 : 1,
+          }}
+        >
+          {submitting && <Loader2 size={13} className="animate-spin" />}
+          Activar
+        </button>
+      </div>
+      {error && <p role="alert" style={{ fontSize: 12, color: RED, margin: '8px 0 0' }}>{error}</p>}
+    </form>
   )
 }
 
@@ -1744,7 +2118,7 @@ function Td({ children, align = 'left' }: { children: React.ReactNode; align?: '
   )
 }
 
-function RowActions({ auth }: { auth: Autorizacion }) {
+function RowActions({ auth, onAskDelete }: { auth: Autorizacion; onAskDelete?: () => void }) {
   const copyLink = () => {
     const base = typeof window !== 'undefined' ? window.location.origin : 'https://siinmobiliaria.com'
     const url = `${base}/autorizacion/${auth.slug}`
@@ -1825,6 +2199,27 @@ function RowActions({ auth }: { auth: Autorizacion }) {
         >
           <FileText size={13} /> PDF
         </span>
+      )}
+      {onAskDelete && (
+        <button
+          type="button"
+          onClick={onAskDelete}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 12,
+            color: RED,
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: R,
+            fontWeight: 600,
+          }}
+          title="Eliminar autorización"
+        >
+          <Trash2 size={13} /> Borrar
+        </button>
       )}
     </div>
   )

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getProperties, getPropertyById, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
+import { getProperties, getPropertyById, sanitizeProperty, type TokkoProperty, operacionPrincipal } from '@/lib/tokko'
 import { haversineDistance } from '@/lib/geo'
 import { projectToCard } from '@/lib/projections'
 
@@ -30,20 +30,20 @@ export async function GET(request: NextRequest) {
     const currentLng = current.geo_long ? parseFloat(current.geo_long) : null
     const hasCoords = currentLat != null && !isNaN(currentLat)
                    && currentLng != null && !isNaN(currentLng)
-    const currentOp       = current.operations?.[0]?.operation_type
+    const currentOp       = operacionPrincipal(current)?.operation_type
     const currentTypeName = current.type?.name?.toLowerCase() ?? ''
-    const currentPrice    = current.operations?.[0]?.prices?.[0]?.price ?? 0
+    const currentPrice    = operacionPrincipal(current)?.prices?.[0]?.price ?? 0
     const currentBeds     = current.suite_amount || current.room_amount || 0
 
     const ranked = all
       .map(p => {
         if (p.id === current.id) return null
-        if (p.operations?.[0]?.operation_type !== currentOp) return null
+        if (operacionPrincipal(p)?.operation_type !== currentOp) return null
         if ((p.type?.name?.toLowerCase() ?? '') !== currentTypeName) return null
 
         let score = 0
 
-        const pPrice = p.operations?.[0]?.prices?.[0]?.price ?? 0
+        const pPrice = operacionPrincipal(p)?.prices?.[0]?.price ?? 0
         if (currentPrice > 0 && pPrice > 0) {
           const ratio = pPrice / currentPrice
           if (ratio >= 0.7 && ratio <= 1.3) score += 3

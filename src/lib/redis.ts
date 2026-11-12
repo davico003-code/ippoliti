@@ -25,11 +25,13 @@ export interface PropiedadExternaSnapshot {
   lng?: number | null
 }
 
-interface SeleccionProperty {
+export interface SeleccionProperty {
   id: string
   url: string
   note: string
   source?: 'externa'
+  /** Parecida que el cliente marcó desde su selección (no la eligió el asesor). */
+  origen?: 'sugerida'
   snapshot?: PropiedadExternaSnapshot
 }
 
@@ -108,6 +110,22 @@ export async function getSeleccion(token: string) {
   return typeof raw === 'string' ? JSON.parse(raw) : raw
 }
 
+/**
+ * Suma a la selección una parecida que al cliente le gustó, así el asesor la ve
+ * en HILO junto a las que eligió él. Conserva el TTL que haya puesto HILO.
+ * Tope de 40 para que un token filtrado no pueda inflarla sin fin.
+ */
+export async function sumarASeleccion(token: string, prop: SeleccionProperty): Promise<boolean> {
+  const sel = await getSeleccion(token)
+  if (!sel) return false
+  const props: SeleccionProperty[] = sel.properties ?? []
+  if (props.some((p) => p.id === prop.id)) return true
+  if (props.length >= 40) return false
+  sel.properties = [...props, prop]
+  await redis.set(`seleccion:${token}`, JSON.stringify(sel), { keepTtl: true })
+  return true
+}
+
 export async function getReacciones(token: string) {
   const raw = await redis.get<string>(`reacciones:${token}`)
   if (!raw) return {}
@@ -133,10 +151,29 @@ export async function patchReaccion(
   }
 }
 
+/**
+ * Lo que deslizó en el mazo de la web el cliente de un asesor (5-oct): una
+ * línea ("Deslizó 14: le gustaron 3 … y pasó 11 …") en `_meta.deslizadas`.
+ * HILO la lleva al chat del cliente junto con sus ♥ (cron seleccion-reacciones).
+ */
+export async function guardarDeslizadas(token: string, texto: string) {
+  const current = await getReacciones(token)
+  const now = new Date().toISOString()
+  current._meta = { ...(current._meta || {}), deslizadas: { texto, at: now }, lastActivity: now }
+  const ttl = await redis.ttl(`reacciones:${token}`)
+  if (ttl > 0) {
+    await redis.set(`reacciones:${token}`, JSON.stringify(current), { ex: ttl })
+  } else {
+    await redis.set(`reacciones:${token}`, JSON.stringify(current))
+  }
+}
+
 export async function incrementViewCount(token: string) {
   const current = await getReacciones(token)
   const meta = current._meta || { viewCount: 0 }
   meta.viewCount = (meta.viewCount || 0) + 1
+  // Cuándo la abrió por última vez: Hilo lo muestra en "Seguimientos" del Inicio.
+  meta.lastView = new Date().toISOString()
   current._meta = meta
 
   const ttl = await redis.ttl(`reacciones:${token}`)
@@ -157,30 +194,45 @@ export async function listarSelecciones(agent?: string) {
     if (Array.isArray(batch)) keys.push(...(batch.map(String)))
   } while (cursor !== 0)
 
-  const results = []
-  for (const key of keys) {
-    const raw = await redis.get<string>(key)
-    if (!raw) continue
-    const data = typeof raw === 'string' ? JSON.parse(raw) : raw
-    if (agent && agent !== 'all' && data.agentId !== agent && data.agent !== agent) continue
+  // Solo las selecciones (`seleccion:<token>`): otra clave bajo el mismo prefijo
+  // (p. ej. un hash `seleccion:<token>:algo`) daba WRONGTYPE en el GET y tiraba
+  // el panel entero (pasó el 4-oct). Y de a 20 en paralelo, no una por una.
+  const tokens = keys.filter((k) => /^seleccion:[^:]+$/.test(k))
+  type Fila = Record<string, unknown> & { token: string; resumen: { liked: number; disliked: number; wantVisit: number; hasComments: boolean } }
+  const results: Fila[] = []
+  for (let i = 0; i < tokens.length; i += 20) {
+    const tanda = await Promise.all(
+      tokens.slice(i, i + 20).map(async (key): Promise<Fila | null> => {
+        try {
+          const raw = await redis.get<string>(key)
+          if (!raw) return null
+          const data = typeof raw === 'string' ? JSON.parse(raw) : raw
+          if (agent && agent !== 'all' && data.agentId !== agent && data.agent !== agent) return null
 
-    const tk = key.replace('seleccion:', '')
-    const reactions = await getReacciones(tk)
+          const tk = key.replace('seleccion:', '')
+          const reactions = await getReacciones(tk)
 
-    let liked = 0, disliked = 0, wantVisit = 0, hasComments = false
-    for (const [k, v] of Object.entries(reactions)) {
-      if (k === '_meta') continue
-      const r = v as { liked?: boolean | null; wantVisit?: boolean; comment?: string }
-      if (r.liked === true) liked++
-      if (r.liked === false) disliked++
-      if (r.wantVisit) wantVisit++
-      if (r.comment) hasComments = true
-    }
-
-    results.push({ ...data, token: tk, resumen: { liked, disliked, wantVisit, hasComments } })
+          let liked = 0, disliked = 0, wantVisit = 0, hasComments = false
+          for (const [k, v] of Object.entries(reactions)) {
+            if (k === '_meta') continue
+            const r = v as { liked?: boolean | null; wantVisit?: boolean; comment?: string }
+            if (r.liked === true) liked++
+            if (r.liked === false) disliked++
+            if (r.wantVisit) wantVisit++
+            if (r.comment) hasComments = true
+          }
+          return { ...data, token: tk, resumen: { liked, disliked, wantVisit, hasComments } }
+        } catch (e) {
+          // Una selección rota no deja al agente sin ver las demás.
+          console.warn('[listarSelecciones] salteada', key, e instanceof Error ? e.message : e)
+          return null
+        }
+      }),
+    )
+    for (const f of tanda) if (f) results.push(f)
   }
 
-  results.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+  results.sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))
   return results
 }
 

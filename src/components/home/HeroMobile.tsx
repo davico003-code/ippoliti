@@ -1,160 +1,87 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { Search } from 'lucide-react'
-import { highlightMatch } from '@/lib/highlight'
-import { buscarZonas, type Zona } from '@/lib/zonas'
+import Link from 'next/link'
+import PortadaViva from './PortadaViva'
+import CiudadRotativa from './CiudadRotativa'
+import { BuscadorHero } from './SugerenciasBusqueda'
+import { TINDER_ACTIVO } from '@/lib/tinder'
 
-export default function HeroMobile() {
-  const [query, setQuery] = useState('')
-  const [showDropdown, setShowDropdown] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
-
-  const filtered = buscarZonas(query, 6)
-
-  // Click outside → close dropdown
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setShowDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
-
-  function navigate(zona: Zona) {
-    setShowDropdown(false)
-    setQuery(zona.nombre)
-    router.push(`/propiedades?q=${encodeURIComponent(zona.nombre)}`)
-  }
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault()
-    const q = query.trim()
-    router.push(q ? `/propiedades?q=${encodeURIComponent(q)}` : '/propiedades')
-    setShowDropdown(false)
-  }
-
+/** `vivas`: ids de las zonas con propiedades (las arma la home en el servidor). */
+export default function HeroMobile({ vivas }: { vivas?: string[] }) {
   return (
-    <section className="relative flex flex-col overflow-hidden" style={{ height: 276 }}>
-      {/* Background image + overlay */}
-      <Image
-        src="/images/hero/home-architecture-small.webp"
-        alt="Terraza moderna con vista al lago en Funes y Roldán"
-        fill
-        priority
-        quality={72}
+    // Sin overflow-hidden: recortaba el dropdown de sugerencias al borde del
+    // hero. z-20 para que el dropdown quede por encima de las secciones de abajo.
+    <section className="relative z-20 flex flex-col" style={{ height: 330 }}>
+      {/* Portada viva (foto → video) + velo */}
+      <PortadaViva
+        poster="/images/hero/portada-viva-mobile.webp"
+        video="/videos/portada-viva-mobile.mp4"
         sizes="(max-width: 767px) 100vw, 1px"
-        className="object-cover"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.15) 100%)',
-        }}
+        velo="radial-gradient(80% 60% at 50% 45%, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.3) 100%)"
       />
 
       {/* Contenido del hero (header global se encarga del navbar) */}
-      <div className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
-        <h2 className="font-raleway font-black text-[32px] leading-[1.02] drop-shadow-lg whitespace-nowrap">
-          Encontrá tu hogar
+      <div data-portada-contenido className="flex-1 flex flex-col justify-center items-center px-5 text-white text-center relative z-10">
+        <h2 className="font-raleway font-black text-[36px] leading-[1.02] tracking-[-0.03em] drop-shadow-lg whitespace-nowrap">
+          {/* Espacio REAL entre palabras (y --sep en 0): antes la separación
+              era solo un margen de CSS y el titular se leía "Encontrátuhogar"
+              (lectores de pantalla, copiar y pegar, Google). El espacio mide
+              casi lo mismo que el margen de antes: el titular se ve igual. */}
+          {['Encontrá', 'tu', 'hogar'].map((w, i) => (
+            <span key={w}>
+              {i > 0 && ' '}
+              <span className="portada-in portada-palabra inline-block" style={{ ['--d' as string]: `${100 + i * 100}ms`, ['--sep' as string]: '0em' }}>
+                {w}
+              </span>
+            </span>
+          ))}
         </h2>
-        <p className="font-poppins text-white/95 text-[14px] mt-1 drop-shadow">
-          Propiedades en Funes, Roldán y Rosario
+        <p className="portada-in font-raleway font-semibold text-white/95 text-[15px] mt-1.5 drop-shadow" style={{ ['--d' as string]: '450ms' }}>
+          Propiedades en <CiudadRotativa />
         </p>
 
-        {/* Searchbar pill unificado */}
-        <div className="w-full mt-3 relative mx-auto" style={{ maxWidth: 460 }} ref={wrapperRef}>
-          <form
-            onSubmit={submit}
-            className="bg-white shadow-xl flex items-center"
-            style={{
-              borderRadius: 9999,
-              padding: '6px 6px 6px 16px',
-              gap: 8,
-            }}
-          >
-            <Search size={18} style={{ color: '#888780', flexShrink: 0 }} aria-hidden="true" />
-            <input
-              type="text"
-              value={query}
-              onChange={e => {
-                setQuery(e.target.value)
-                setShowDropdown(e.target.value.trim().length >= 2)
-              }}
-              onFocus={() => { if (query.trim().length >= 2 && filtered.length > 0) setShowDropdown(true) }}
-              placeholder="Barrio, ciudad o dirección"
-              aria-label="Buscar por barrio, ciudad o dirección"
-              autoComplete="off"
-              className="flex-1 min-w-0 outline-none bg-transparent placeholder:text-[#888780]"
-              style={{
-                fontFamily: 'Raleway, sans-serif',
-                fontSize: 14,
-                color: '#111',
-              }}
-            />
-            <button
-              type="submit"
-              className="si-tap shrink-0 border-none cursor-pointer"
-              style={{
-                // Acento fijo: verde de marca sólido (igual que el hero desktop).
-                background: '#1A5C38',
-                color: '#fff',
-                fontFamily: 'Raleway, sans-serif',
-                fontSize: 13,
-                fontWeight: 700,
-                padding: '11px 16px',
-                borderRadius: 9999,
-                transition: 'background 180ms',
-              }}
-            >
-              Buscar
-            </button>
-          </form>
+        {/* Buscador compartido con la compu (SugerenciasBusqueda.tsx). z-20:
+            el link de abajo (también con portada-in) pintaba ENCIMA del panel
+            de sugerencias. */}
+        <BuscadorHero
+          variante="celu"
+          vivas={vivas}
+          className="portada-in mt-4 z-20"
+          style={{ ['--d' as string]: '600ms' }}
+        />
 
-          {/* Dropdown de sugerencias */}
-          {showDropdown && filtered.length > 0 && (
-            <div
-              className="absolute left-0 right-0 bg-white overflow-auto z-50"
-              style={{
-                top: '100%',
-                marginTop: 6,
-                borderRadius: 16,
-                boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-                maxHeight: 280,
-              }}
-            >
-              {filtered.map(zona => (
-                <button
-                  key={zona.id}
-                  type="button"
-                  onClick={() => navigate(zona)}
-                  onMouseDown={e => e.preventDefault()}
-                  className="w-full flex items-baseline gap-2 text-left"
-                  style={{
-                    padding: '10px 16px',
-                    fontSize: 14,
-                    color: '#111',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: "'Poppins', sans-serif",
-                    borderBottom: '1px solid #f5f5f5',
-                  }}
-                >
-                  <span className="flex-1">{highlightMatch(zona.nombre, query)}</span>
-                  <span className="text-xs text-gray-400 shrink-0">
-                    {zona.tipo === 'barrio_cerrado' ? `${zona.ciudad} · Country` : zona.ciudad}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* La puerta para quien vende: el segundo público de SI no tenía
+            ninguna entrada en la home del celu antes del footer (solo el
+            tercer ítem del menú). Una sola, chica y blanca: buscar sigue
+            siendo LA acción; esto no compite. Lleva al tasador, que da un
+            valor al instante. */}
+        <Link
+          href="/tasar"
+          className="portada-in si-tap mt-1.5 inline-flex min-h-[44px] items-center rounded-full px-3 font-raleway text-[14px] text-white drop-shadow"
+          style={{ ['--d' as string]: '750ms', textDecoration: 'none' }}
+        >
+          {/* Un solo renglón de texto con espacio real (no gap de flex): así
+              se lee "¿Vendés? Mirá…" y no "¿Vendés?Mirá…". */}
+          <span>
+            <span className="font-medium text-white/85">¿Vendés?</span>{' '}
+            <span className="font-bold">Mirá cuánto vale tu casa →</span>
+          </span>
+        </Link>
+
+        {/* El mazo tipo Tinder por zona (David, 3-oct: "que lo usen pero que
+            no sea lo principal"; 4-oct: solo celu). Hoy apagado. Si se
+            reactiva, elegir UNA puerta secundaria con el link de tasar de
+            arriba: dos links apilados bajo el buscador ya compiten. */}
+        {TINDER_ACTIVO && (
+          <Link
+            href="/conoce-tu-hogar"
+            className="portada-in si-tap mt-1.5 inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-1.5 font-raleway text-[14px] font-bold text-white underline decoration-white/60 underline-offset-4 drop-shadow"
+            style={{ ['--d' as string]: '750ms' }}
+          >
+            <span aria-hidden="true" className="text-[#FF6B8E] no-underline">♥</span>
+            Conocé tu próximo hogar
+          </Link>
+        )}
       </div>
     </section>
   )

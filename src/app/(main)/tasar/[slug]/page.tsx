@@ -1,321 +1,335 @@
-// Landing programática de tasación: /tasar/{tipo}-{barrio}
-//   /tasar/casa-kentucky · /tasar/lote-tierra-de-suenos-2 · /tasar/casa-roldan
+// Landing de tasación por barrio: /tasar/{tipo}-{barrio}
+//   /tasar/casa-kentucky · /tasar/lote-tierra-de-suenos-2 · /tasar/casa-funes
+//   /tasar/casa-vida-lagoon-funes (zonas medidas que la lista vieja no tenía)
 //
-// Estrategia SEO (top of the funnel): capturar la intención transaccional del
-// dueño que busca "cuánto vale mi casa en X". Cada combinación tipo×barrio es
-// una URL propia con su H1, su precio de tierra real y su contenido local — y
-// el tasador va EMBEBIDO acá (no en una página central): la misma página que
-// rankea es la que convierte.
+// Para el que busca "tasar mi casa en X": la página que rankea es la que
+// convierte. El tasador completo (David, 8-oct-2026) abre con el
+// barrio ya elegido; los números los arma Hilo con todos los avisos en venta
+// (terreno y construcción por m², ajuste por tamaño y antigüedad, margen real
+// del barrio). Debajo del valor, el pedido de la tasación ahí mismo. Si en el
+// barrio no se da número (pocos avisos o precios muy dispares), solo el pedido.
+// Su gemela para el que busca "vender mi casa en X" es /vender/{mismo slug}.
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import TasadorWidget from '@/components/tasador/TasadorWidget'
-import { BARRIOS_TASADOR, getBarrio, precioTierra, precioDepto, opcionesSelector } from '@/lib/tasador/barrios'
-import { MATRIZ_RESIDENCIAL_BASE, ajustar, getAjusteMensual } from '@/lib/costos-construccion'
-import { esLandingTasadorIndexable, tiposTasadorIndexables, type TipoTasador } from '@/lib/seo/tasador-indexing'
+import { notFound, redirect } from 'next/navigation'
+import Tasador from '@/components/tasador/Tasador'
+import { EDADES, estimar, porcentaje, resultado, tramoEdad } from '@/lib/tasador/estimar'
+import { cargarTasar } from '@/lib/tasador/cargar-tasar'
+import { HILO_DE, TEXTO_TIPO, TIPOS_TASAR, esIndexableTasar, landingDeCiudad, landingsDeCiudad, opcionesTasar, resolverTasar, type Landing } from '@/lib/seo/tasar'
+import type { ModeloTasador, ParamsTasador } from '@/lib/tasador/tipos'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
-export const revalidate = 86400
+export const revalidate = 3600
 export const dynamicParams = true
+// No se arma en el build: la primera visita la arma (con los números de Hilo) y queda una hora.
+export const generateStaticParams = () => []
 
 const BASE = 'https://siinmobiliaria.com'
+const n = (x: number) => x.toLocaleString('es-AR')
+const usd = (x: number) => `USD ${n(x)}`
+const Mayus = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-type TipoId = TipoTasador
-const TIPOS: Record<TipoId, { label: string; articulo: string; esLote: boolean }> = {
-  casa: { label: 'casa', articulo: 'tu casa', esLote: false },
-  lote: { label: 'lote', articulo: 'tu lote', esLote: true },
-  departamento: { label: 'departamento', articulo: 'tu departamento', esLote: false },
+type Props = { params: { slug: string } }
+
+async function datos(slug: string) {
+  const { tasador, indice, actualizado } = await cargarTasar()
+  const r = resolverTasar(slug, indice)
+  return r ? { r, tasador, indice, actualizado } : null
 }
 
-// El slug es "{tipo}-{barrioSlug}". Como los slugs de barrio pueden tener
-// guiones, resolvemos por prefijo de tipo.
-function parseSlug(slug: string): { tipo: TipoId; barrioSlug: string } | null {
-  for (const t of Object.keys(TIPOS) as TipoId[]) {
-    if (slug.startsWith(`${t}-`)) return { tipo: t, barrioSlug: slug.slice(t.length + 1) }
-  }
-  return null
+const lugar = (l: Landing) => (l.zona.esCiudad ? l.nombre : `${l.nombre}, ${l.zona.ciudad}`)
+
+/** La propiedad típica del barrio (o con otros metros/antigüedad), con la misma cuenta del tasador. */
+function cuenta(l: Landing, p: ParamsTasador, modelo: ModeloTasador, cambio: { m2?: number; ant?: number } = {}) {
+  return resultado(estimar({ tipo: HILO_DE[l.tipo], m2: cambio.m2 ?? p.m2Tipico, ant: l.tipo === 'lote' ? null : (cambio.ant ?? p.antTipica ?? null) }, p, modelo, l.zona.mixto), p.error)
 }
 
-function resolver(slug: string) {
-  const parsed = parseSlug(slug)
-  if (!parsed) return null
-  const barrio = getBarrio(parsed.barrioSlug)
-  if (!barrio) return null
-  return { ...parsed, barrio, tipoInfo: TIPOS[parsed.tipo] }
-}
-
-// Solo pre-renderizamos combinaciones respaldadas por referencias locales.
-// Las demás siguen disponibles on-demand, pero generateMetadata las marca
-// noindex para no inflar el índice con páginas basadas solo en un promedio.
-export function generateStaticParams() {
-  return BARRIOS_TASADOR.flatMap((barrio) =>
-    tiposTasadorIndexables(barrio).map((tipo) => ({ slug: `${tipo}-${barrio.slug}` })),
-  )
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string }
-}): Promise<Metadata> {
-  const r = resolver(params.slug)
-  if (!r) return { title: 'Tasación | SI INMOBILIARIA' }
-  const { barrio, tipoInfo, tipo } = r
-  const title = `¿Cuánto vale ${tipoInfo.articulo} en ${barrio.nombre}? Estimador online`
-  const comoCalcula =
-    tipo === 'departamento'
-      ? 'Calculamos con el valor real del m² de departamentos en la zona.'
-      : 'Calculamos con el valor real de la tierra en la zona y el costo de construcción actualizado.'
-  const description = `Estimá el valor de ${tipoInfo.articulo} en ${barrio.nombre}, ${barrio.ciudad}, sin registrarte. ${comoCalcula} Podés solicitar una tasación profesional.`
-  const url = `${BASE}/tasar/${params.slug}`
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const d = await datos(params.slug).catch(() => null)
+  if (!d || 'redirigir' in d.r) return { title: 'Tasación | SI INMOBILIARIA', robots: { index: false, follow: true } }
+  const l = d.r.landing
+  const t = TEXTO_TIPO[l.tipo]
+  const p = l.zona.params[l.tipo]
+  // "Tasar mi casa en …": lo que la gente escribe en Google.
+  const title = `Tasar mi ${t.singular} en ${lugar(l)}: cuánto vale hoy`
+  const tipica = l.conNumero && p ? cuenta(l, p, d.tasador.modelo) : null
+  const m2 = !p
+    ? ''
+    : l.tipo === 'casa' && l.zona.mixto && p.tierraM2 != null && p.construccionM2 != null
+      ? ` El terreno se publica a USD ${n(p.tierraM2)}/m² y la construcción a USD ${n(p.construccionM2)}/m².`
+      : ` Se publica a unos USD ${n(p.usdM2)} por m² ${l.tipo === 'lote' ? 'de terreno' : 'cubierto'}.`
+  const description = l.conNumero
+    ? `Cuánto vale ${t.tu} en ${lugar(l)} hoy.${m2}${tipica && p ? ` ${Mayus(t.una.replace(/^un[a]? /, ''))} típic${t.singular === 'casa' ? 'a' : 'o'} de ${n(p.m2Tipico)} m² ronda los ${usd(tipica.valor)}.` : ''} Tasala online con los metros y la antigüedad, y pedí la tasación de un corredor de SI INMOBILIARIA.`
+    : `Tasación de ${t.plural} en ${lugar(l)}: un corredor matriculado de SI INMOBILIARIA la hace con lo que se vendió en el barrio. Te escribimos por WhatsApp en menos de 24 h.`
+  const url = `${BASE}/tasar/${l.slug}`
   return {
-    title: `${title} | SI INMOBILIARIA`,
-    description,
+    title: tituloConMarca(title),
+    description: recortarDescripcion(description),
     alternates: { canonical: url },
-    openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website' },
+    openGraph: { title, description, url, siteName: 'SI INMOBILIARIA', images: ['/og-image.jpg'], type: 'website', locale: 'es_AR' },
     twitter: { card: 'summary_large_image', title, description, images: ['/og-image.jpg'] },
-    robots: esLandingTasadorIndexable(barrio, tipo)
-      ? { index: true, follow: true }
-      : { index: false, follow: true },
+    robots: esIndexableTasar(l) ? { index: true, follow: true } : { index: false, follow: true },
   }
 }
 
-export default async function TasarPage({ params }: { params: { slug: string } }) {
-  const r = resolver(params.slug)
-  if (!r) notFound()
-  const { tipo, barrio, tipoInfo } = r
-  const esDepto = tipo === 'departamento'
-  const { ppm2, fuente, muestras } = esDepto ? precioDepto(barrio) : precioTierra(barrio)
+export default async function TasarPage({ params }: Props) {
+  const d = await datos(params.slug)
+  if (!d) notFound()
+  // 307 y no 308: a dónde va depende de los datos de hoy (mañana el barrio puede tener los suyos).
+  if ('redirigir' in d.r) redirect(d.r.redirigir)
+  const { tasador, indice, actualizado } = d
+  const l = d.r.landing
+  const t = TEXTO_TIPO[l.tipo]
+  const opciones = opcionesTasar(indice)
+  const clave = opciones.find((o) => o.slugs[l.tipo] === l.slug)?.clave ?? null
+  // Una zona puede no tener avisos suficientes de un tipo: la página queda con el pedido.
+  const p = l.zona.params[l.tipo] ?? { n: 0, usdM2: 0, m2Tipico: 0, error: 1, daNumero: false, errorPropio: false }
+  const conTerreno = l.tipo === 'casa' && l.zona.mixto && p.tierraM2 != null && p.construccionM2 != null
+  const tipica = l.conNumero ? cuenta(l, p, tasador.modelo) : null
+  const otrosTipos = TIPOS_TASAR.filter((x) => x !== l.tipo)
+    .map((x) => Array.from(indice.landings.values()).find((y) => y.tipo === x && y.zona === l.zona && y.conNumero))
+    .filter((x): x is Landing => !!x)
+  const vecinos = landingsDeCiudad(indice, l.zona.ciudad, l.tipo).filter((x) => x.slug !== l.slug && x.conNumero && !x.zona.esCiudad).slice(0, 16)
+  const ciudadLanding = !l.zona.esCiudad ? landingDeCiudad(indice, l) : null
+  const lugarCorto = l.nombre
+  const ella = t.singular === 'casa'
 
-  // Costos de construcción vigentes (base ago-2026 + 2% mensual) — misma
-  // fuente que la Calculadora de Costos de /recursos.
-  const { factor } = await getAjusteMensual()
-  const calidades = MATRIZ_RESIDENCIAL_BASE.map((f) => ({
-    slug: f.slug,
-    label: f.calidad.replace('Línea ', ''),
-    costoM2: ajustar(f.llaveBase, factor),
-    superficie: f.superficie ?? '',
-  }))
+  // Ejemplos con la misma cuenta del tasador: el contenido propio de cada barrio.
+  const ejemplos: { texto: string; valor: number; desde: number; hasta: number }[] = []
+  if (l.conNumero) {
+    const vistos = new Set<number>()
+    const ej = (texto: string, cambio: { m2?: number; ant?: number }) => {
+      const x = cuenta(l, p, tasador.modelo, cambio)
+      if (!x || vistos.has(x.valor)) return
+      vistos.add(x.valor)
+      ejemplos.push({ texto, valor: x.valor, desde: x.desde, hasta: x.hasta })
+    }
+    const redondo = (x: number) => Math.max(10, Math.round(x / 10) * 10)
+    if (l.tipo === 'lote') {
+      ej(`Lote de ${n(redondo(p.m2Tipico / 2))} m²`, { m2: redondo(p.m2Tipico / 2) })
+      ej(`Lote típico: ${n(p.m2Tipico)} m²`, {})
+      ej(`Lote de ${n(redondo(p.m2Tipico * 2))} m²`, { m2: redondo(p.m2Tipico * 2) })
+    } else {
+      ej(`${Mayus(t.singular)} típic${ella ? 'a' : 'o'}: ${n(p.m2Tipico)} m²${p.antTipica != null ? `, ${EDADES[tramoEdad(p.antTipica)].texto.toLowerCase()}` : ''}`, {})
+      ej(`${n(p.m2Tipico)} m², a estrenar`, { ant: 1 })
+      ej(`${n(p.m2Tipico)} m², con más de 35 años`, { ant: 45 })
+      ej(`Más chic${ella ? 'a' : 'o'}: ${n(redondo(p.m2Tipico * 0.7))} m²`, { m2: redondo(p.m2Tipico * 0.7) })
+      ej(`Más grande: ${n(redondo(p.m2Tipico * 1.5))} m²`, { m2: redondo(p.m2Tipico * 1.5) })
+    }
+  }
 
-  // Vecinos de la misma ciudad para el cross-linking interno.
-  const vecinos = BARRIOS_TASADOR.filter(
-    (b) =>
-      b.ciudad === barrio.ciudad &&
-      b.slug !== barrio.slug &&
-      esLandingTasadorIndexable(b, tipo),
-  ).slice(0, 8)
+  const faq: { q: string; a: string }[] = []
+  if (l.conNumero) {
+    faq.push({
+      q: `¿Cuánto vale el m² en ${lugarCorto}?`,
+      a: conTerreno
+        ? `Con lo que se publica hoy en ${lugarCorto}: el terreno, unos USD ${n(p.tierraM2!)} por m², y la construcción, unos USD ${n(p.construccionM2!)} por m² cubierto.`
+        : `Con lo que se publica hoy en ${lugarCorto}: unos USD ${n(p.usdM2)} por m² ${l.tipo === 'lote' ? 'de terreno' : 'cubierto'}, valor del medio.`,
+    })
+    if (tipica)
+      faq.push({
+        q: `¿Cuánto vale ${t.una} en ${lugarCorto}?`,
+        a: `${Mayus(t.una.replace(/^un[a]? /, ''))} típic${ella ? 'a' : 'o'} de ${n(p.m2Tipico)} m²${l.tipo === 'casa' && p.loteTipico ? ` en ${n(p.loteTipico)} m² de terreno` : ''} tiene un valor de referencia de ${usd(tipica.valor)} (entre ${usd(tipica.desde)} y ${usd(tipica.hasta)}). Es precio de publicación: para vender, el precio lo fija la tasación.`,
+      })
+    faq.push({
+      q: '¿Qué tan cerca está el valor de referencia?',
+      a: p.errorPropio
+        ? `Lo controlamos contra lo publicado en ${lugarCorto}: en la mitad de los casos la diferencia es menor a ${porcentaje(p.error)}. La ubicación exacta, el estado y la documentación los revisa un corredor en la tasación.`
+        : `En ${lugarCorto} todavía hay pocos avisos para medirlo aparte; en los barrios de ${l.zona.ciudad}, la mitad de lo publicado está a menos de ${porcentaje(p.error)} de la cuenta.`,
+    })
+    if (l.tipo !== 'lote') {
+      const nueva = cuenta(l, p, tasador.modelo, { ant: 1 })
+      const vieja = cuenta(l, p, tasador.modelo, { ant: 45 })
+      if (nueva && vieja && nueva.valor !== vieja.valor)
+        faq.push({
+          q: '¿Cuánto cambia el valor por la antigüedad?',
+          a: `En ${lugarCorto}, ${t.una} de ${n(p.m2Tipico)} m² a estrenar ronda los ${usd(nueva.valor)}; con más de 35 años, los ${usd(vieja.valor)}. Es lo que hoy muestra el mercado del barrio.`,
+        })
+    }
+  }
+  faq.push({ q: '¿El valor de referencia es una tasación?', a: 'No. Es una referencia con precios de publicación. La tasación la firma un corredor inmobiliario matriculado: revisa las ventas del barrio, la documentación y el estado, y recomienda el precio de publicación.' })
+  faq.push({ q: '¿Cuánto tarda la tasación?', a: 'Después de tu pedido te escribimos por WhatsApp en menos de 24 h para coordinar la visita. El informe depende del tipo de propiedad y de la documentación.' })
 
-  const faq = [
-    {
-      q: '¿La estimación online es una tasación oficial?',
-      a: 'No. Es un valor orientativo para que tengas una primera referencia. La tasación profesional requiere revisar comparables, documentación, estado y ubicación exacta, y debe intervenir un corredor inmobiliario matriculado.',
-    },
-    {
-      q: `¿De dónde sale el precio del m² en ${barrio.nombre}?`,
-      a:
-        fuente !== 'ciudad'
-          ? esDepto
-            ? `De los departamentos en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² cubierto, calculado sobre ${muestras} ${muestras === 1 ? 'unidad' : 'unidades'}. Es un dato vivo: se mueve con la oferta real de la zona.`
-            : `De terrenos reales en venta en ${barrio.nombre} que relevamos y publicamos. Hoy el promedio está en USD ${ppm2} por m² de tierra, calculado sobre ${muestras} ${muestras === 1 ? 'lote' : 'lotes'}. Es un dato vivo: se actualiza solo cuando cambia la oferta de la zona.`
-          : esDepto
-            ? `Del promedio de departamentos en venta en ${barrio.ciudad}, hoy USD ${ppm2} por m² cubierto. Todavía no tenemos suficientes unidades publicadas dentro de ${barrio.nombre} como para dar un valor propio del barrio, así que usamos el de la ciudad y ampliamos el rango.`
-            : `Del promedio de terrenos en venta en ${barrio.ciudad}, hoy USD ${ppm2} por m². Todavía no tenemos suficientes lotes publicados dentro de ${barrio.nombre} como para dar un valor propio del barrio, así que usamos el de la ciudad y ampliamos el rango de la estimación.`,
-    },
-    {
-      q: '¿Por qué me piden tan pocos datos?',
-      a: 'Porque el objetivo es que tengas un número enseguida, sin registrarte ni dejar tus datos. Los detalles que mueven el valor de verdad (la orientación, la calidad de las terminaciones, el estado real) los revisa un tasador del equipo cuando armamos la tasación.',
-    },
-    {
-      q: '¿Cuánto tarda la tasación profesional?',
-      a: 'El plazo depende del tipo de inmueble, la documentación disponible y la cantidad de comparables útiles. Después de recibir los datos te escribimos por WhatsApp en menos de 24 h y acordamos el alcance y el tiempo de entrega.',
-    },
+  const migas = [
+    { name: 'Inicio', item: `${BASE}/` },
+    { name: 'Tasaciones por barrio', item: `${BASE}/tasar` },
+    ...(ciudadLanding && ciudadLanding !== l ? [{ name: l.zona.ciudad, item: `${BASE}/tasar/${ciudadLanding.slug}` }] : []),
+    { name: `${t.corto} en ${l.nombre}`, item: `${BASE}/tasar/${l.slug}` },
   ]
-
   const jsonLd = [
     {
       '@context': 'https://schema.org',
       '@type': 'Service',
-      name: `Tasación de ${tipoInfo.label} en ${barrio.nombre}`,
+      name: `Tasación de ${t.plural} en ${lugar(l)}`,
       serviceType: 'Tasación inmobiliaria',
-      areaServed: { '@type': 'Place', name: `${barrio.nombre}, ${barrio.ciudad}, Santa Fe` },
+      areaServed: { '@type': 'Place', name: `${lugar(l)}, Santa Fe, Argentina` },
       provider: { '@id': `${BASE}/#organization` },
-      url: `${BASE}/tasar/${params.slug}`,
+      url: `${BASE}/tasar/${l.slug}`,
     },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: faq.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
+    { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+    { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: migas.map((m, i) => ({ '@type': 'ListItem', position: i + 1, ...m })) },
   ]
 
-  const R = "'Raleway', system-ui, sans-serif"
+  const datosBarrio: { valor: string; texto: string }[] = []
+  if (l.conNumero) {
+    if (conTerreno) {
+      datosBarrio.push({ valor: `${usd(p.tierraM2!)}/m²`, texto: 'el terreno' })
+      datosBarrio.push({ valor: `${usd(p.construccionM2!)}/m²`, texto: 'la construcción, sin el terreno' })
+    } else datosBarrio.push({ valor: `${usd(p.usdM2)}/m²`, texto: l.tipo === 'lote' ? 'de terreno, valor del medio' : 'cubierto, valor del medio' })
+    datosBarrio.push({ valor: `${n(p.m2Tipico)} m²`, texto: l.tipo === 'lote' ? 'el lote típico' : `${ella ? 'la casa típica' : 'el depto típico'}${l.tipo === 'casa' && p.loteTipico ? `, en ${n(p.loteTipico)} m² de terreno` : ''}` })
+    datosBarrio.push({ valor: `±${porcentaje(p.error)}`, texto: p.errorPropio ? 'lo que erra la cuenta acá (la mitad de las veces)' : `lo que erra en los barrios de ${l.zona.ciudad}` })
+    // Sin la cantidad de avisos: el relevamiento incluye los de colegas y sumarlos es ilegal (David, 17-oct).
+  }
 
   return (
     <main className="bg-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
-      <div className="mx-auto max-w-[1080px] px-5">
-        {/* HERO */}
-        <div className="pt-11 pb-2 text-center">
-          <span
-            className="inline-block rounded-full px-3.5 py-1.5 text-[12px] font-bold uppercase tracking-wider"
-            style={{ background: '#e7f2eb', color: '#1A5C38' }}
-          >
-            Tasador online · {barrio.nombre}
-          </span>
-          <h1
-            className="mt-4 text-[clamp(30px,5vw,46px)] font-extrabold leading-[1.08] tracking-tight"
-            style={{ fontFamily: R }}
-          >
-            ¿Cuánto vale {tipoInfo.articulo} en {barrio.nombre}?
-          </h1>
-          <p className="mx-auto mt-3 max-w-[640px] text-[17px] font-medium text-[#6e6e73]">
-            Estimación orientativa <b style={{ color: '#1A5C38' }}>sin registrarte</b>.{' '}
-            {esDepto
-              ? `Calculada con el valor real del m² de departamentos en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}.`
-              : `Calculada con el valor real de la tierra en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad} y el costo de construcción actualizado.`}
-          </p>
-          <p className="mt-2 text-[13px] text-[#6e6e73]">
-            Referencias de mercado y costos revisadas en agosto de 2026. No reemplaza una tasación profesional.
-          </p>
-        </div>
-
-        {/* TASADOR EMBEBIDO */}
-        <div className="py-8">
-          <TasadorWidget
-            barrioNombre={barrio.nombre}
-            ciudad={barrio.ciudad}
-            ppm2Tierra={ppm2}
-            fuenteTierra={fuente}
-            barrios={opcionesSelector()}
-            barrioSlug={barrio.slug}
-            muestras={muestras}
-            calidades={calidades}
-            esLote={tipoInfo.esLote}
-            esDepto={esDepto}
-          />
-        </div>
-
-        {/* MÉTODO */}
-        <section className="py-8">
-          <h2 className="mb-3 text-2xl font-extrabold" style={{ fontFamily: R }}>
-            Cómo calculamos el valor en {barrio.nombre}
-          </h2>
-          {esDepto ? (
-            <p className="max-w-[760px] text-[15.5px] leading-[1.7] text-[#374151]">
-              Un departamento no se valúa por lo que costaría construirlo: se compara contra
-              unidades parecidas de la misma zona. Tomamos el valor del m² cubierto que hoy piden
-              los departamentos en venta {fuente !== 'ciudad' ? `en ${barrio.nombre}` : `en ${barrio.ciudad}`},
-              lo multiplicamos por tus metros y lo ajustamos por antigüedad, estado, amenities del
-              edificio y cochera. Es el mismo criterio con el que arranca una tasación profesional;
-              la diferencia es que los comparables salen de propiedades que publicamos y seguimos
-              nosotros, no de un promedio nacional.
-            </p>
-          ) : (
-            <p className="max-w-[760px] text-[15.5px] leading-[1.7] text-[#374151]">
-              Usamos el método del costo, el mismo con el que arranca cualquier tasador
-              profesional: cuánto vale la tierra en la zona más cuánto costaría construir hoy lo
-              que está edificado, descontando antigüedad y estado. La diferencia con una
-              calculadora genérica es de dónde sacamos los números: el valor de la tierra sale de
-              los terrenos que relevamos en {barrio.ciudad} y el costo de construcción es el mismo
-              que publicamos en nuestro informe de costos, actualizado todos los meses.
-            </p>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+      <div className="mx-auto max-w-[1120px] px-4 sm:px-5">
+        <nav aria-label="Estás en" className="pt-6 text-[13.5px] font-medium text-[#5B6B62]">
+          <Link href="/tasar" className="hover:text-[#17613C]">
+            Tasaciones por barrio
+          </Link>
+          {ciudadLanding && ciudadLanding !== l && (
+            <>
+              {' › '}
+              <Link href={`/tasar/${ciudadLanding.slug}`} className="hover:text-[#17613C]">
+                {l.zona.ciudad}
+              </Link>
+            </>
           )}
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            {[
-              esDepto
-                ? {
-                    n: 1,
-                    t: 'El m² de tu zona',
-                    d: `Lo que hoy piden los departamentos en venta en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}: USD ${ppm2} por m² cubierto.`,
-                  }
-                : {
-                    n: 1,
-                    t: 'Tu tierra, a valor de la zona',
-                    d: `Los m² de tu lote por el precio real del m² en ${fuente !== 'ciudad' ? barrio.nombre : barrio.ciudad}: hoy USD ${ppm2}.`,
-                  },
-              esDepto
-                ? {
-                    n: 2,
-                    t: 'Los ajustes de tu unidad',
-                    d: 'Antigüedad, estado, amenities del edificio y cochera mueven el valor sobre ese m² de referencia.',
-                  }
-                : {
-                    n: 2,
-                    t: 'Tu construcción, a costo de hoy',
-                    d: 'Los m² cubiertos al costo actual de construir, con la depreciación que corresponde por antigüedad y estado.',
-                  },
-              {
-                n: 3,
-                t: 'El ajuste fino, con un matriculado',
-                d: 'La ubicación exacta, la documentación, la calidad y el momento del mercado se verifican en una tasación profesional.',
-              },
-            ].map((p) => (
-              <div key={p.n} className="rounded-2xl border border-[#e5e7eb] p-4">
-                <div
-                  className="mb-2.5 flex h-8 w-8 items-center justify-center rounded-full font-extrabold"
-                  style={{ background: '#e7f2eb', color: '#1A5C38' }}
-                >
-                  {p.n}
-                </div>
-                <b className="mb-1 block text-[15px]">{p.t}</b>
-                <span className="text-[13.5px] leading-[1.5] text-[#6e6e73]">{p.d}</span>
-              </div>
-            ))}
+          {' › '}
+          <span className="text-[#3C4A42]">{l.nombre}</span>
+        </nav>
+
+        {/* En el celu: título, tasador y después los números del barrio. En la compu, el tasador a la derecha. */}
+        <div className="grid grid-cols-1 items-start gap-8 pb-12 pt-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-x-12 lg:gap-y-6">
+          <div className="lg:col-start-1 lg:row-start-1">
+            <span className="inline-block rounded-full bg-[#e7f2eb] px-3.5 py-1.5 text-[12px] font-bold uppercase tracking-wider text-[#17613C]">Tasación online · {l.zona.ciudad}</span>
+            <h1 className="mt-4 font-raleway text-[clamp(30px,5vw,46px)] font-extrabold leading-[1.08] tracking-tight text-[#121A15]">
+              Tasá {t.tu} en {l.nombre}
+            </h1>
+            {!l.zona.esCiudad && (
+              <p className="mt-2 text-[16px] font-semibold text-[#5B6B62]">
+                {l.zona.ciudad}, Santa Fe
+              </p>
+            )}
+            {l.conNumero ? (
+              <p className="mt-3 text-[17px] font-medium leading-relaxed text-[#3C4A42]">
+                ¿Cuánto vale hoy? Con {ella ? 'las' : 'los'} {t.plural} {t.publicadas} en {l.nombre} armamos el valor de referencia
+                {tipica ? (
+                  <>
+                    : {ella ? 'una típica' : 'uno típico'} de <span className="font-numeric">{n(p.m2Tipico)}</span> m² ronda los <b className="font-numeric font-semibold text-[#17613C]">{usd(tipica.valor)}</b>
+                  </>
+                ) : null}
+                . Poné los metros y la antigüedad de {ella ? 'la tuya' : 'el tuyo'} y sale al instante.
+              </p>
+            ) : (
+              <p className="mt-3 text-[17px] font-medium leading-relaxed text-[#3C4A42]">
+                Un corredor matriculado del equipo te hace la tasación con lo que se vendió en {l.nombre} y te recomienda el precio de publicación.
+              </p>
+            )}
+            <p className="mt-3 text-[14px] text-[#5B6B62]">SI INMOBILIARIA · desde 1983 · Corredor responsable Mat. N° 0621</p>
           </div>
+
+          <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+            <Tasador opciones={opciones} modelo={tasador.modelo} modo="tasar" actualizado={actualizado} tipoInicial={l.tipo} inicial={clave} sinDatosDelBarrio />
+          </div>
+          {datosBarrio.length > 0 && (
+            <ul className="grid grid-cols-2 gap-2.5 lg:col-start-1 lg:row-start-2">
+              {datosBarrio.map((x) => (
+                <li key={x.texto} className="rounded-2xl border border-[#E1E6E1] px-4 py-3.5">
+                  <p className="font-numeric text-[19px] font-semibold leading-tight text-[#121A15]">{x.valor}</p>
+                  <p className="mt-0.5 text-[14.5px] leading-snug text-[#3C4A42]">{x.texto}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {ejemplos.length > 0 && (
+          <section aria-labelledby="ejemplos" className="border-t border-[#E1E6E1] py-12">
+            <h2 id="ejemplos" className="font-raleway text-[26px] font-extrabold text-[#121A15]">
+              Cuánto vale {t.una} en {lugarCorto}, según {l.tipo === 'lote' ? 'el tamaño' : 'el tamaño y la antigüedad'}
+            </h2>
+            <p className="mt-2 max-w-[44rem] text-[15.5px] leading-relaxed text-[#3C4A42]">Con la misma cuenta del tasador y los avisos de hoy. Al lado, el rango donde cae la mitad de lo publicado.</p>
+            <ul className="mt-6 max-w-[48rem]">
+              {ejemplos.map((x) => (
+                <li key={x.texto} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-[#E1E6E1] py-4 first:border-t">
+                  <span className="text-[16px] font-semibold text-[#121A15]">{x.texto}</span>
+                  <span className="text-right">
+                    <span className="font-numeric text-[16.5px] font-semibold text-[#121A15]">{usd(x.valor)}</span>
+                    <span className="font-numeric ml-2 text-[14px] text-[#5B6B62]">
+                      ({n(x.desde)} a {n(x.hasta)})
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="border-t border-[#E1E6E1] py-12">
+          <h2 className="font-raleway text-[26px] font-extrabold text-[#121A15]">Cómo hacemos la tasación</h2>
+          <ol className="mt-5 grid gap-4 md:grid-cols-3">
+            {[
+              { t: 'Nos contás qué tenés', d: 'El barrio, los metros y cuándo pensás vender. Te escribimos por WhatsApp en menos de 24 h.' },
+              { t: 'La vemos con un corredor', d: `Revisamos lo que se vendió y lo que se publica en ${lugarCorto}, la documentación y el estado.` },
+              { t: 'Te recomendamos el precio', d: 'Un precio de publicación que venda, con el porqué. La firma un corredor matriculado.' },
+            ].map((x, i) => (
+              <li key={x.t} className="rounded-2xl border border-[#E1E6E1] p-5">
+                <span className="font-numeric flex h-8 w-8 items-center justify-center rounded-full bg-[#e7f2eb] font-semibold text-[#17613C]">{i + 1}</span>
+                <b className="mt-3 block text-[16px] text-[#121A15]">{x.t}</b>
+                <span className="mt-1 block text-[15px] leading-relaxed text-[#3C4A42]">{x.d}</span>
+              </li>
+            ))}
+          </ol>
+          <Link href={`/vender/${l.slug}`} className="mt-6 inline-flex min-h-11 items-center text-[16px] font-bold text-[#17613C] hover:underline">
+            Cómo vendemos {t.plural} en {lugarCorto} →
+          </Link>
         </section>
 
-        {/* FAQ */}
-        <section className="py-8">
-          <h2 className="mb-3 text-2xl font-extrabold" style={{ fontFamily: R }}>
-            Preguntas frecuentes
-          </h2>
-          <div className="max-w-[760px]">
+        <section className="border-t border-[#E1E6E1] py-12">
+          <h2 className="font-raleway text-[26px] font-extrabold text-[#121A15]">Preguntas frecuentes</h2>
+          <div className="mt-4 max-w-[760px]">
             {faq.map((f) => (
-              <details key={f.q} className="border-b border-[#e5e7eb] py-3.5">
-                <summary className="cursor-pointer text-[15.5px] font-bold">{f.q}</summary>
-                <p className="mt-2 text-[14.5px] leading-[1.7] text-[#374151]">{f.a}</p>
+              <details key={f.q} className="border-b border-[#E1E6E1] py-4">
+                <summary className="cursor-pointer text-[16px] font-bold text-[#121A15]">{f.q}</summary>
+                <p className="mt-2 text-[15.5px] leading-relaxed text-[#3C4A42]">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
 
-        {/* CROSS-LINKING */}
-        <section className="pb-12">
-          <h2 className="mb-3 text-[18px] font-extrabold" style={{ fontFamily: R }}>
-            Tasá otras propiedades en la zona
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {tipo !== 'lote' && esLandingTasadorIndexable(barrio, 'lote') && (
-              <Link
-                href={`/tasar/lote-${barrio.slug}`}
-                className="rounded-[10px] bg-[#f5f5f7] px-3.5 py-2 text-[13.5px] font-semibold text-[#374151] hover:bg-[#e7f2eb] hover:text-[#1A5C38]"
-              >
-                Tasar lote en {barrio.nombre}
-              </Link>
-            )}
-            {tipo !== 'casa' && esLandingTasadorIndexable(barrio, 'casa') && (
-              <Link
-                href={`/tasar/casa-${barrio.slug}`}
-                className="rounded-[10px] bg-[#f5f5f7] px-3.5 py-2 text-[13.5px] font-semibold text-[#374151] hover:bg-[#e7f2eb] hover:text-[#1A5C38]"
-              >
-                Tasar casa en {barrio.nombre}
-              </Link>
-            )}
-            {vecinos.map((v) => (
-              <Link
-                key={v.slug}
-                href={`/tasar/${tipo}-${v.slug}`}
-                className="rounded-[10px] bg-[#f5f5f7] px-3.5 py-2 text-[13.5px] font-semibold text-[#374151] hover:bg-[#e7f2eb] hover:text-[#1A5C38]"
-              >
-                Tasar {tipoInfo.label} en {v.nombre}
+        <section className="border-t border-[#E1E6E1] py-12">
+          <h2 className="font-raleway text-[20px] font-extrabold text-[#121A15]">En {lugarCorto} también</h2>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={`/vender/${l.slug}`} className="rounded-full bg-[#F3F7F4] px-4 py-2.5 text-[15px] font-semibold text-[#3C4A42] hover:bg-[#e7f2eb] hover:text-[#17613C]">
+              Vender {t.tu}
+            </Link>
+            {otrosTipos.map((x) => (
+              <Link key={x.slug} href={`/tasar/${x.slug}`} className="rounded-full bg-[#F3F7F4] px-4 py-2.5 text-[15px] font-semibold text-[#3C4A42] hover:bg-[#e7f2eb] hover:text-[#17613C]">
+                Tasar {TEXTO_TIPO[x.tipo].tu}
               </Link>
             ))}
           </div>
+          {vecinos.length > 0 && (
+            <>
+              <h2 className="mt-8 font-raleway text-[20px] font-extrabold text-[#121A15]">
+                Tasar {t.tu} en otros barrios de {l.zona.ciudad}
+              </h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {vecinos.map((x) => (
+                  <Link key={x.slug} href={`/tasar/${x.slug}`} className="rounded-full bg-[#F3F7F4] px-4 py-2.5 text-[15px] font-semibold text-[#3C4A42] hover:bg-[#e7f2eb] hover:text-[#17613C]">
+                    {x.nombre}
+                  </Link>
+                ))}
+                <Link href="/tasar" className="rounded-full px-4 py-2.5 text-[15px] font-bold text-[#17613C]">
+                  Todos los barrios →
+                </Link>
+              </div>
+            </>
+          )}
         </section>
       </div>
     </main>

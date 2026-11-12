@@ -8,6 +8,7 @@ import {
   type TipoFiscal,
   type FormaPagoHonorarios,
 } from '@/lib/calculadora-alquiler'
+import { WHATSAPP_DISPLAY } from './contacto'
 
 type Frecuencia = 'trimestral' | 'cuatrimestral'
 type Indice = 'ICL' | 'IPC'
@@ -20,8 +21,6 @@ const fmtUsd = (n: number) =>
   })}`
 const fmt = (n: number, m: Moneda) => (m === 'USD' ? fmtUsd(n) : fmtArs(n))
 
-const WHATSAPP_NUM = '5493413415159'
-const WHATSAPP_DISPLAY = '+54 9 341 341 5159'
 
 // Documento A4 estilo "hoja de cards": fondo verdoso muy claro, cards blancas
 // con hairlines, totales unificados en una sola banda verde. Embebido como
@@ -41,18 +40,22 @@ main { padding: 0 !important; margin: 0 !important; max-width: none !important; 
 :root {
   --tinta: #1C1C1E;
   --tinta-soft: #3A3A3D;
-  --tinta-mute: #6E6E72;
+  --tinta-mute: #55555A;
   --line: #E0E6E1;
   --paper: #F4F7F5;
   --card: #FFFFFF;
-  --si-green: #1A5C38;
-  --si-green-dark: #0F3D25;
+  --si-green: #17613C;
+  --si-green-dark: #0E3F27;
   --si-green-tint: #EAF2ED;
+  /* next/font publica las fuentes de marca como variables (el nombre literal
+     'Raleway' no existe en la página: caía a la letra del sistema). */
+  --f-texto: var(--font-raleway), 'Raleway', system-ui, sans-serif;
+  --f-num: var(--font-poppins), 'Poppins', system-ui, sans-serif;
 }
 
 html, body {
   background: var(--paper) !important;
-  font-family: 'Raleway', system-ui, sans-serif;
+  font-family: var(--f-texto);
   color: var(--tinta);
   line-height: 1.3;
   -webkit-font-smoothing: antialiased;
@@ -61,13 +64,14 @@ html, body {
 }
 
 /* CTA de impresión: visible en pantalla, fuera del flujo (no afecta la altura
-   de la hoja), oculto al imprimir vía .no-print. */
-.planilla-print-btn {
+   de la hoja), oculto al imprimir vía .no-print. Con .planilla-page delante
+   para ganarle al reset ".planilla-page *" (le borraba el padding). */
+.planilla-page .planilla-print-btn {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 50;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.4px;
@@ -79,7 +83,7 @@ html, body {
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0,0,0,0.18);
 }
-.planilla-print-btn:hover { background: #14492c; }
+.planilla-page .planilla-print-btn:hover { background: var(--si-green-dark); }
 
 .planilla-page {
   width: 794px;
@@ -102,7 +106,7 @@ html, body {
 }
 .planilla-page .header-logo { height: 26px; width: auto; display: block; }
 .planilla-page .header-meta {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 1.4px;
@@ -114,7 +118,7 @@ html, body {
 
 /* ── Título ─────────────────────────────────────────────────────────── */
 .planilla-page .doc-eyebrow {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 2px;
@@ -123,7 +127,7 @@ html, body {
   margin-bottom: 4px;
 }
 .planilla-page .doc-h1 {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 24px;
   color: var(--tinta);
@@ -131,7 +135,7 @@ html, body {
   line-height: 1.1;
 }
 .planilla-page .doc-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 12px;
   font-weight: 500;
   color: var(--tinta-mute);
@@ -165,14 +169,14 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 700;
   font-size: 15px;
   margin-top: 2px;
 }
 .planilla-page .dato-icon svg { display: block; }
 .planilla-page .dato-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 1.4px;
@@ -181,7 +185,7 @@ html, body {
   margin-bottom: 3px;
 }
 .planilla-page .dato-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 700;
   font-size: 19px;
   color: var(--tinta);
@@ -190,7 +194,7 @@ html, body {
   line-height: 1.15;
 }
 .planilla-page .dato-valor .per {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 11px;
   font-weight: 500;
   color: var(--tinta-mute);
@@ -198,7 +202,7 @@ html, body {
   letter-spacing: 0;
 }
 .planilla-page .dato-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 10px;
   font-weight: 500;
   color: var(--tinta-mute);
@@ -225,7 +229,7 @@ html, body {
   background: rgba(255,255,255,0.28);
 }
 .planilla-page .total-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 700;
   font-size: 9.5px;
   letter-spacing: 1.4px;
@@ -234,7 +238,7 @@ html, body {
   margin-bottom: 4px;
 }
 .planilla-page .total-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 800;
   font-size: 24px;
   font-variant-numeric: tabular-nums;
@@ -242,7 +246,7 @@ html, body {
   line-height: 1.1;
 }
 .planilla-page .total-sub {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 10px;
   font-weight: 500;
   color: rgba(255,255,255,0.85);
@@ -252,7 +256,7 @@ html, body {
 /* ── Secciones ──────────────────────────────────────────────────────── */
 .planilla-page .section { margin-bottom: 12px; }
 .planilla-page .section-title {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 11px;
   letter-spacing: 1.8px;
@@ -288,27 +292,27 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   font-size: 10.5px;
 }
 .planilla-page .fila-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 700;
   font-size: 11.5px;
   color: var(--tinta);
   line-height: 1.25;
 }
 .planilla-page .fila-sub {
-  font-family: 'Raleway', sans-serif;
-  font-weight: 400;
-  font-size: 9.5px;
+  font-family: var(--f-texto);
+  font-weight: 500;
+  font-size: 10px;
   color: var(--tinta-mute);
   margin-top: 1px;
   line-height: 1.3;
 }
 .planilla-page .fila-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   font-size: 12px;
   color: var(--tinta);
@@ -337,7 +341,7 @@ html, body {
   border: 1.5px solid var(--si-green);
 }
 .planilla-page .mes-label {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 9.5px;
   letter-spacing: 1.3px;
@@ -345,14 +349,14 @@ html, body {
   color: var(--si-green);
 }
 .planilla-page .mes-sub {
-  font-family: 'Raleway', sans-serif;
-  font-size: 9.5px;
+  font-family: var(--f-texto);
+  font-size: 10px;
   font-weight: 500;
   color: var(--tinta-mute);
   margin-top: 1px;
 }
 .planilla-page .mes-valor {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 700;
   font-size: 17px;
   color: var(--tinta);
@@ -361,10 +365,18 @@ html, body {
   margin-top: 6px;
   line-height: 1.15;
 }
+.planilla-page .mes-pesos {
+  font-family: var(--f-num);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--tinta-soft);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
 .planilla-page .mes-desc {
-  font-family: 'Raleway', sans-serif;
-  font-size: 9px;
-  font-weight: 400;
+  font-family: var(--f-texto);
+  font-size: 10px;
+  font-weight: 500;
   color: var(--tinta-mute);
   margin-top: 5px;
   line-height: 1.35;
@@ -385,7 +397,7 @@ html, body {
 .planilla-page .cond-head {
   background: var(--si-green-tint);
   padding: 7px 13px;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 9px;
   letter-spacing: 1.1px;
@@ -395,8 +407,9 @@ html, body {
 }
 .planilla-page .cond-body {
   padding: 8px 13px 10px;
-  font-family: 'Raleway', sans-serif;
-  font-size: 9.5px;
+  font-family: var(--f-texto);
+  font-size: 10px;
+  font-weight: 500;
   color: var(--tinta-soft);
   line-height: 1.35;
 }
@@ -425,7 +438,7 @@ html, body {
   top: 0;
   background: var(--si-green-tint);
   color: var(--si-green);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--f-num);
   font-weight: 600;
   font-size: 8.5px;
   display: flex;
@@ -433,16 +446,56 @@ html, body {
   justify-content: center;
 }
 
-/* ── Disclaimer + footer ────────────────────────────────────────────── */
+/* ── Cierre: aclaración + WhatsApp con QR (se escanea desde el papel) ── */
+.planilla-page .cierre {
+  display: grid;
+  grid-template-columns: 1fr 270px;
+  gap: 12px;
+  margin-bottom: 10px;
+}
 .planilla-page .disclaimer {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 9px 14px;
-  margin-bottom: 10px;
+}
+.planilla-page .contacto {
+  background: var(--card);
+  border: 1.5px solid var(--si-green);
+  border-radius: 14px;
+  padding: 9px 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.planilla-page .contacto-qr { width: 78px; height: 78px; display: block; }
+.planilla-page .contacto-titulo {
+  font-family: var(--f-texto);
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: var(--si-green);
+  margin-bottom: 3px;
+}
+.planilla-page .contacto-texto {
+  font-family: var(--f-texto);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--tinta);
+  line-height: 1.35;
+}
+.planilla-page .contacto-num {
+  font-family: var(--f-num);
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--si-green);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
 }
 .planilla-page .disclaimer-title {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-weight: 800;
   font-size: 9px;
   letter-spacing: 1.3px;
@@ -451,8 +504,9 @@ html, body {
   margin-bottom: 3px;
 }
 .planilla-page .disclaimer-text {
-  font-family: 'Raleway', sans-serif;
-  font-size: 9px;
+  font-family: var(--f-texto);
+  font-size: 10px;
+  font-weight: 500;
   line-height: 1.4;
   color: var(--tinta-mute);
 }
@@ -464,7 +518,7 @@ html, body {
   text-align: center;
 }
 .planilla-page .footer-line {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 1.3px;
@@ -472,24 +526,18 @@ html, body {
   color: var(--tinta-mute);
 }
 .planilla-page .footer-contact {
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   font-size: 9px;
   font-weight: 600;
   color: var(--tinta-soft);
   margin-top: 3px;
-}
-.planilla-page .footer-contact strong {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  color: var(--si-green);
-  font-variant-numeric: tabular-nums;
 }
 
 .planilla-fallback {
   max-width: 480px;
   margin: 96px auto;
   padding: 32px;
-  font-family: 'Raleway', sans-serif;
+  font-family: var(--f-texto);
   text-align: center;
 }
 .planilla-fallback h1 {
@@ -509,14 +557,19 @@ html, body {
   text-decoration: underline;
 }
 
-@page { size: A4; margin: 6mm; }
+/* REGLA DE ORO: la planilla impresa entra SIEMPRE en UNA sola hoja A4.
+   @page sin márgenes (el padding vive en la hoja), fondo verdoso en toda la
+   hoja y spacings recortados en print para dejar colchón abajo (~120px en el
+   peor caso). Verificado contando páginas del PDF real (page.pdf) con Raleway
+   y Poppins cargadas; si se agrega contenido, volver a verificar. */
+@page { size: A4; margin: 0; }
 @media print {
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     height: auto !important;
     overflow: visible !important;
-    background: #fff !important;
+    background: var(--paper) !important;
   }
   body > *:not(main):not(script) { display: none !important; }
   main > .si-page-enter { display: contents !important; }
@@ -525,9 +578,11 @@ html, body {
      ajusta al contenido, eliminando la página 2 fantasma. */
   .planilla-page {
     box-shadow: none;
+    /* auto = ancho de la hoja (210mm con @page margin 0); si un navegador
+       impone márgenes propios, se angosta en vez de cortarse a la derecha. */
     width: auto !important;
     margin: 0 !important;
-    padding: 6mm 8mm !important;
+    padding: 6mm 9mm 5mm !important;
     max-height: none !important;
     min-height: 0 !important;
     page-break-after: avoid !important;
@@ -538,12 +593,25 @@ html, body {
   .planilla-page .datos-grid,
   .planilla-page .total-card,
   .planilla-page .cond-grid,
-  .planilla-page .disclaimer,
+  .planilla-page .cierre,
   .planilla-page .footer {
     page-break-inside: avoid !important;
   }
+  /* Spacings compactos para garantizar la hoja única. */
+  .planilla-page .header { margin-bottom: 10px !important; }
+  .planilla-page .doc-sub { margin-bottom: 9px !important; }
+  .planilla-page .datos-grid { margin-bottom: 9px !important; }
+  .planilla-page .dato-card { padding: 9px 14px !important; }
+  .planilla-page .total-card { padding: 11px 16px !important; margin-bottom: 10px !important; }
+  .planilla-page .section { margin-bottom: 9px !important; }
+  .planilla-page .fila { padding: 5px 0 !important; }
+  .planilla-page .mes-card { padding: 9px 12px !important; }
+  .planilla-page .cond-head { padding: 5px 12px !important; }
+  .planilla-page .cond-body { padding: 6px 12px 8px !important; }
+  .planilla-page .disclaimer { padding: 7px 12px !important; }
+  .planilla-page .cierre { margin-bottom: 8px !important; }
   /* Espacio entre el último bloque y el footer (sin margin-top:auto). */
-  .planilla-page .footer { margin-top: 14px !important; }
+  .planilla-page .footer { margin-top: 8px !important; padding-top: 6px !important; }
 }
 `
 
@@ -558,6 +626,7 @@ interface ParsedInput {
   cotizacion: number
   incluirAdmin: boolean
   formaPago: FormaPagoHonorarios
+  facturaA: boolean
 }
 
 interface ParsedError {
@@ -601,10 +670,11 @@ function parseInput(sp: URLSearchParams | null): ParsedInput | ParsedError {
     cotizacion,
     incluirAdmin,
     formaPago,
+    facturaA: sp.get('factura') === 'A',
   }
 }
 
-export default function PlanillaPrintable() {
+export default function PlanillaPrintable({ qrSvg }: { qrSvg: string }) {
   const sp = useSearchParams()
   const parsed = useMemo(() => parseInput(sp), [sp])
 
@@ -650,9 +720,10 @@ export default function PlanillaPrintable() {
     )
   }
 
-  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, incluirAdmin, formaPago } =
+  const { alquiler, meses, moneda, tipo, frecuencia, indice, cotizacion, incluirAdmin, formaPago, facturaA } =
     parsed
-  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago })
+  const c = calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago, facturaA })
+  const alqDesc = facturaA ? 'Alquiler + IVA' : 'Alquiler'
 
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda permanente' : 'Comercio'
   const monedaLabel = moneda === 'USD' ? 'en dólares' : 'en pesos'
@@ -685,24 +756,26 @@ export default function PlanillaPrintable() {
       ? 'ajuste anual por contrato'
       : `ajuste ${frecuencia} por ${indice}`
 
-  const mes23 = alquiler + c.honoEnMes23 + c.admin
-  const mes4 = alquiler + c.admin
+  const mes23 = c.alquilerMensual + c.honoEnMes23 + c.admin
+  const mes4 = c.alquilerMensual + c.admin
   const adminDesc = c.mostrarAdmin ? ' + administración' : ''
 
   // Filas del desglose — el depósito cierra la lista para que el total con
   // depósito de la banda verde se lea completo en un solo lugar.
   const filas: { label: string; sub: string; valor: string }[] = [
     {
-      label: 'Primer mes de alquiler',
-      sub: 'Alquiler del mes en que ingresás',
-      valor: fmt(alquiler, moneda),
+      label: facturaA ? 'Primer mes de alquiler + IVA' : 'Primer mes de alquiler',
+      sub: facturaA
+        ? `Alquiler ${fmt(alquiler, moneda)} + IVA 21% ${fmt(c.ivaAlquiler, moneda)} · Factura A`
+        : 'Alquiler del mes en que ingresás',
+      valor: fmt(c.alquilerMensual, moneda),
     },
     {
       label: c.mostrarMeses23 ? 'Honorarios · 1ª cuota de 3' : 'Honorarios · totales + IVA',
       sub: `Total honorarios ${fmt(c.honoTotal, moneda)} · alquiler × meses × 5% × IVA`,
       valor: fmt(c.honoEnMes1, moneda),
     },
-    { label: 'Sellado', sub: selladoSub, valor: fmtArs(c.sellado) },
+    { label: 'Sellado', sub: selladoSub, valor: c.sellado > 0 ? fmtArs(c.sellado) : 'Exento' },
     {
       label: 'Verificación de garantes',
       sub: 'Pago único · chequeo de documentación',
@@ -770,7 +843,9 @@ export default function PlanillaPrintable() {
                 {fmt(alquiler, moneda)}
                 <span className="per">por mes</span>
               </div>
-              <div className="dato-sub">Valor base del contrato</div>
+              <div className="dato-sub">
+                {facturaA ? `Valor base del contrato · + IVA 21% (Factura A)` : 'Valor base del contrato'}
+              </div>
             </div>
           </div>
           <div className="dato-card">
@@ -837,8 +912,11 @@ export default function PlanillaPrintable() {
               <div className="mes-valor">
                 {moneda === 'USD' ? fmtUsd(totalUsd) : fmtArs(totalArs)}
               </div>
+              {moneda === 'USD' && (
+                <div className="mes-pesos">+ {fmtArs(totalArs)} en pesos</div>
+              )}
               <div className="mes-desc">
-                Alquiler + {c.mostrarMeses23 ? '1ª cuota de honorarios' : 'honorarios'} + sellado +
+                {alqDesc} + {c.mostrarMeses23 ? '1ª cuota de honorarios' : 'honorarios'} + sellado +
                 garantes{adminDesc}
               </div>
             </div>
@@ -848,7 +926,7 @@ export default function PlanillaPrintable() {
                 <div className="mes-sub">Cuotas restantes</div>
                 <div className="mes-valor">{fmt(mes23, moneda)}</div>
                 <div className="mes-desc">
-                  Alquiler + 2ª/3ª cuota de honorarios{adminDesc}
+                  {alqDesc} + 2ª/3ª cuota de honorarios{adminDesc}
                 </div>
               </div>
             )}
@@ -859,7 +937,7 @@ export default function PlanillaPrintable() {
               <div className="mes-sub">Pago habitual</div>
               <div className="mes-valor">{fmt(mes4, moneda)}</div>
               <div className="mes-desc">
-                Alquiler{adminDesc} · {ajusteFinalContrato}
+                {alqDesc}{adminDesc} · {ajusteFinalContrato}
               </div>
             </div>
           </div>
@@ -901,18 +979,37 @@ export default function PlanillaPrintable() {
           </div>
         </div>
 
-        <div className="disclaimer">
-          <div className="disclaimer-title">Aclaración importante</div>
-          <div className="disclaimer-text">
-            <p>
-              Estos valores son estimaciones basadas en usos y costumbres de
-              ajuste en locaciones. El ajuste pactado con el propietario puede
-              ser distinto.
-            </p>
-            <p style={{ marginTop: 3 }}>
-              Te recomendamos consultarnos antes de firmar el contrato. Por esta
-              misma razón, este cálculo no tiene carácter contractual.
-            </p>
+        <div className="cierre">
+          <div className="disclaimer">
+            <div className="disclaimer-title">Aclaración importante</div>
+            <div className="disclaimer-text">
+              <p>
+                Estos valores son estimaciones basadas en usos y costumbres de
+                ajuste en locaciones. El ajuste pactado con el propietario puede
+                ser distinto.
+              </p>
+              <p style={{ marginTop: 3 }}>
+                Te recomendamos consultarnos antes de firmar el contrato. Por esta
+                misma razón, este cálculo no tiene carácter contractual.
+              </p>
+            </div>
+          </div>
+          <div className="contacto">
+            {qrSvg && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="contacto-qr"
+                src={`data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}`}
+                alt="QR para escribirle a Administración por WhatsApp"
+              />
+            )}
+            <div>
+              <div className="contacto-titulo">¿Dudas? Escaneá</div>
+              <div className="contacto-texto">
+                Escribile a Administración por WhatsApp
+              </div>
+              <div className="contacto-num">{WHATSAPP_DISPLAY}</div>
+            </div>
           </div>
         </div>
 
@@ -920,10 +1017,7 @@ export default function PlanillaPrintable() {
           <div className="footer-line">
             SI INMOBILIARIA · Desde 1983 acompañando decisiones importantes
           </div>
-          <div className="footer-contact">
-            Administración · WhatsApp <strong>{WHATSAPP_DISPLAY}</strong> ·
-            wa.me/{WHATSAPP_NUM} · siinmobiliaria.com
-          </div>
+          <div className="footer-contact">siinmobiliaria.com</div>
         </footer>
       </div>
     </>

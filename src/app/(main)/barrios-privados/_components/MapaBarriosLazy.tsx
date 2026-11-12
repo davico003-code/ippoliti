@@ -14,11 +14,11 @@ const MapaBarriosClient = dynamic(() => import("./MapaBarriosClient"), {
       style={{
         height: "100%",
         width: "100%",
-        background: "#f0ece2",
+        background: "var(--theme-surface-soft, #f0ece2)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#777",
+        color: "var(--theme-subtle, #777)",
         fontSize: 13,
         fontFamily: "var(--font-poppins), 'Poppins', system-ui, sans-serif",
       }}

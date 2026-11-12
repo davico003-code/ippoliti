@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import NosotrosClient from './NosotrosClient'
 
 export const metadata: Metadata = {
-  title: 'Sobre nosotros — 40 años en Funes, Roldán y Rosario | SI INMOBILIARIA',
+  title: 'Sobre nosotros — 40 años en Funes, Roldán y Rosario',
   description: 'Conocé la historia de SI INMOBILIARIA. Más de 40 años acompañando familias en Roldán, Funes y Rosario. Susana Ippoliti, Laura y David.',
   alternates: { canonical: 'https://siinmobiliaria.com/nosotros' },
   openGraph: {
@@ -32,7 +32,7 @@ const FAQ = [
   },
   {
     q: '¿Cómo contacto a SI INMOBILIARIA?',
-    a: 'Por WhatsApp al +54 9 341 210-1694, por email a contacto@siinmobiliaria.com o en las oficinas de Hipólito Yrigoyen 2643, Funes; Primero de Mayo 258 y Catamarca 775, Roldán.',
+    a: 'Por WhatsApp al +54 9 341 334-0916, por email a contacto@siinmobiliaria.com o en las oficinas de Hipólito Yrigoyen 2643, Funes; Primero de Mayo 258 y Catamarca 775, Roldán.',
   },
 ]
 
@@ -42,7 +42,7 @@ const people = [
     '@id': 'https://siinmobiliaria.com/nosotros#susana-ippoliti',
     name: 'Susana Ippoliti',
     jobTitle: 'Fundadora y corredora inmobiliaria',
-    image: 'https://siinmobiliaria.com/team/susana-ippoliti.jpg',
+    image: 'https://siinmobiliaria.com/team/susana-ippoliti-v2.jpg',
     url: 'https://siinmobiliaria.com/nosotros#susana-ippoliti',
     worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
     hasCredential: {
@@ -56,7 +56,7 @@ const people = [
     '@id': 'https://siinmobiliaria.com/nosotros#david-flores',
     name: 'David Flores',
     jobTitle: 'Corredor inmobiliario y responsable de la oficina Funes',
-    image: 'https://siinmobiliaria.com/team/david-flores.jpg',
+    image: 'https://siinmobiliaria.com/team/david-flores-v2.jpg',
     url: 'https://siinmobiliaria.com/nosotros#david-flores',
     worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
     hasCredential: {
@@ -70,7 +70,7 @@ const people = [
     '@id': 'https://siinmobiliaria.com/nosotros#laura-flores',
     name: 'Laura Flores',
     jobTitle: 'Corredora inmobiliaria, administradora de empresas y responsable de Roldán',
-    image: 'https://siinmobiliaria.com/team/laura-flores.jpg',
+    image: 'https://siinmobiliaria.com/team/laura-flores-v2.jpg',
     url: 'https://siinmobiliaria.com/nosotros#laura-flores',
     worksFor: { '@id': 'https://siinmobiliaria.com/#organization' },
     knowsAbout: ['mercado inmobiliario de Roldán', 'administración inmobiliaria', 'gestión de equipos'],

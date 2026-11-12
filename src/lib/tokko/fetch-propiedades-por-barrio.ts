@@ -1,23 +1,16 @@
-import { Redis } from '@upstash/redis'
-import { getProperties, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
+import { getProperties, getPropiedadesVendidas, sanitizeProperty, type TokkoProperty } from '@/lib/tokko'
 import { BARRIOS, getBarrioBySlug } from '@/lib/barrios'
 import { propertyMatchesBarrio } from './barrio-matcher'
 
-const CACHE_TTL_SECONDS = 60 * 60 // 1h
+// Sin cache propio (antes: Redis 1 h que nadie limpiaba → una vendida seguía
+// "disponible" hasta 2 h). El listado y las vendidas salen del Data Cache con
+// el tag que HILO invalida en cada cambio de estado, así que esto ya llega
+// fresco y filtrar ~250 en memoria no cuesta nada.
+
+/** Placas "Vendida" por sección: las más nuevas; no tapan al stock disponible. */
+const MAX_VENDIDAS = 6
 
 type TipoPropiedad = 'Terreno' | 'Casa' | 'Departamento' | 'Todos'
-
-function getRedis(): Redis | null {
-  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) return null
-  return new Redis({
-    url: process.env.KV_REST_API_URL,
-    token: process.env.KV_REST_API_TOKEN,
-  })
-}
-
-function cacheKey(slug: string, tipo: TipoPropiedad): string {
-  return `barrios:propiedades:${slug}:${tipo.toLowerCase()}`
-}
 
 function matchesType(p: TokkoProperty, tipo: TipoPropiedad): boolean {
   if (tipo === 'Todos') return true
@@ -36,6 +29,8 @@ function operationTimestamp(p: TokkoProperty): number {
 
 export interface BarrioPropertiesResult {
   properties: TokkoProperty[]
+  /** Vendidas por nosotros: van como placa "Vendida", sin precio ni link. */
+  vendidas: TokkoProperty[]
   total: number
   lastUpdate: string
   cached: boolean
@@ -47,49 +42,31 @@ export async function getPropiedadesByBarrio(
 ): Promise<BarrioPropertiesResult> {
   const barrio = getBarrioBySlug(slug)
   if (!barrio) {
-    return { properties: [], total: 0, lastUpdate: new Date().toISOString(), cached: false }
+    return { properties: [], vendidas: [], total: 0, lastUpdate: new Date().toISOString(), cached: false }
   }
 
-  const redis = getRedis()
-  const key = cacheKey(slug, tipo)
-
-  if (redis) {
-    try {
-      const cached = await redis.get<string>(key)
-      if (cached) {
-        const parsed = typeof cached === 'string' ? JSON.parse(cached) : (cached as BarrioPropertiesResult)
-        return { ...parsed, cached: true }
-      }
-    } catch (err) {
-      console.warn('[barrios] Redis cache read error:', err)
-    }
-  }
+  const delBarrio = (p: TokkoProperty) => propertyMatchesBarrio(p, barrio) && matchesType(p, tipo)
 
   // Traemos TODO el inventario (el feed ronda las ~250) para que el match por
   // barrio no se corte: con limit:100 se perdían las propiedades del resto.
-  const all = await getProperties({ limit: 1000 })
+  const [all, todasVendidas] = await Promise.all([getProperties({ limit: 1000 }), getPropiedadesVendidas()])
+  // El orden de HILO manda (última venta primero).
+  const vendidas = todasVendidas.filter(delBarrio).slice(0, MAX_VENDIDAS).map(sanitizeProperty)
+  // Una propiedad es UNA placa: si ya figura vendida, no puede seguir como
+  // disponible aunque el listado venga de unos segundos antes de la venta.
+  const idsVendidas = new Set(todasVendidas.map((p) => p.id))
   const filtered = (all.objects ?? [])
-    .filter((p) => propertyMatchesBarrio(p, barrio))
-    .filter((p) => matchesType(p, tipo))
+    .filter((p) => delBarrio(p) && !idsVendidas.has(p.id))
     .map(sanitizeProperty)
     .sort((a, b) => operationTimestamp(b) - operationTimestamp(a))
 
-  const result: BarrioPropertiesResult = {
+  return {
     properties: filtered,
+    vendidas,
     total: filtered.length,
     lastUpdate: new Date().toISOString(),
     cached: false,
   }
-
-  if (redis) {
-    try {
-      await redis.set(key, JSON.stringify(result), { ex: CACHE_TTL_SECONDS })
-    } catch (err) {
-      console.warn('[barrios] Redis cache write error:', err)
-    }
-  }
-
-  return result
 }
 
 export async function getCountsByBarrio(): Promise<Record<string, number>> {

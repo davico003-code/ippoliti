@@ -13,6 +13,7 @@ import {
 import PropertyGrid from '@/components/PropertyGrid'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import LandingLeadForm from '@/components/landing/LandingLeadForm'
+import BarriosDeLaZona from '@/components/seo/BarriosDeLaZona'
 
 /**
  * LANDING ENGINE por clusters (Growth OS §23): /funes/casas,
@@ -76,7 +77,13 @@ export default async function ClusterLandingPage({ params }: { params: { cluster
       <BreadcrumbJsonLd
         items={[
           { name: 'Inicio', url: 'https://siinmobiliaria.com' },
-          { name: CIUDAD_LABEL[cluster.ciudad] ?? cluster.ciudad, url: `https://siinmobiliaria.com/inmobiliaria-${cluster.ciudad}` },
+          // Rosario no tiene /inmobiliaria-rosario (404): su hub es el listado filtrado.
+          {
+            name: CIUDAD_LABEL[cluster.ciudad] ?? cluster.ciudad,
+            url: cluster.ciudad === 'rosario'
+              ? 'https://siinmobiliaria.com/propiedades?ubicacion=rosario'
+              : `https://siinmobiliaria.com/inmobiliaria-${cluster.ciudad}`,
+          },
           { name: cluster.h1, url: clusterUrl(cluster) },
         ]}
       />
@@ -181,6 +188,8 @@ export default async function ClusterLandingPage({ params }: { params: { cluster
           </div>
         </div>
       </section>
+
+      {cluster.ciudad === 'funes' && <BarriosDeLaZona zona="funes" nombre="Funes" />}
 
       {/* Internal linking */}
       <section className="py-8 px-4 border-t">

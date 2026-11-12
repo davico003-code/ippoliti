@@ -1,0 +1,200 @@
+{
+ "periodo": "Septiembre 2026",
+ "generado": "2026-09-27T21:25:00-03:00",
+ "titular": "Funes crece rápido y los servicios de todos los días no le siguen el ritmo",
+ "resumen": [
+  "Funes pasó de 38.274 habitantes en 2022 a unos 45.000 hoy, y va camino a 52.800 en 2030. Son casi 2.000 vecinos nuevos por año que necesitan resolver su día a día cerca de casa.",
+  "Lo que abunda es el comercio de vidriera: ropa (92 locales, 82 de ellos en el Centro), muebles y deco, y estética. Para entrar ahí hay que diferenciarse mucho.",
+  "Lo que queda corto son servicios de cercanía: peluquerías, veterinarias, farmacias, consultorios y lavanderías. Son negocios de visita frecuente, con clientes fieles, que no dependen de la moda."
+ ],
+ "numeros": {
+  "habitantesHoy": 44948,
+  "habitantes2030": 52785,
+  "relevados": 757,
+  "libres": 31,
+  "vienen": 2
+ },
+ "oportunidades": [
+  {
+   "rubro": "Peluquerías y barberías",
+   "re": "Peluquer",
+   "icono": "b",
+   "abiertos": 17,
+   "esperado": 33,
+   "faltan": 16,
+   "porque": "Es un servicio que se usa cada tres a cinco semanas y se elige por cercanía. Hoy hay 17 sobre las avenidas y en el Centro: para una ciudad de este tamaño faltan casi la mitad.",
+   "donde": "Ruta 9 y Galindo, donde hoy no hay ninguna.",
+   "confianza": "media"
+  },
+  {
+   "rubro": "Veterinarias",
+   "re": "Veterinaria",
+   "icono": "m",
+   "abiertos": 2,
+   "esperado": 11,
+   "faltan": 9,
+   "porque": "Funes es ciudad de casas con patio y familias con mascotas. Hay 10 pet shops pero solo 2 veterinarias con consultorio sobre las avenidas: la gente compra el alimento acá y viaja para la consulta.",
+   "donde": "Yrigoyen, Ruta 9 y Galindo.",
+   "confianza": "media"
+  },
+  {
+   "rubro": "Farmacias",
+   "re": "^Farmacia",
+   "icono": "s",
+   "abiertos": 8,
+   "esperado": 17,
+   "faltan": 9,
+   "porque": "Faltan farmacias para el tamaño que tiene Funes, sobre todo fuera del Centro. Es de los rubros mejor cargados en el mapa, así que el dato es bastante firme.",
+   "donde": "Yrigoyen (no hay ninguna) y Fuerza Aérea / Illia (hay una sola).",
+   "confianza": "alta"
+  },
+  {
+   "rubro": "Consultorios y odontología",
+   "re": "Consultorio|Odontolog",
+   "icono": "s",
+   "abiertos": 25,
+   "esperado": 39,
+   "faltan": 14,
+   "porque": "La salud está concentrada en el Centro (16 de 25). En el resto de las avenidas casi no hay atención de todos los días.",
+   "donde": "Ruta 9 y Fuerza Aérea / Illia, cerca de los barrios nuevos.",
+   "confianza": "baja"
+  },
+  {
+   "rubro": "Lavanderías",
+   "re": "Lavandería",
+   "icono": "f",
+   "abiertos": 3,
+   "esperado": 7,
+   "faltan": 4,
+   "porque": "Rubro chico que sale con poca inversión y mucha fidelidad: familias grandes, alquileres temporarios y gente que trabaja todo el día en Rosario.",
+   "donde": "Fuerza Aérea / Illia y Yrigoyen.",
+   "confianza": "media"
+  },
+  {
+   "rubro": "Bancos",
+   "re": "^Banco$",
+   "icono": "f",
+   "abiertos": 2,
+   "esperado": 6,
+   "faltan": 4,
+   "porque": "Hay solo 2 sucursales bancarias para toda la ciudad, y mucha gente sigue yendo a Rosario o Fisherton para hacer trámites. Para un dueño de local, un banco es un inquilino muy buscado.",
+   "donde": "Ruta 9 y el polo Calmo, por el acceso en auto.",
+   "confianza": "media"
+  }
+ ],
+ "cuidado": [
+  {
+   "rubro": "Indumentaria y calzado",
+   "re": "Ropa|Calzado|Bebés|Joyería",
+   "abiertos": 92,
+   "esperado": 67,
+   "porque": "Hay bastante más de lo esperado, y 82 locales están en el Centro. Hay mucha competencia y una renovación constante de locales."
+  },
+  {
+   "rubro": "Muebles y decoración",
+   "re": "Muebles|Decoración|Colchoner|Cortinas",
+   "abiertos": 27,
+   "esperado": 17,
+   "porque": "Mucho más de lo esperado. Además depende de que se sigan construyendo casas."
+  },
+  {
+   "rubro": "Estética y cosmética",
+   "re": "Estética|Masajes|Perfumería|Cosmética",
+   "abiertos": 31,
+   "esperado": 22,
+   "porque": "Mucha oferta en el Centro y en Fuerza Aérea. Solo tiene sentido con una propuesta muy distinta."
+  },
+  {
+   "rubro": "Dietéticas",
+   "re": "Dietética",
+   "abiertos": 15,
+   "esperado": 11,
+   "porque": "Más de lo esperado, y 9 de ellas están en el Centro."
+  },
+  {
+   "rubro": "Panaderías y pastelerías",
+   "re": "Panader|Pasteler|Dulces|Chocolater",
+   "abiertos": 24,
+   "esperado": 19,
+   "porque": "Bien cubierto, sobre todo en el Centro (13). Hay más lugar sobre Ruta 9, donde hay una sola."
+  }
+ ],
+ "zonas": [
+  {
+   "k": "P",
+   "nombre": "Centro · Plaza San José",
+   "comercios": 385,
+   "libres": 16,
+   "perfil": "Ropa, servicios y gastronomía",
+   "nota": "Es el shopping a cielo abierto de Funes, con galerías como Paseo Madero, Paseo Victoria y Funes Mall. Tiene la mayor cantidad de locales libres (16), así que se consigue lugar. Entrar con ropa es difícil; salud y servicios tienen más espacio."
+  },
+  {
+   "k": "R",
+   "nombre": "Ruta 9 · Av. Córdoba",
+   "comercios": 134,
+   "libres": 4,
+   "perfil": "Hogar y obra, gastronomía, almacén",
+   "nota": "Corredor de paso y de auto. Rinde lo que se compra en auto: materiales, autos, grandes superficies. Casi no tiene peluquerías ni veterinarias."
+  },
+  {
+   "k": "F",
+   "nombre": "Fuerza Aérea / Illia",
+   "comercios": 111,
+   "libres": 7,
+   "perfil": "Gastronomía, almacén, hogar",
+   "nota": "Crece hacia el este con Vida Multiespacio y el polo nuevo frente a Vida Jardín. Le faltan farmacia, lavandería y salud."
+  },
+  {
+   "k": "Y",
+   "nombre": "Hipólito Yrigoyen",
+   "comercios": 61,
+   "libres": 4,
+   "perfil": "Gastronomía, almacén, belleza",
+   "nota": "Eje de barrio norte–sur, fuera del Centro. No tiene farmacias ni veterinarias: muy bueno para servicios de cercanía."
+  },
+  {
+   "k": "G",
+   "nombre": "Galindo",
+   "comercios": 16,
+   "libres": 0,
+   "perfil": "Salud, hogar y gastronomía",
+   "nota": "Todavía poco desarrollada. El primero que llegue con servicios de barrio no tiene competencia."
+  },
+  {
+   "k": "C",
+   "nombre": "Polo Calmo",
+   "comercios": 0,
+   "libres": 0,
+   "perfil": "En desarrollo",
+   "nota": "Loteo comercial nuevo junto a la autopista, con La Gallega anunciada. Va a mover mucho la zona sur: hay que seguirlo mes a mes."
+  },
+  {
+   "k": "V",
+   "nombre": "Vida Multiespacio",
+   "comercios": 12,
+   "libres": 0,
+   "perfil": "Almacén, autos, gastronomía",
+   "nota": "Paseo chico con perfil de servicios para los barrios cerrados del este."
+  }
+ ],
+ "viene": [
+  {
+   "nombre": "La Gallega (supermercado)",
+   "zona": "Polo Calmo",
+   "estado": "Próxima apertura",
+   "nota": "Anunciada en abril de 2025. Confirmar fecha."
+  },
+  {
+   "nombre": "Polo comercial de 8 locales",
+   "zona": "Fuerza Aérea, frente a Vida Jardín",
+   "estado": "En obra",
+   "nota": "Locales de 80 m², los comercializa RCF Inmobiliaria."
+  }
+ ],
+ "verificar": [
+  "Caminar Yrigoyen y Galindo para confirmar si de verdad no hay veterinarias.",
+  "Consultorios y bancos suelen faltar en el mapa de base: confirmarlos antes de dar la falta por segura.",
+  "Marcar en el mapa los carteles de \"Próximamente\" y de \"Se alquila\" que aparezcan este mes."
+ ],
+ "supuestos": "Población: Censo 2022 (38.274 habitantes) con un crecimiento del 4,1% anual, que es el ritmo de 2010 a 2022. Se compara con una ciudad argentina promedio, con un poder de compra de 1,5 veces el promedio del país y con el 70% del comercio sobre estas avenidas y polos. Comercios: base OpenStreetMap depurada (solo comercios con nombre, frentistas a la avenida o dentro de los polos, sin duplicados, sin oficinas públicas ni cajeros) más lo que carga el equipo."
+}

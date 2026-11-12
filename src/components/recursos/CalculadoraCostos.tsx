@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { Download } from 'lucide-react'
 import { events } from '@/lib/analytics'
 import {
@@ -45,7 +44,7 @@ function Toggle<T extends string>({
       className="grid gap-1.5 p-1 rounded-lg"
       style={{
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        background: '#FAFAF7',
+        background: 'var(--theme-surface-soft, #FAFAF7)',
         border: '1px solid var(--line)',
       }}
     >
@@ -150,7 +149,7 @@ function NumInput({
     <div
       className="flex items-center rounded-lg transition-all focus-within:bg-white"
       style={{
-        background: '#FAFAF7',
+        background: 'var(--theme-surface-soft, #FAFAF7)',
         border: '1px solid var(--line)',
       }}
     >
@@ -195,8 +194,6 @@ function Flash({ value, children }: { value: string | number; children: React.Re
 
 // ── Componente principal ─────────────────────────────────────────────────
 export default function CalculadoraCostos() {
-  const searchParams = useSearchParams()
-
   const [moneda, setMoneda] = useState<Moneda>('ARS')
   const [tipo, setTipo] = useState<Tipo>('vivienda')
   const [frecuencia, setFrecuencia] = useState<Frecuencia>('cuatrimestral')
@@ -215,6 +212,8 @@ export default function CalculadoraCostos() {
   const [incluirAdmin, setIncluirAdmin] = useState<boolean>(true)
   // Forma de pago de honorarios: 3 cuotas (default) o 1 pago al ingreso.
   const [formaPago, setFormaPago] = useState<FormaPagoHonorarios>('3cuotas')
+  // Factura A: el alquiler mensual suma IVA (21%). Query ?factura=A.
+  const [facturaA, setFacturaA] = useState<boolean>(false)
   const [advancedOpen, setAdvancedOpen] = useState<boolean>(false)
   // Toast inline para feedback de "Compartir cálculo".
   const [toast, setToast] = useState<string | null>(null)
@@ -229,8 +228,11 @@ export default function CalculadoraCostos() {
 
   // Prefill desde query params (ej. cuando alguien comparte el link de la
   // calculadora ya cargada). Solo se aplica al mount; cambios posteriores del
-  // usuario no se sobrescriben.
+  // usuario no se sobrescriben. Se lee de window.location y no con
+  // useSearchParams: ese hook sacaba la calculadora del HTML (se dibujaba recién
+  // en el navegador, Google veía solo el título y el pie saltaba: CLS 0,5).
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
     const qMoneda = searchParams?.get('moneda')
     const qTipo = searchParams?.get('tipo')
     const qAlquiler = searchParams?.get('alquiler')
@@ -268,6 +270,7 @@ export default function CalculadoraCostos() {
     if (searchParams?.get('admin') === 'no' || searchParams?.get('sinAdmin') === '1') setIncluirAdmin(false)
     // Forma de pago de honorarios: ?pago=1pago. Legacy: ?honoCuotas=1.
     if (searchParams?.get('pago') === '1pago' || searchParams?.get('honoCuotas') === '1') setFormaPago('1pago')
+    if (searchParams?.get('factura') === 'A') setFacturaA(true)
     // Prefill intencionalmente solo-mount; no sobrescribir cambios manuales.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -306,8 +309,8 @@ export default function CalculadoraCostos() {
 
   // ── Cálculo principal ──────────────────────────────────────────────────
   const c = useMemo(
-    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago }),
-    [alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPago],
+    () => calcularCostosIngreso({ alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPagoHonorarios: formaPago, facturaA }),
+    [alquiler, meses, moneda, tipo, cotizacion, incluirAdmin, formaPago, facturaA],
   )
 
   // Total al ingresar — separado por moneda
@@ -322,10 +325,11 @@ export default function CalculadoraCostos() {
   // Con pago único, los honorarios van completos en el Mes 1: los meses 2 y 3 ya
   // no suman cuota (quedan como el Mes 4: solo alquiler + admin).
   const honoMes23 = c.honoEnMes23
-  const mes23Usd = moneda === 'USD' ? alquiler + honoMes23 + c.admin : 0
-  const mes23Ars = moneda === 'USD' ? 0 : alquiler + honoMes23 + c.admin
-  const mes4Usd = moneda === 'USD' ? alquiler + c.admin : 0
-  const mes4Ars = moneda === 'USD' ? 0 : alquiler + c.admin
+  const alqMes = c.alquilerMensual
+  const mes23Usd = moneda === 'USD' ? alqMes + honoMes23 + c.admin : 0
+  const mes23Ars = moneda === 'USD' ? 0 : alqMes + honoMes23 + c.admin
+  const mes4Usd = moneda === 'USD' ? alqMes + c.admin : 0
+  const mes4Ars = moneda === 'USD' ? 0 : alqMes + c.admin
 
   // ── Descarga PDF — abre la planilla en nueva pestaña y dispara print() ─
   // El browser muestra el diálogo nativo de impresión donde el usuario elige
@@ -343,6 +347,7 @@ export default function CalculadoraCostos() {
       cotizacion: String(cotizacion),
       pago: formaPago,
       admin: incluirAdmin ? 'incluir' : 'no',
+      ...(facturaA ? { factura: 'A' } : {}),
     })
     window.open(
       `/recursos/calculadora-alquiler/planilla?${params.toString()}`,
@@ -366,6 +371,7 @@ export default function CalculadoraCostos() {
       indice,
       pago: formaPago,
       admin: incluirAdmin ? 'incluir' : 'no',
+      ...(facturaA ? { factura: 'A' } : {}),
     })
     const url = `${window.location.origin}/recursos/calculadora-alquiler?${params.toString()}`
 
@@ -397,6 +403,7 @@ export default function CalculadoraCostos() {
   const tipoLabel = tipo === 'vivienda' ? 'Vivienda' : 'Comercio'
   // Sufijo de admin en el detalle del cronograma — vacío si no se incluye admin.
   const adminLabel = incluirAdmin ? ' + admin' : ''
+  const alquilerLabel = facturaA ? 'alquiler + IVA' : 'alquiler'
   const ajusteSubtitulo =
     moneda === 'USD'
       ? 'Consultar ajuste anual. Los contratos en dólares tienen un solo ajuste al año.'
@@ -471,7 +478,7 @@ export default function CalculadoraCostos() {
   return (
     <div
       className="min-h-screen"
-      style={{ background: '#FAFAF7' }}
+      style={{ background: 'var(--theme-surface-soft, #FAFAF7)' }}
     >
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes recursosFlash {
@@ -503,7 +510,7 @@ export default function CalculadoraCostos() {
         {/* ── HERO ── */}
         <header className="mb-7">
           <div className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[1.4px] mb-3"
-               style={{ color: 'var(--si-green)' }}>
+               style={{ color: 'var(--theme-accent, var(--si-green))' }}>
             <span
               aria-hidden
               className="w-2 h-2 rounded-full animate-pulse-slow"
@@ -520,7 +527,7 @@ export default function CalculadoraCostos() {
         {/* ── CONFIG CARD ── */}
         <section
           className="rounded-2xl p-6 mb-4 shadow-sm"
-          style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
         >
           <div className="mb-4">
             <Label>Moneda</Label>
@@ -578,7 +585,7 @@ export default function CalculadoraCostos() {
           ) : (
             <div
               className="rounded-lg px-4 py-3 mb-4 text-[13px] leading-relaxed"
-              style={{ background: 'var(--si-green-tint)', color: 'var(--si-green-dark)' }}
+              style={{ background: 'var(--theme-tint, var(--si-green-tint))', color: 'var(--theme-accent, var(--si-green-dark))' }}
             >
               <strong className="block uppercase tracking-[0.6px] text-[11px] mb-1">
                 Ajuste anual
@@ -618,7 +625,7 @@ export default function CalculadoraCostos() {
               className="grid gap-1.5 p-1 rounded-lg"
               style={{
                 gridTemplateColumns: 'repeat(3, 1fr)',
-                background: '#FAFAF7',
+                background: 'var(--theme-surface-soft, #FAFAF7)',
                 border: '1px solid var(--line)',
               }}
             >
@@ -711,6 +718,25 @@ export default function CalculadoraCostos() {
               </p>
             </div>
 
+            {/* Factura A — IVA sobre el alquiler */}
+            <div className="mt-4">
+              <Label>Factura del alquiler</Label>
+              <Toggle<'sin' | 'A'>
+                cols={2}
+                value={facturaA ? 'A' : 'sin'}
+                onChange={(v) => setFacturaA(v === 'A')}
+                options={[
+                  { value: 'sin', label: 'Sin IVA' },
+                  { value: 'A', label: 'Factura A (+IVA)' },
+                ]}
+              />
+              <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
+                {facturaA
+                  ? 'Se suma 21% de IVA al alquiler de cada mes. Honorarios y depósito se calculan sobre el alquiler sin IVA.'
+                  : 'Elegí "Factura A" si el propietario factura el alquiler con IVA (habitual en comercios).'}
+              </p>
+            </div>
+
             {/* Cotización */}
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
@@ -718,7 +744,7 @@ export default function CalculadoraCostos() {
                 <NumInput
                   id="cotizacion"
                   value={cotizacion}
-                  onChange={n => setCotizacion(n > 0 ? n : 1)}
+                  onChange={n => { if (n > 0) setCotizacion(n) }} // vacío mientras se edita: conserva la cotización anterior (antes saltaba a 1)
                   prefix="$"
                 />
                 <p className="text-[12px] mt-1.5" style={{ color: 'var(--tinta-mute)' }}>
@@ -733,15 +759,15 @@ export default function CalculadoraCostos() {
         {alquiler === 0 && (
           <section
             className="rounded-2xl p-7 mb-4 text-center recursos-fadein"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <div
               aria-hidden
               className="mx-auto mb-3 flex items-center justify-center rounded-full"
               style={{
                 width: 52, height: 52,
-                background: 'var(--si-green-tint)',
-                color: 'var(--si-green)',
+                background: 'var(--theme-tint, var(--si-green-tint))',
+                color: 'var(--theme-accent, var(--si-green))',
               }}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -757,7 +783,7 @@ export default function CalculadoraCostos() {
             </div>
             <div
               className="text-[11px] font-bold uppercase tracking-[1.6px] mb-2"
-              style={{ color: 'var(--si-green)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))' }}
             >
               Para empezar
             </div>
@@ -783,16 +809,16 @@ export default function CalculadoraCostos() {
           {/* DESGLOSE — card unificada: filas + línea separadora + total al final */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <h2
               className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-2 pb-2.5"
-              style={{ color: 'var(--si-green)', borderBottom: '1px solid var(--line)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))', borderBottom: '1px solid var(--line)' }}
             >
               Costos al ingresar — desglose
             </h2>
             <div>
-              <DesgloseRow label="PRIMER MES" value={fmt(alquiler, moneda)} />
+              <DesgloseRow label={facturaA ? 'PRIMER MES + IVA' : 'PRIMER MES'} value={fmt(c.alquilerMensual, moneda)} />
               <DesgloseRow
                 label={`HONORARIOS ${c.honoMes1Label}`}
                 value={fmt(c.honoEnMes1, moneda)}
@@ -926,38 +952,38 @@ export default function CalculadoraCostos() {
           {/* TIMELINE */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <h2
               className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-3.5 pb-2.5"
-              style={{ color: 'var(--si-green)', borderBottom: '1px solid var(--line)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))', borderBottom: '1px solid var(--line)' }}
             >
               Cronograma estimado
             </h2>
 
             <TimelineRow
               title="Mes 1 — al ingresar"
-              detail={`alquiler + ${honoMes1Label} + sellado + verificación${adminLabel}`}
+              detail={`${alquilerLabel} + ${honoMes1Label} + sellado + verificación${adminLabel}`}
             >
               <MesValor usd={mes1Usd} ars={mes1Ars} />
             </TimelineRow>
 
             {c.mostrarMeses23 ? (
               <>
-                <TimelineRow title="Mes 2" detail={`alquiler + 2ª cuota honorarios${adminLabel}`}>
+                <TimelineRow title="Mes 2" detail={`${alquilerLabel} + 2ª cuota honorarios${adminLabel}`}>
                   <MesValor usd={mes23Usd} ars={mes23Ars} />
                 </TimelineRow>
 
-                <TimelineRow title="Mes 3" detail={`alquiler + 3ª cuota honorarios${adminLabel}`}>
+                <TimelineRow title="Mes 3" detail={`${alquilerLabel} + 3ª cuota honorarios${adminLabel}`}>
                   <MesValor usd={mes23Usd} ars={mes23Ars} />
                 </TimelineRow>
 
-                <TimelineRow title="Mes 4 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
+                <TimelineRow title="Mes 4 en adelante" detail={`${alquilerLabel}${adminLabel} · ${ajusteSubtitulo}`} last>
                   <MesValor usd={mes4Usd} ars={mes4Ars} />
                 </TimelineRow>
               </>
             ) : (
-              <TimelineRow title="Mes 2 en adelante" detail={`alquiler${adminLabel} · ${ajusteSubtitulo}`} last>
+              <TimelineRow title="Mes 2 en adelante" detail={`${alquilerLabel}${adminLabel} · ${ajusteSubtitulo}`} last>
                 <MesValor usd={mes4Usd} ars={mes4Ars} />
               </TimelineRow>
             )}
@@ -966,11 +992,11 @@ export default function CalculadoraCostos() {
           {/* ── CTA DESCARGAR + COMPARTIR — botonera compacta dual ──────────── */}
           <section
             className="rounded-2xl px-6 py-4 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <div
               className="text-[10px] font-bold uppercase tracking-[1.6px] mb-3"
-              style={{ color: 'var(--si-green)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))' }}
             >
               Planilla de costos · PDF A4
             </div>
@@ -1023,8 +1049,8 @@ export default function CalculadoraCostos() {
                 aria-label="Compartir el cálculo por link o app nativa"
                 className="group relative text-left rounded-xl px-4 py-3 overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
                 style={{
-                  background: '#FFFFFF',
-                  color: 'var(--si-green)',
+                  background: 'var(--theme-surface, #FFFFFF)',
+                  color: 'var(--theme-accent, var(--si-green))',
                   border: '1.5px solid var(--si-green)',
                 }}
               >
@@ -1035,9 +1061,9 @@ export default function CalculadoraCostos() {
                     style={{
                       width: 44,
                       height: 44,
-                      background: 'var(--si-green-tint)',
+                      background: 'var(--theme-tint, var(--si-green-tint))',
                       border: '1px solid var(--si-green)',
-                      color: 'var(--si-green)',
+                      color: 'var(--theme-accent, var(--si-green))',
                     }}
                   >
                     {/* SVG inline (no lucide): cuadrado con flecha hacia arriba — share */}
@@ -1069,11 +1095,11 @@ export default function CalculadoraCostos() {
           {/* GARANTÍAS QUE NECESITÁS */}
           <section
             className="rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-            style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+            style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
           >
             <h3
               className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-3"
-              style={{ color: 'var(--si-green)' }}
+              style={{ color: 'var(--theme-accent, var(--si-green))' }}
             >
               Garantías que necesitás — opción 1 ó 2
             </h3>
@@ -1093,7 +1119,7 @@ export default function CalculadoraCostos() {
           <section className="mb-4 grid gap-3">
             <div
               className="rounded-2xl px-5 py-4 text-[13px] leading-relaxed"
-              style={{ background: 'var(--si-green-tint)', color: 'var(--si-green-dark)' }}
+              style={{ background: 'var(--theme-tint, var(--si-green-tint))', color: 'var(--theme-accent, var(--si-green-dark))' }}
             >
               <strong className="block font-bold uppercase text-[11px] tracking-[0.8px] mb-1">
                 Impuestos a cargo del locatario
@@ -1103,13 +1129,13 @@ export default function CalculadoraCostos() {
             <div
               className="rounded-2xl px-5 py-4 text-[13px] leading-relaxed"
               style={{
-                background: '#FFF8E6',
+                background: 'var(--theme-warning-surface, #FFF8E6)',
                 borderLeft: '3px solid #D4A93B',
-                color: '#6B5316',
+                color: 'var(--theme-warning-ink, #6B5316)',
               }}
             >
               <strong className="block font-bold uppercase text-[11px] tracking-[0.8px] mb-1"
-                      style={{ color: '#4A3A0F' }}>
+                      style={{ color: 'var(--theme-warning-ink, #4A3A0F)' }}>
                 Importante — seguro obligatorio
               </strong>
               Al ingresar, el locatario debe contar con seguro contra incendio,
@@ -1125,11 +1151,11 @@ export default function CalculadoraCostos() {
         {/* FAQ */}
         <section
           className="recursos-faq rounded-2xl p-5 sm:p-6 mb-4 shadow-sm"
-          style={{ background: '#FFFFFF', border: '1px solid var(--line)' }}
+          style={{ background: 'var(--theme-surface, #FFFFFF)', border: '1px solid var(--line)' }}
         >
           <h2
             className="font-bold text-[11px] uppercase tracking-[1.5px] m-0 mb-2"
-            style={{ color: 'var(--si-green)' }}
+            style={{ color: 'var(--theme-accent, var(--si-green))' }}
           >
             Dudas frecuentes
           </h2>
@@ -1306,7 +1332,7 @@ function GarantiaNum({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="flex-shrink-0 w-6 h-6 rounded-full font-poppins font-bold text-[12px] flex items-center justify-center mt-0.5"
-      style={{ background: 'var(--si-green-tint)', color: 'var(--si-green)' }}
+      style={{ background: 'var(--theme-tint, var(--si-green-tint))', color: 'var(--theme-accent, var(--si-green))' }}
     >
       {children}
     </span>

@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-const R = "'Raleway', system-ui, sans-serif"
+const R = "var(--font-raleway, 'Raleway'), system-ui, sans-serif"
 
 export default function FichasLayout({ children }: { children: React.ReactNode }) {
   return (

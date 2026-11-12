@@ -26,7 +26,9 @@ export async function GET(
     const result = await getPropiedadesByBarrio(params.slug, tipo)
     return NextResponse.json(result, {
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        // Corto a propósito: el dato ya viene del Data Cache que HILO invalida
+        // en cada venta; con 1 h de CDN una vendida seguía "disponible".
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
       },
     })
   } catch (err) {

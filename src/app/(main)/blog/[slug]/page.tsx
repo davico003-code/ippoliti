@@ -1,10 +1,17 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
+import type { ReactNode } from 'react'
+import Image from '@/components/Imagen'
 import Link from 'next/link'
 import { Calendar, ArrowLeft, ExternalLink, User, Clock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug, resolveCategory, readingMinutes } from '@/lib/blog'
+import { notasRelacionadas } from '@/lib/notas-relacionadas'
+import { zonasMencionadas } from '@/lib/zonas-links'
 import { resolveBlogImage, BLOG_IMAGES } from '@/lib/blog-images'
+import { cierreDeNota, WHATSAPP_BLOG } from '@/lib/blog-cta'
+import BurbujaDavid from '@/components/BurbujaDavid'
+import CompartirPagina from '@/components/CompartirPagina'
+import { recortarDescripcion, tituloConMarca } from '@/lib/seo/metas'
 
 // Regenerar cada hora: una nota programada deja de dar 404 sola al llegar
 // su fecha, sin depender del revalidate on-demand.
@@ -33,8 +40,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : `https://siinmobiliaria.com${resolved}`
 
   return {
-    title: `${post.title} | Blog SI INMOBILIARIA`,
-    description: post.summary,
+    title: tituloConMarca(post.title),
+    description: recortarDescripcion(post.summary),
     alternates: { canonical: url },
     openGraph: {
       title: post.title,
@@ -52,6 +59,137 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [ogImage],
     },
   }
+}
+
+// ── Markdown liviano del cuerpo ───────────────────────────────────────────
+// Las notas del writer y las reescritas (oct-2026) vienen en markdown: listas,
+// citas, **negritas** y [links](/ruta). Las 10 estáticas viejas son texto
+// plano. Antes todo se pintaba como texto: se veían los asteriscos y los
+// corchetes, las listas quedaban pegadas en un renglón y la frase que presenta
+// una lista ("…es esto:") salía como subtítulo. Se arma con nodos de React
+// (sin dangerouslySetInnerHTML): solo negrita, cursiva, links y saltos de línea.
+
+type Bloque =
+  | { tipo: 'titulo'; nivel: 2 | 3; texto: string }
+  | { tipo: 'imagen'; alt: string; src: string }
+  | { tipo: 'lista'; ordenada: boolean; items: string[] }
+  | { tipo: 'cita'; texto: string }
+  | { tipo: 'parrafo'; texto: string }
+
+const RE_TITULO = /^(#{2,3})\s+(.+?)\s*#*$/
+const RE_IMAGEN = /^!\[([^\]]*)\]\(([^)\s]+)\)$/
+const RE_ITEM = /^\s*(?:([-*•])|(\d+)[.)])\s+/
+const RE_CITA = /^\s*>\s?/
+
+// Heurística de subtítulo SOLO para las estáticas (texto plano): línea corta
+// que arranca en mayúscula, sin punto y sin coma.
+const pareceTitulo = (p: string) =>
+  /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
+
+function bloquesDeNota(content: string): Bloque[] {
+  const esMarkdown = /^#{2,3}\s/m.test(content)
+  const bloques: Bloque[] = []
+  for (const crudo of content.split(/\n\s*\n/)) {
+    const trimmed = crudo.trim()
+    if (!trimmed) continue
+    const img = trimmed.match(RE_IMAGEN)
+    if (img) {
+      bloques.push({ tipo: 'imagen', alt: img[1].trim(), src: img[2].trim() })
+      continue
+    }
+    if (!esMarkdown) {
+      bloques.push(pareceTitulo(trimmed) ? { tipo: 'titulo', nivel: 2, texto: trimmed } : { tipo: 'parrafo', texto: trimmed })
+      continue
+    }
+    let actual: Bloque | null = null
+    for (const linea of crudo.split('\n')) {
+      const l = linea.trim()
+      if (!l) continue
+      const titulo = l.match(RE_TITULO)
+      const item = l.match(RE_ITEM)
+      if (titulo) {
+        if (actual) bloques.push(actual)
+        actual = null
+        bloques.push({ tipo: 'titulo', nivel: titulo[1].length === 3 ? 3 : 2, texto: titulo[2] })
+      } else if (item) {
+        const ordenada = item[2] !== undefined
+        const texto = l.slice(item[0].trim().length).trim()
+        if (actual?.tipo === 'lista' && actual.ordenada === ordenada) actual.items.push(texto)
+        else {
+          if (actual) bloques.push(actual)
+          actual = { tipo: 'lista', ordenada, items: [texto] }
+        }
+      } else if (RE_CITA.test(l)) {
+        const texto = l.replace(RE_CITA, '')
+        if (actual?.tipo === 'cita') actual.texto += `\n${texto}`
+        else {
+          if (actual) bloques.push(actual)
+          actual = { tipo: 'cita', texto }
+        }
+      } else if (actual?.tipo === 'lista' && /^\s{2,}\S/.test(linea)) {
+        // Continuación con sangría de un ítem de la lista.
+        actual.items[actual.items.length - 1] += ` ${l}`
+      } else if (actual?.tipo === 'parrafo') {
+        actual.texto += `\n${l}`
+      } else {
+        if (actual) bloques.push(actual)
+        actual = { tipo: 'parrafo', texto: l }
+      }
+    }
+    if (actual) bloques.push(actual)
+  }
+  return bloques
+}
+
+// [texto](link) · **negrita** · *cursiva* · salto de línea
+const RE_EN_LINEA = /\[([^\]]+)\]\(([^)\s]+)\)|\*\*(.+?)\*\*|(?<![\w*])\*(?![\s*])([^*]+?)(?<!\s)\*(?![\w*])|\n/g
+const CLASE_LINK =
+  'font-semibold text-[#1A5C38] underline decoration-[#1A5C38]/30 underline-offset-[3px] transition-colors hover:decoration-[#1A5C38]'
+
+function Enlace({ href, children }: { href: string; children: ReactNode }) {
+  if (href.startsWith('/') && !href.startsWith('//')) {
+    return (
+      <Link href={href} className={CLASE_LINK}>
+        {children}
+      </Link>
+    )
+  }
+  if (/^https?:\/\//i.test(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={CLASE_LINK}>
+        {children}
+      </a>
+    )
+  }
+  return <>{children}</> // otro esquema (javascript:, etc.): solo el texto
+}
+
+function enLinea(texto: string): ReactNode[] {
+  const nodos: ReactNode[] = []
+  let desde = 0
+  let k = 0
+  for (const m of Array.from(texto.matchAll(RE_EN_LINEA))) {
+    const i = m.index ?? 0
+    if (i > desde) nodos.push(texto.slice(desde, i))
+    if (m[1] !== undefined) nodos.push(<Enlace key={k++} href={m[2]}>{enLinea(m[1])}</Enlace>)
+    else if (m[3] !== undefined) nodos.push(<strong key={k++} className="font-bold text-gray-900">{enLinea(m[3])}</strong>)
+    else if (m[4] !== undefined) nodos.push(<em key={k++}>{enLinea(m[4])}</em>)
+    else nodos.push(<br key={k++} />)
+    desde = i + m[0].length
+  }
+  if (desde < texto.length) nodos.push(texto.slice(desde))
+  return nodos
+}
+
+// Para el JSON-LD: el texto sin la sintaxis de markdown.
+function sinMarkdown(texto: string): string {
+  return texto
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\*\*/g, '')
+    .replace(/^\s*(?:[-*•]|\d+[.)])\s+/gm, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 // ── FAQ → FAQPage schema (GEO) ────────────────────────────────────────────
@@ -88,8 +226,8 @@ function extraerFaq(content: string): Record<string, unknown> | null {
     '@type': 'FAQPage',
     mainEntity: qas.map(({ q, a }) => ({
       '@type': 'Question',
-      name: q,
-      acceptedAnswer: { '@type': 'Answer', text: a },
+      name: sinMarkdown(q),
+      acceptedAnswer: { '@type': 'Answer', text: sinMarkdown(a) },
     })),
   }
 }
@@ -106,10 +244,11 @@ export default async function BlogPostPage({ params }: Props) {
   // relacionados sean consistentes con lo que el usuario vio en /blog.
   const category = resolveCategory(post.slug, post.category)
   const allPosts = await getAllPosts()
-  const related = allPosts
-    .filter(p => p.slug !== post.slug)
-    .filter(p => resolveCategory(p.slug, p.category) === category)
-    .slice(0, 3)
+  // Tres notas relacionadas, repartidas para que TODAS reciban links (antes
+  // eran siempre las 3 más nuevas de la categoría: ver lib/notas-relacionadas).
+  const related = notasRelacionadas(post.slug, allPosts, p => resolveCategory(p.slug, p.category))
+  // Las páginas de barrio y localidad que la nota menciona.
+  const zonas = zonasMencionadas(`${post.title} ${post.content}`)
 
   const isDavidFlores = post.author?.toLowerCase().includes('david flores') ?? false
   const authorName = isDavidFlores ? 'David Flores' : post.author || 'SI INMOBILIARIA'
@@ -118,6 +257,7 @@ export default async function BlogPostPage({ params }: Props) {
     : 'https://siinmobiliaria.com/nosotros'
   const heroImage = resolveBlogImage(post.slug, post.image, post.hasImageOverride)
   const minutos = readingMinutes(post.content)
+  const cierre = cierreDeNota(post.slug, post.title)
   // Si la imagen viene del mapa curado, la atribución propia del post ya no
   // corresponde (reemplazamos la foto original).
   const usaImagenCurada = post.hasImageOverride || Boolean(BLOG_IMAGES[post.slug])
@@ -165,7 +305,9 @@ export default async function BlogPostPage({ params }: Props) {
   const faq = extraerFaq(post.content)
   const jsonLdNodes = faq ? [jsonLd, faq] : [jsonLd]
 
-  const paragraphs = post.content.split('\n\n').filter(p => p.trim())
+  const bloques = bloquesDeNota(post.content)
+  // Capitular solo en el primer párrafo real y si arranca con letra.
+  const primerParrafo = bloques.findIndex(b => b.tipo === 'parrafo')
 
   return (
     <div className="min-h-screen bg-white">
@@ -214,6 +356,16 @@ export default async function BlogPostPage({ params }: Props) {
                 {minutos} min de lectura
               </span>
             </div>
+            {/* Compartir arriba, junto al título: quien llega desde un grupo de
+                WhatsApp la reenvía sin tener que copiar la URL (botón client,
+                la nota sigue siendo ISR). */}
+            <CompartirPagina
+              titulo={post.title}
+              ruta={`/blog/${post.slug}`}
+              contexto="blog"
+              variante="sobreFoto"
+              className="mt-5"
+            />
           </div>
         </div>
       </header>
@@ -224,14 +376,26 @@ export default async function BlogPostPage({ params }: Props) {
           {/* Author + source */}
           <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#1A5C38] flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-white" />
-              </div>
+              {isDavidFlores ? (
+                <Image
+                  src="/team/david-flores-v2.jpg"
+                  alt="David Flores"
+                  width={44}
+                  height={44}
+                  className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-[#1A5C38] flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div>
                 <Link href={authorUrl.replace('https://siinmobiliaria.com', '') || '/'} className="text-sm font-bold text-gray-900 hover:text-[#1A5C38] hover:underline">
                   {authorName}
                 </Link>
-                <p className="text-xs text-gray-400">{post.dateDisplay}</p>
+                <p className="text-xs text-gray-500">
+                  {isDavidFlores ? 'Corredor inmobiliario · matrícula N° 0621' : 'Funes · Roldán · Rosario'}
+                </p>
               </div>
             </div>
             {post.source !== 'SI INMOBILIARIA' && post.source !== 'SI Inmobiliaria' && (
@@ -244,74 +408,87 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Content */}
           <div className="space-y-6">
-            {(() => {
-              // Heurística conservadora de subtítulo (el content es texto plano
-              // sin marcado): línea corta que arranca en mayúscula, sin punto y
-              // sin coma. Exigir "sin coma" y menos de 70 chars evita marcar
-              // frases cortas de prosa como h2. Sigue siendo inferencia.
-              const looksHeading = (p: string) =>
-                /^[A-ZÁÉÍÓÚÑ¿¡]/.test(p) && p.length < 70 && !p.includes('.') && !p.includes(',')
-              const getMarkdownImage = (p: string) => {
-                const match = p.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/)
-                if (!match) return null
-                return { alt: match[1].trim(), src: match[2].trim() }
-              }
-              const isRenderableText = (p: string) => !looksHeading(p) && !getMarkdownImage(p)
-              const firstParaIdx = paragraphs.findIndex(isRenderableText)
-              return paragraphs.map((paragraph, i) => {
-                const trimmed = paragraph.trim()
-                const inlineImage = getMarkdownImage(trimmed)
-                if (inlineImage) {
-                  const alt = inlineImage.alt || post.title
-                  return (
-                    <figure
-                      key={i}
-                      className="my-10 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
-                    >
-                      <div className="relative aspect-[4/3] w-full">
-                        <Image
-                          src={inlineImage.src}
-                          alt={alt}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 768px"
-                          className="object-cover"
-                        />
-                      </div>
-                      {inlineImage.alt && (
-                        <figcaption className="px-4 py-3 text-sm leading-relaxed text-gray-500">
-                          {inlineImage.alt}
-                        </figcaption>
-                      )}
-                    </figure>
-                  )
-                }
-
-                const markdownHeading = trimmed.match(/^#{2,3}\s+(.+)$/)
-                const isHeading = Boolean(markdownHeading) || looksHeading(trimmed)
-                if (isHeading) {
-                  return (
-                    <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
-                      {markdownHeading ? markdownHeading[1] : trimmed}
-                    </h2>
-                  )
-                }
-                // Capitular solo en el primer párrafo real y si arranca con letra.
-                const dropCap = i === firstParaIdx && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(trimmed)
+            {bloques.map((bloque, i) => {
+              if (bloque.tipo === 'imagen') {
+                const alt = bloque.alt || post.title
                 return (
-                  <p
+                  <figure
                     key={i}
-                    className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
-                      dropCap
-                        ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
-                      : ''
-                    }`}
+                    className="my-10 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
                   >
-                    {trimmed}
-                  </p>
+                    <div className="relative aspect-[4/3] w-full">
+                      <Image
+                        src={bloque.src}
+                        alt={alt}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 768px"
+                        className="object-cover"
+                      />
+                    </div>
+                    {bloque.alt && (
+                      <figcaption className="px-4 py-3 text-sm leading-relaxed text-gray-500">
+                        {bloque.alt}
+                      </figcaption>
+                    )}
+                  </figure>
                 )
-              })
-            })()}
+              }
+              if (bloque.tipo === 'titulo') {
+                return bloque.nivel === 3 ? (
+                  <h3 key={i} className="mb-1 mt-8 text-xl font-bold leading-snug text-gray-900">
+                    {enLinea(bloque.texto)}
+                  </h3>
+                ) : (
+                  <h2 key={i} className="mb-2 mt-12 text-[1.6rem] font-black leading-tight tracking-tight text-gray-900">
+                    {enLinea(bloque.texto)}
+                  </h2>
+                )
+              }
+              if (bloque.tipo === 'lista') {
+                const Lista = bloque.ordenada ? 'ol' : 'ul'
+                return (
+                  <Lista
+                    key={i}
+                    className={`${bloque.ordenada ? 'list-decimal' : 'list-disc'} space-y-2 pl-6 text-[17px] leading-[1.8] text-gray-700 marker:text-[#1A5C38] md:text-lg`}
+                  >
+                    {bloque.items.map((item, j) => (
+                      <li key={j} className="pl-1">
+                        {enLinea(item)}
+                      </li>
+                    ))}
+                  </Lista>
+                )
+              }
+              if (bloque.tipo === 'cita') {
+                return (
+                  <blockquote
+                    key={i}
+                    className="border-l-4 border-[#1A5C38]/40 pl-5 text-[17px] italic leading-[1.8] text-gray-600 md:text-lg"
+                  >
+                    {enLinea(bloque.texto)}
+                  </blockquote>
+                )
+              }
+              const dropCap = i === primerParrafo && /^[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(bloque.texto)
+              return (
+                <p
+                  key={i}
+                  className={`text-[17px] leading-[1.8] text-gray-700 md:text-lg ${
+                    dropCap
+                      ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[3.4rem] first-letter:font-black first-letter:leading-[0.8] first-letter:text-[#1A5C38]'
+                    : ''
+                  }`}
+                >
+                  {enLinea(bloque.texto)}
+                </p>
+              )
+            })}
           </div>
+
+          {/* ── Crédito de la portada (medios locales / Wikimedia / municipios) ── */}
+          {usaImagenCurada && post.imageCredit && (
+            <p className="text-xs text-gray-500 mt-8 italic">{post.imageCredit}</p>
+          )}
 
           {/* ── Atribución Unsplash (requisito de licencia) ── */}
           {!usaImagenCurada && post.imagen_photographer && post.imagen_photographer_url && (
@@ -337,33 +514,71 @@ export default async function BlogPostPage({ params }: Props) {
             </p>
           )}
 
-          {/* ── CTA — Apple style ── */}
-          <div className="mt-16 -mx-4 md:-mx-16 lg:-mx-24">
-            <div className="bg-[#111] rounded-3xl px-8 py-16 md:py-20 text-center">
-              <h3 className="text-3xl md:text-4xl font-light text-white leading-tight mb-4 max-w-xl mx-auto">
-                La mejor decisión comienza con la mejor asesoría.
-              </h3>
-              <p className="text-gray-400 text-base mb-10 max-w-md mx-auto">
-                Más de 40 años acompañando familias en Roldán y Funes. Hablemos sobre tu proyecto.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {/* ── Compartir al terminar de leer: es el momento en que la nota le
+              sirve a alguien más (checklists, informes, columnas). ── */}
+          <div className="mt-12 flex flex-col items-start gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[15px] font-semibold text-gray-800">¿Le sirve a alguien que conocés? Pasale la nota.</p>
+            <CompartirPagina titulo={post.title} ruta={`/blog/${post.slug}`} contexto="blog" />
+          </div>
+
+          {/* ── Cierre según el tema de la nota (lib/blog-cta.ts) ── */}
+          <div className="mt-14 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-8 md:px-10 md:py-10">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#1A5C38]">Para seguir</p>
+            <h3 className="mt-2 text-2xl md:text-3xl font-bold text-gray-900 leading-tight">{cierre.titulo}</h3>
+            <p className="mt-3 text-gray-600 text-base max-w-xl">{cierre.texto}</p>
+            {isDavidFlores && (
+              <div className="mt-5">
+                <BurbujaDavid />
+              </div>
+            )}
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              {cierre.href.startsWith('http') ? (
                 <a
-                  href="https://wa.me/5493413340916?text=Hola!%20Quiero%20consultar%20por%20una%20propiedad"
+                  href={cierre.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-8 py-3.5 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition-colors text-center"
+                  className="px-7 py-3 bg-[#1A5C38] text-white font-semibold rounded-full hover:bg-[#0F3A23] transition-colors text-center"
                 >
-                  Consultanos
+                  {cierre.boton}
                 </a>
+              ) : (
                 <Link
-                  href="/propiedades"
-                  className="px-8 py-3.5 border border-gray-600 text-white font-semibold rounded-full hover:border-gray-400 transition-colors text-center"
+                  href={cierre.href}
+                  className="px-7 py-3 bg-[#1A5C38] text-white font-semibold rounded-full hover:bg-[#0F3A23] transition-colors text-center"
                 >
-                  Ver propiedades
+                  {cierre.boton}
                 </Link>
-              </div>
+              )}
+              {!cierre.href.startsWith('http') && (
+                <a
+                  href={WHATSAPP_BLOG}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-7 py-3 border border-gray-300 text-gray-800 font-semibold rounded-full hover:border-gray-500 transition-colors text-center"
+                >
+                  {isDavidFlores ? 'Preguntarle a David' : 'Consultar por WhatsApp'}
+                </a>
+              )}
             </div>
           </div>
+
+          {/* ── ZONAS QUE MENCIONA LA NOTA ── */}
+          {zonas.length > 0 && (
+            <nav aria-label="Zonas de esta nota" className="mt-12 pt-8 border-t border-gray-100">
+              <h3 className="text-xl font-black text-gray-900 mb-4">Zonas de esta nota</h3>
+              <div className="flex flex-wrap gap-2">
+                {zonas.map(z => (
+                  <Link
+                    key={z.href}
+                    href={z.href}
+                    className="rounded-full bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-[#e7f2eb] hover:text-[#1A5C38] transition-colors"
+                  >
+                    {z.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+          )}
 
           {/* ── ARTÍCULOS RELACIONADOS ── */}
           {related.length > 0 && (

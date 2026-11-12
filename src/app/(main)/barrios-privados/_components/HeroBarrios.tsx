@@ -2,7 +2,7 @@
 // título gigante ("de Funes." en verde menta), subhead y buscador funcional.
 // El navbar global va transparente sobre este hero (ver Navbar.tsx: overHero).
 
-import Image from "next/image";
+import Image from "@/components/Imagen";
 import HeroSearchBar from "./HeroSearchBar";
 
 // Tipografía estilo Apple para el hero (SF Pro en dispositivos Apple).
