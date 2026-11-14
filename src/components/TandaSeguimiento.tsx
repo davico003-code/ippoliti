@@ -126,6 +126,8 @@ function BarraSeguimiento() {
   if (!tanda || tanda.ids.length === 0) return null
   const n = tanda.ids.length
 
+  // true = el cliente ya tenía link y las tildadas se sumaron ahí (Hilo manda nuevo:false).
+  let sumadas = false
   const pedir = async (): Promise<string> => {
     const r = await fetch('/api/agentes/seguimiento', {
       method: 'POST',
@@ -133,8 +135,9 @@ function BarraSeguimiento() {
       credentials: 'include',
       body: JSON.stringify({ cliente: cliente.trim(), ids: tanda.ids }),
     })
-    const j = (await r.json().catch(() => null)) as { url?: string; error?: string; omitidas?: number } | null
+    const j = (await r.json().catch(() => null)) as { url?: string; error?: string; omitidas?: number; nuevo?: boolean } | null
     if (!r.ok || !j?.url) throw new Error(j?.error || 'No se pudo armar el link. Probá de nuevo.')
+    sumadas = j.nuevo === false
     return j.url
   }
 
@@ -144,7 +147,12 @@ function BarraSeguimiento() {
     haptico()
     const nombre = cliente.trim()
     const listo = () => {
-      showToast(nombre ? `Link de seguimiento copiado para ${nombre}` : 'Link de seguimiento copiado')
+      showToast(
+        sumadas
+          ? `Se sumaron al link que ya tenía ${nombre}. Link copiado.`
+          : nombre ? `Link de seguimiento copiado para ${nombre}` : 'Link de seguimiento copiado',
+        { duration: sumadas ? 5000 : 3000 },
+      )
       tanda.vaciar()
       setCliente('')
     }

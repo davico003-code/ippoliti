@@ -30,12 +30,13 @@ export async function POST(req: Request) {
       cache: 'no-store',
       signal: AbortSignal.timeout(25_000),
     })
-    const j = (await res.json().catch(() => null)) as { url?: string | null; error?: string; incluidas?: number; omitidas?: number } | null
+    const j = (await res.json().catch(() => null)) as { url?: string | null; error?: string; incluidas?: number; omitidas?: number; nuevo?: boolean } | null
     if (!res.ok || !j?.url) {
       return NextResponse.json({ error: j?.error ?? 'No se pudo armar el link. Probá de nuevo.' }, { status: res.ok ? 502 : res.status })
     }
-    return NextResponse.json({ url: j.url, incluidas: j.incluidas ?? ids.length, omitidas: j.omitidas ?? 0 })
-  } catch {
+    return NextResponse.json({ url: j.url, incluidas: j.incluidas ?? ids.length, omitidas: j.omitidas ?? 0, nuevo: j.nuevo !== false })
+  } catch (e) {
+    console.error('[agentes/seguimiento] Hilo no respondió', e)
     return NextResponse.json({ error: 'Hilo no respondió. Probá de nuevo en un momento.' }, { status: 502 })
   }
 }
