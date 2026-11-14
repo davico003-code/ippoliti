@@ -16,9 +16,9 @@ export interface ProyectoDestacado {
   image: string
   /** URL sin extensión; ProjectMediaCard arma `${videoUrl}.webm` y `.mp4`. */
   videoUrl?: string
-  /** Tractor animado sobre la foto (MaquinasObra). Las rutas están trazadas
-   *  sobre ESTA `image`: si se cambia la foto, sacar el flag o retrazarlas. */
-  maquinas?: boolean
+  /** Video que se reproduce en loop sobre la foto (que queda de póster/LCP).
+   *  URL sin extensión: se arman `.webm` y `.mp4`. */
+  timelapse?: string
 }
 
 export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
@@ -32,7 +32,9 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
     // La aérea de Tokko con el color corregido y el camión del obrador integrado.
     image: '/images/distrito-roldan/portada-home-aerea.webp',
     videoUrl: '/videos/proyectos/distrito-roldan',
-    maquinas: true,
+    // Timelapse campo → calles → asfalto → casas → noche (Higgsfield, 13-nov-2026),
+    // armado SOBRE esta misma `image`: lo de afuera del predio es la foto real.
+    timelapse: '/videos/proyectos/distrito-roldan-timelapse',
   },
   {
     id: 'tierra-nueva',
