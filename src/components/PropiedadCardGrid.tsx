@@ -7,6 +7,7 @@ import PropertyShareButton from '@/components/PropertyShareButton'
 import CardMediaButtons from '@/components/CardMediaButtons'
 import FotosDeslizables from '@/components/FotosDeslizables'
 import PastillaAgenteCard from '@/components/home/PastillaAgenteCard'
+import { CasillaSeguimiento, useTandaSeguimiento } from '@/components/TandaSeguimiento'
 import { useAgentePropiedad } from '@/components/AgentesPropiedadContext'
 import { SIZES_FOTO_LISTADO, useFotosDeLaPropiedad } from '@/components/FotosExtraCards'
 import {
@@ -64,6 +65,8 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
   // En /propiedades la card llega con la portada sola y las fotos 2-5 las suma
   // FotosExtraProvider cuando la página terminó de cargar.
   const images = useFotosDeLaPropiedad(property)
+  // Asesor con sesión: casilla para sumarla a un link de seguimiento (TandaSeguimiento).
+  const conCasilla = !!useTandaSeguimiento() && !esOportunidadConsultanos(property.id)
 
   const operation = getOperationType(property)
   const price = formatPrice(property)
@@ -234,7 +237,7 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
         {/* La fila reserva el lugar de Compartir (que va afuera del link, ver
             abajo): alto de 36 y 44 px a la derecha, así el precio nunca queda
             debajo del botón. */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, minHeight: 36, paddingRight: 44 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, minHeight: 36, paddingRight: conCasilla ? 88 : 44 }}>
           {esOportunidadConsultanos(property.id) ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
               <span style={{ fontFamily: POPPINS, fontWeight: 800, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', background: '#fbce07', color: '#111', borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>
@@ -334,9 +337,10 @@ export default function PropiedadCardGrid({ property, isSelected, onClick, varia
           que cae justo en esa fila sin medir nada en JS (el área de toque de
           44+ px ya la pone el propio botón). */}
       <div
-        className="absolute z-10"
+        className="absolute z-10 flex items-center gap-2"
         style={{ top: 0, right: 2, marginTop: 'calc(56.25% + 8px)' }}
       >
+        {conCasilla && <CasillaSeguimiento propertyId={property.id} size={34} />}
         <PropertyShareButton
           propertyId={property.id}
           slug={slug}

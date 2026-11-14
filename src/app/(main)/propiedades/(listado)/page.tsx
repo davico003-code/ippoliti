@@ -4,6 +4,7 @@ import { getProperties, getPropertiesEstable, sanitizeProperty, type TokkoProper
 import { conSoloPortada, enrichCardsWithAudio, projectToCard, type PropertyCardProjection } from '@/lib/projections'
 import PropiedadesView from '@/components/PropiedadesView'
 import { FotosExtraProvider } from '@/components/FotosExtraCards'
+import { TandaSeguimientoProvider } from '@/components/TandaSeguimiento'
 import { busquedaDesdeParams, resumenBusqueda } from '@/lib/resumen-busqueda'
 import ListadoSkeleton from './loading'
 
@@ -116,7 +117,10 @@ export default async function PropiedadesPage() {
       {/* Las cards llegan con la portada sola (conSoloPortada); las fotos 2-5
           las suma el provider después del load. */}
       <FotosExtraProvider>
-        <PropiedadesView properties={projected as unknown as TokkoProperty[]} feedCaido={feedCaido} />
+        {/* Asesor con sesión: tildar varias → un link de seguimiento (TandaSeguimiento). */}
+        <TandaSeguimientoProvider>
+          <PropiedadesView properties={projected as unknown as TokkoProperty[]} feedCaido={feedCaido} />
+        </TandaSeguimientoProvider>
       </FotosExtraProvider>
     </Suspense>
   )
