@@ -1,6 +1,6 @@
 // /api/agentes/seguimiento — "Compartir varias" del listado para asesores con
 // sesión (David, 14-nov-2026: "filtran Vida Lagoon, seleccionan 3 lotes y les
-// aparece la opción de enviar en un único link"). POST { cliente, ids } →
+// aparece la opción de enviar en un único link"). POST { cliente?, ids } (nombre opcional) →
 // { url } = el LINK DE SEGUIMIENTO del cliente, que arma HILO (un solo link por
 // cliente: si ya tenía, se suman). Servidor a servidor con el secreto que ya
 // comparten (HILO_INGEST_SECRET). El middleware deja pasar /api/agentes/*: la
@@ -19,7 +19,6 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { cliente?: unknown; ids?: unknown }
   const cliente = typeof body.cliente === 'string' ? body.cliente.trim() : ''
   const ids = Array.isArray(body.ids) ? body.ids.map(String).filter((x) => /^\d{1,12}$/.test(x)) : []
-  if (cliente.length < 2) return NextResponse.json({ error: 'Poné el nombre del cliente.' }, { status: 400 })
   if (ids.length === 0) return NextResponse.json({ error: 'Tildá al menos una propiedad.' }, { status: 400 })
 
   const base = (process.env.HILO_LEADS_URL || 'https://meethilo.com').replace(/\/$/, '')

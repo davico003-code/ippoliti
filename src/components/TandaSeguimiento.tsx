@@ -7,6 +7,8 @@
 // seguimiento, que arma Hilo (/api/agentes/seguimiento): un solo link por
 // cliente, si ya tenía uno las propiedades se suman ahí. Igual que la barra
 // del listado de Hilo: nombre + copiar, sin WhatsApp (lo pega el asesor).
+// El nombre es OPCIONAL (David, 14-nov): sin nombre, Hilo crea un contacto
+// nuevo sin nombre del asesor; con nombre, se suma al link que ya tenía.
 //
 // La tanda vive en sessionStorage: sobrevive a cambiar filtros y a entrar y
 // volver de una ficha. Tope 6, el mismo de Hilo (MAX_TANDA).
@@ -138,15 +140,11 @@ function BarraSeguimiento() {
 
   const copiar = async () => {
     if (enviando) return
-    if (cliente.trim().length < 2) {
-      showToast('Poné el nombre del cliente.', { variant: 'error' })
-      return
-    }
     setEnviando(true)
     haptico()
     const nombre = cliente.trim()
     const listo = () => {
-      showToast(`Link de seguimiento copiado para ${nombre}`)
+      showToast(nombre ? `Link de seguimiento copiado para ${nombre}` : 'Link de seguimiento copiado')
       tanda.vaciar()
       setCliente('')
     }
@@ -211,12 +209,12 @@ function BarraSeguimiento() {
           void copiar()
         }}
       >
-        <label htmlFor="tanda-cliente" className="sr-only">Nombre del cliente</label>
+        <label htmlFor="tanda-cliente" className="sr-only">Nombre del cliente (opcional)</label>
         <input
           id="tanda-cliente"
           value={cliente}
           onChange={(e) => setCliente(e.target.value)}
-          placeholder="Nombre del cliente…"
+          placeholder="Nombre del cliente (opcional)"
           autoComplete="off"
           enterKeyHint="send"
           maxLength={80}
