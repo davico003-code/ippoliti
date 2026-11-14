@@ -10,7 +10,6 @@ import Link from 'next/link'
 import Image from '@/components/Imagen'
 import { MapPin } from 'lucide-react'
 import { PROYECTOS_DESTACADOS } from './proyectosDestacados'
-import MaquinasObra from './MaquinasObra'
 import TextoConNumeros from './TextoConNumeros'
 
 // Todo el texto del mosaico va en Raleway; los números de las condiciones
@@ -34,7 +33,21 @@ export default function ProyectosMosaico() {
             <Link key={item.id} href={item.href} className={`tile ${size}`}>
               <div className="bg">
                 <Image src={item.image} alt={item.title} fill className="tile-img" sizes={imgSizes} />
-                {item.maquinas && <MaquinasObra />}
+                {item.timelapse && (
+                  <video
+                    className="tile-video"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    poster={item.image}
+                    aria-hidden="true"
+                  >
+                    <source src={`${item.timelapse}.webm`} type="video/webm" />
+                    <source src={`${item.timelapse}.mp4`} type="video/mp4" />
+                  </video>
+                )}
               </div>
               <div className="ov" />
               <span className="pbadge">{item.badge}</span>
@@ -75,7 +88,7 @@ export default function ProyectosMosaico() {
         .proj-bento .bg{ position:absolute; inset:0; overflow:hidden; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
         .proj-bento .tile:hover .bg{ transform:scale(1.07); }
         .proj-bento .tile-img{ object-fit:cover; }
-        .proj-bento .maquinas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+        .proj-bento .tile-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
         .proj-bento .ov{ position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.16) 52%,rgba(0,0,0,.05) 100%); }
         .proj-bento .pbadge{ position:absolute; top:14px; left:14px; z-index:2; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font:700 12px ${R}; text-transform:uppercase; letter-spacing:.5px; padding:6px 12px; border-radius:9999px; }
         .proj-bento .pc{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:18px 20px; color:#fff; }
@@ -98,12 +111,11 @@ export default function ProyectosMosaico() {
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }
-          .proj-bento .maquinas .mq{ transform:scale(1.25); }
         }
         @media (prefers-reduced-motion: reduce){
           .proj-bento .bg{ transition:none; }
           .proj-bento .tile:hover .bg{ transform:none; }
-          .proj-bento .maquinas{ display:none; }
+          .proj-bento .tile-video{ display:none; }
         }
       ` }} />
     </div>
