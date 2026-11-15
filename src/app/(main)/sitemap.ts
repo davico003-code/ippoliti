@@ -71,7 +71,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // getDevelopments() de abajo nunca las incluye).
     fija('/emprendimientos/nordica-1', 'weekly', 0.8),
     fija('/emprendimientos/fisherton-work', 'weekly', 0.8),
-    fija('/emprendimientos/galinda', 'weekly', 0.8),
     fija('/emprendimientos/tierra-nueva', 'weekly', 0.8),
     fija('/barrio-los-aromos-roldan', 'monthly', 0.7),
     fija('/barrio-don-mateo-funes', 'monthly', 0.7),
