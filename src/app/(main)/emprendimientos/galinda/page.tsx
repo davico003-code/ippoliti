@@ -1,0 +1,455 @@
+// Landing de Galinda! — conjunto de usos mixtos de Fundar en Galindo y Picton,
+// Funes. Las unidades todavía no están en el feed de HILO (borradores GAL-*):
+// ruta estática propia (le gana al [slug] dinámico), mismo patrón que Fisherton
+// Work. Datos en src/lib/galinda.ts; fotos en public/emprendimientos/galinda.
+//
+// Estructura calcada de fundar.com.ar/proyecto/galinda (David, 17-nov: "copiale
+// bien a la página de Fundar y mejorala"; números siempre en Poppins).
+// SIN PRECIO (David, 17-nov-2026). Lo que la hace mejor que la ficha de Fundar:
+// fotos y video REALES del showroom terminado y de la obra (de la visita del
+// 17-nov), la vista desde cada unidad, su plano y un WhatsApp por unidad.
+
+import type { Metadata } from 'next'
+import {
+  Baby,
+  Bike,
+  Car,
+  Dumbbell,
+  Flame,
+  ShieldCheck,
+  Store,
+  Sun,
+  Tent,
+  Trees,
+  Users,
+  Waves,
+  WashingMachine,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react'
+import Image from '@/components/Imagen'
+import Carrusel from '@/components/galinda/Carrusel'
+import ListaUnidades from '@/components/galinda/ListaUnidades'
+import PropertyMapLazy from '@/components/PropertyMapLazy'
+import WaGalinda from '@/components/galinda/WaGalinda'
+import {
+  GAL_AVANCE,
+  GAL_BASE,
+  GAL_ENTREGA_OFICINAS,
+  GAL_ENTREGA_VIVIENDAS,
+  GAL_FECHA_FOTOS,
+  GAL_FORMA_PAGO,
+  GAL_URL,
+  UNIDADES,
+} from '@/lib/galinda'
+
+const TITLE = 'Galinda! en Funes · Departamentos, oficina y locales · Showroom terminado'
+const DESCRIPTION =
+  'Departamentos de 2 y 3 dormitorios, una oficina y locales comerciales en Galinda! (Fundar), Galindo y Picton, Funes. Obra al 91 %: oficina en enero de 2027 y departamentos en marzo-abril de 2027. Mirá el showroom terminado y el plano de cada unidad.'
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: GAL_URL },
+  openGraph: {
+    title: 'Galinda! · Funes · El showroom ya está terminado',
+    description: 'Departamentos de 2 y 3 dormitorios, oficina y locales comerciales. Obra al 91 %. Oficina en enero y departamentos en marzo-abril de 2027.',
+    url: GAL_URL,
+    siteName: 'SI INMOBILIARIA',
+    images: [{ url: 'https://siinmobiliaria.com/og-galinda.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Galinda! — Funes' }],
+    locale: 'es_AR',
+    type: 'website',
+  },
+}
+
+const SHOWROOM = [
+  { img: 'sr-living', alt: 'Living comedor del showroom de Galinda! con salida al balcón', grande: true },
+  { img: 'sr-balcon', alt: 'Balcón del showroom con vista al campo' },
+  { img: 'sr-cocina', alt: 'Cocina integrada al living en el showroom' },
+  { img: 'sr-dormitorio', alt: 'Dormitorio principal del showroom' },
+  { img: 'sr-bano', alt: 'Baño del showroom con vanitory y bacha de apoyo' },
+]
+
+const OBRA = [
+  { img: 'obra-fachada', alt: 'Frente de Galinda! sobre la calle, con el cartel de Fundar', pie: 'El frente sobre Galindo' },
+  { img: 'obra-paseo', alt: 'Vereda del paseo comercial ya con adoquines', pie: 'El paseo comercial' },
+  { img: 'obra-vista', alt: 'Balcón de un departamento en obra con vista al parque', pie: 'Balcones al parque' },
+  { img: 'obra-dron', alt: 'Vista aérea de la obra de Galinda! sobre la bajada de la autopista', pie: 'Desde el dron (Fundar)' },
+]
+
+const PROYECTO = [
+  { img: 'r-plazoleta', alt: 'Render de la plazoleta central con locales y oficinas', pie: 'La plazoleta' },
+  { img: 'r-paseo', alt: 'Render del paseo comercial techado', pie: 'El paseo comercial' },
+  { img: 'r-aerea', alt: 'Render aéreo del parque interno sobre las cocheras', pie: 'El parque interno' },
+  { img: 'r-gimnasio', alt: 'Render del gimnasio con vista al parque', pie: 'Gimnasio al parque' },
+  { img: 'r-balcon', alt: 'Render de un balcón con vista al parque y la pileta', pie: 'Balcón al parque' },
+  { img: 'r-exterior', alt: 'Render del conjunto visto desde Av. Galindo', pie: 'Desde Av. Galindo' },
+]
+
+const AMENITIES: { icono: LucideIcon; label: string }[] = [
+  { icono: Waves, label: 'Pileta' },
+  { icono: Sun, label: 'Solárium' },
+  { icono: Trees, label: 'Parque interno' },
+  { icono: Tent, label: 'Quincho' },
+  { icono: Flame, label: 'Parrillero' },
+  { icono: Users, label: 'Salón de usos múltiples' },
+  { icono: Dumbbell, label: 'Gimnasio' },
+  { icono: WashingMachine, label: 'Laundry' },
+  { icono: Baby, label: 'Juegos de exterior' },
+  { icono: Bike, label: 'Bicicletero' },
+  { icono: Car, label: 'Cocheras cubiertas' },
+  { icono: Zap, label: 'Grupo electrógeno' },
+  { icono: ShieldCheck, label: 'Seguridad' },
+  { icono: Store, label: 'Paseo comercial' },
+]
+
+const UBICACION = [
+  'Sobre la bajada de la autopista Rosario–Córdoba, en el acceso a Funes por calle Galindo.',
+  'Frente a Lion Place, en la entrada de Funes.',
+  'Con el paseo comercial abajo: comprás, comés y trabajás sin agarrar el auto.',
+]
+
+// Títulos como los de Fundar: Poppins, en verde, peso medio. Números: Poppins
+// siempre (regla de la casa); texto corrido: la letra de la web.
+function Seccion({
+  id,
+  titulo,
+  bajada,
+  className = '',
+  children,
+}: {
+  id?: string
+  titulo: string
+  bajada?: React.ReactNode
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <section id={id} className={`mx-auto max-w-6xl scroll-mt-24 px-4 py-14 md:py-20 ${className}`}>
+      <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">{titulo}</h2>
+      {bajada && <p className="mt-3 max-w-2xl text-lg text-[var(--tinta-mute)]">{bajada}</p>}
+      {children}
+    </section>
+  )
+}
+
+function Foto({ img, alt, pie, real }: { img: string; alt: string; pie: string; real?: boolean }) {
+  return (
+    <figure className="w-[78vw] max-w-[340px] flex-none snap-start md:w-[340px]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-[var(--cream)]">
+        <Image src={`${GAL_BASE}/${img}.webp`} alt={alt} fill sizes="340px" className="object-cover" />
+        {real && (
+          <span className="absolute bottom-3 left-3 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">Foto real</span>
+        )}
+      </div>
+      <figcaption className="mt-2 text-sm font-semibold">{pie}</figcaption>
+    </figure>
+  )
+}
+
+function VideoTarjeta({ src, poster, label, pie }: { src: string; poster: string; label: string; pie: string }) {
+  return (
+    <figure className="w-[78vw] max-w-[340px] flex-none snap-start md:w-[340px]">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-[var(--cream)]">
+        <video
+          src={src}
+          poster={poster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-label={label}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <span className="absolute bottom-3 left-3 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">Video real</span>
+      </div>
+      <figcaption className="mt-2 text-sm font-semibold">{pie}</figcaption>
+    </figure>
+  )
+}
+
+export default function GalindaPage() {
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Place',
+      name: 'Galinda!',
+      description: DESCRIPTION,
+      url: GAL_URL,
+      image: `https://siinmobiliaria.com${GAL_BASE}/hero-obra.webp`,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Galindo y Picton',
+        addressLocality: 'Funes',
+        addressRegion: 'Santa Fe',
+        addressCountry: 'AR',
+      },
+      geo: { '@type': 'GeoCoordinates', latitude: -32.93135, longitude: -60.82085 },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://siinmobiliaria.com' },
+        { '@type': 'ListItem', position: 2, name: 'Emprendimientos', item: 'https://siinmobiliaria.com/emprendimientos' },
+        { '@type': 'ListItem', position: 3, name: 'Galinda!', item: GAL_URL },
+      ],
+    },
+  ]
+
+  return (
+    <div className="bg-[var(--background)] pb-24 text-[var(--foreground)] [font-variant-numeric:lining-nums] md:pb-0">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+      {/* ── Portada: foto a todo el ancho, como Fundar ── */}
+      <section className="relative isolate flex min-h-[620px] items-end overflow-hidden bg-neutral-900 pt-28 text-white md:min-h-[88vh]">
+        <Image
+          src={`${GAL_BASE}/hero-obra.webp`}
+          alt="Edificio de Galinda! con el cartel del emprendimiento, ya construido"
+          fill
+          priority
+          sizes="100vw"
+          className="-z-10 object-cover"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/45 to-black/25" aria-hidden />
+        <div className="mx-auto w-full max-w-6xl px-4 pb-10 md:pb-16">
+          <p className="font-poppins text-sm font-semibold uppercase tracking-[0.14em] text-white/80">Galindo y Picton · Funes</p>
+          <h1 className="font-poppins mt-2 text-[64px] font-semibold leading-none tracking-tight md:text-[112px]">Galinda!</h1>
+          <p className="mt-4 max-w-xl text-lg text-white/90 md:text-xl">
+            Departamentos de <span className="font-poppins">2</span> y <span className="font-poppins">3</span> dormitorios sobre un parque con pileta, una oficina y locales en el paseo comercial. El showroom ya
+            está terminado: vení a verlo.
+          </p>
+
+          <div className="font-poppins mt-7 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-3">
+            <div className="col-span-2 md:col-span-1">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Estado</p>
+              <p className="mt-1 text-3xl font-medium tabular-nums">En obra {GAL_AVANCE} %</p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/25" aria-hidden>
+                <div className="h-full rounded-full bg-[#4fbf85]" style={{ width: `${GAL_AVANCE}%` }} />
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Oficina</p>
+              <p className="mt-1 whitespace-nowrap text-2xl font-medium md:text-3xl">Ene 2027</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Departamentos</p>
+              <p className="mt-1 whitespace-nowrap text-2xl font-medium md:text-3xl">Mar–Abr 2027</p>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <WaGalinda
+              origen="portada"
+              label="Coordinar visita al showroom"
+              text="Hola! Quiero coordinar una visita al showroom de Galinda!."
+              className="py-3.5 text-base"
+            />
+            <a
+              href="#unidades"
+              className="inline-flex items-center justify-center rounded-xl border border-white/60 px-5 py-3.5 text-base font-bold text-white transition-colors hover:bg-white/10"
+            >
+              Ver las {UNIDADES.length} unidades
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Cómo va a quedar: carrusel de renders, como Fundar ── */}
+      <div className="pt-14 md:pt-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">Cómo va a quedar</h2>
+          <p className="mt-3 max-w-2xl text-lg text-[var(--tinta-mute)]">
+            Usos mixtos: departamentos alrededor de un parque con pileta, oficinas y un paseo comercial con{' '}
+            <span className="font-poppins">39</span> locales.
+          </p>
+        </div>
+        <div className="mt-7">
+          <Carrusel label="Renders del proyecto">
+            {PROYECTO.map((f) => (
+              <Foto key={f.img} {...f} />
+            ))}
+          </Carrusel>
+        </div>
+      </div>
+
+      {/* ── Amenidades con íconos, como Fundar ── */}
+      <section className="mx-auto grid max-w-6xl gap-8 px-4 py-14 md:grid-cols-[1fr_1.6fr] md:items-center md:py-20">
+        <div>
+          <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">Amenidades</h2>
+          <p className="mt-3 text-lg text-[var(--tinta-mute)]">
+            Espacios para disfrutar sin salir de casa, y todo lo del día a día resuelto en el mismo lugar.
+          </p>
+        </div>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
+          {AMENITIES.map(({ icono: Icono, label }) => (
+            <li key={label} className="flex items-center gap-3">
+              <Icono className="h-7 w-7 flex-none text-[var(--brand)]" strokeWidth={1.4} aria-hidden />
+              <span className="text-[15px] leading-tight">{label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ── Showroom: lo que Fundar no muestra ── */}
+      <div className="bg-[var(--cream)]">
+        <Seccion
+          id="showroom"
+          titulo="El showroom, terminado"
+          bajada={<>Fotos y video reales, sacados el <span className="font-poppins">{GAL_FECHA_FOTOS}</span>. No son renders: así queda tu departamento.</>}
+        >
+          <div className="mt-7 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+            <div className="relative aspect-[9/16] overflow-hidden rounded-2xl bg-[var(--background)]">
+              <video
+                src={`${GAL_BASE}/video-showroom.mp4`}
+                poster={`${GAL_BASE}/video-showroom-poster.webp`}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-label="Recorrido en video por el showroom de Galinda!"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <span className="absolute bottom-3 left-3 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">Video real</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {SHOWROOM.map((f) => (
+                <div
+                  key={f.img}
+                  className={`relative overflow-hidden rounded-2xl bg-[var(--background)] ${f.grande ? 'col-span-2 aspect-[16/10]' : 'aspect-[4/3]'}`}
+                >
+                  <Image
+                    src={`${GAL_BASE}/${f.img}.webp`}
+                    alt={f.alt}
+                    fill
+                    sizes={f.grande ? '(min-width: 768px) 740px, 100vw' : '(min-width: 768px) 370px, 50vw'}
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Seccion>
+      </div>
+
+      {/* ── Avances de obra: carrusel, como Fundar (con nuestras fotos y video) ── */}
+      <div className="pt-14 md:pt-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">Avances de obra</h2>
+          <p className="mt-3 max-w-2xl text-lg text-[var(--tinta-mute)]">
+            Así estaba el <span className="font-poppins">{GAL_FECHA_FOTOS}</span>, con la obra al <span className="font-poppins">{GAL_AVANCE} %</span>: edificios
+            levantados, terminando interiores y el paseo.
+          </p>
+        </div>
+        <div className="mt-7">
+          <Carrusel label="Fotos y video de la obra">
+            <VideoTarjeta
+              src={`${GAL_BASE}/video-obra.mp4`}
+              poster={`${GAL_BASE}/video-obra-poster.webp`}
+              label="Recorrido en video por la obra de Galinda!"
+              pie="Recorrido por la obra"
+            />
+            {OBRA.map((f) => (
+              <Foto key={f.img} {...f} real />
+            ))}
+          </Carrusel>
+        </div>
+      </div>
+
+      {/* ── Unidades: tarjetas con plano, como Fundar ── */}
+      <div className="mt-14 bg-[var(--cream)] md:mt-20">
+        <Seccion
+          id="unidades"
+          titulo="Unidades disponibles"
+          bajada="Tocá el plano para verlo grande. El precio te lo pasamos por WhatsApp."
+        >
+          <ListaUnidades />
+        </Seccion>
+      </div>
+
+      {/* ── Cómo se paga ── */}
+      <Seccion id="pago" titulo="Cómo se paga">
+        <div className="mt-7 grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--line)] p-6">
+            <p className="font-poppins text-5xl font-medium tracking-tight text-[var(--brand)]">30 %</p>
+            <p className="mt-2 text-lg font-bold">de anticipo</p>
+          </div>
+          <div className="rounded-2xl border border-[var(--line)] p-6">
+            <p className="font-poppins text-5xl font-medium tracking-tight text-[var(--brand)]">12 o 24</p>
+            <p className="mt-2 text-lg font-bold">cuotas para el resto</p>
+          </div>
+          <div className="rounded-2xl border border-[var(--line)] p-6">
+            <p className="font-poppins text-5xl font-medium tracking-tight text-[var(--brand)]">$ + CAC</p>
+            <p className="mt-2 text-lg font-bold">cuotas en pesos, si preferís</p>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+          <p className="text-[var(--tinta-mute)]">{GAL_FORMA_PAGO.moneda} Te armamos la cuenta de la unidad que elijas.</p>
+          <WaGalinda origen="pago" label="Pedir el plan de pagos" text="Hola! Quiero el precio y el plan de pagos de Galinda!." />
+        </div>
+      </Seccion>
+
+      {/* ── Ubicación ── */}
+      <Seccion id="ubicacion" titulo="Dónde está" className="pt-0 md:pt-0">
+        <div className="mt-7 grid gap-6 md:grid-cols-[1fr_1.3fr]">
+          <div>
+            <p className="text-xl font-extrabold">Galindo y Picton, Funes</p>
+            <ul className="mt-4 space-y-3">
+              {UBICACION.map((u) => (
+                <li key={u} className="flex items-start gap-2.5 text-[var(--tinta-soft)]">
+                  <span className="mt-2 h-2 w-2 flex-none rounded-full bg-[#17613C]" aria-hidden />
+                  {u}
+                </li>
+              ))}
+            </ul>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=-32.93135,-60.82085"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex rounded-xl border border-[var(--line)] px-5 py-3 text-sm font-bold transition-colors hover:border-[var(--brand)]"
+            >
+              Abrir en Google Maps
+            </a>
+          </div>
+          <div>
+            <PropertyMapLazy lat={-32.93135} lng={-60.82085} address="Galindo y Picton, Funes" />
+          </div>
+        </div>
+      </Seccion>
+
+      {/* ── Cierre ── */}
+      <section className="mx-auto max-w-6xl px-4 pb-14">
+        <div className="grid items-center gap-6 rounded-3xl bg-[#17613C] p-6 text-white md:grid-cols-[1.3fr_1fr] md:p-10">
+          <div>
+            <h2 className="font-poppins text-3xl font-medium tracking-tight md:text-4xl">Vení a conocer el showroom</h2>
+            <p className="mt-2 text-white/85">
+              Te mostramos el departamento terminado y la unidad que te interese, y te pasamos el precio y las formas de pago.
+            </p>
+          </div>
+          <div>
+            <p className="font-poppins mb-3 select-all text-3xl font-medium tabular-nums">341 334-0916</p>
+            <WaGalinda
+              origen="cierre"
+              label="Escribinos por WhatsApp"
+              text="Hola! Quiero coordinar una visita al showroom de Galinda!."
+              className="w-full !bg-white py-3.5 text-base !text-[#17613C] hover:!bg-white/90"
+            />
+          </div>
+        </div>
+        <p className="mt-7 max-w-3xl text-xs leading-relaxed text-[var(--tinta-mute)]">
+          Desarrolla y construye Fundar (fundar.com.ar). Las fotos y videos del showroom y de la obra son reales, del{' '}
+          {GAL_FECHA_FOTOS}; las imágenes de «Cómo va a quedar» son renders ilustrativos del proyecto. Superficies
+          aproximadas, sujetas a ajustes del proyecto final. Entrega estimada: oficinas, {GAL_ENTREGA_OFICINAS}; departamentos,{' '}
+          {GAL_ENTREGA_VIVIENDAS}. Forma de pago sujeta a confirmación del desarrollador. Comercializa SI INMOBILIARIA.
+        </p>
+      </section>
+
+      {/* ── Barra fija en el celu ── */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--line)] bg-[var(--background)]/95 p-3 backdrop-blur md:hidden">
+        <WaGalinda origen="barra" label="Consultar por WhatsApp" className="w-full py-3.5 text-base" />
+      </div>
+    </div>
+  )
+}

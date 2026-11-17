@@ -38,6 +38,8 @@ export default function FloatingWhatsApp() {
   if (pathname === '/emprendimientos/fisherton-work') return null
   // Tierra Nueva, ídem.
   if (pathname === '/emprendimientos/tierra-nueva') return null
+  // Galinda! trae su barra de WhatsApp con el mensaje del emprendimiento.
+  if (pathname === '/emprendimientos/galinda') return null
   // Hide on /recursos — la propia página tiene su CTA "Hablar con un agente"
   // en el bloque verde inferior con el mismo número.
   if (pathname === '/recursos') return null
