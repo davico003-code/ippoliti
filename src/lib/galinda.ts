@@ -74,6 +74,16 @@ export function entregaDe(tipo: TipoUnidad) {
   return tipo === 'of' ? GAL_ENTREGA_OFICINAS : GAL_ENTREGA_VIVIENDAS
 }
 
+export function tipoCorto(tipo: TipoUnidad) {
+  return tipo === 'of' ? 'Oficina' : TIPO_LABEL[tipo]
+}
+
+/** m² comunes = totales − propios ("17,5"), como los muestra Fundar. */
+export function m2Comunes(u: UnidadGalinda) {
+  const c = u.m2 - Number(u.m2Exclusivos.replace(',', '.'))
+  return String(Math.round(c * 10) / 10).replace('.', ',')
+}
+
 /** "frente al parque" / "frente a la plazoleta" (contrae a + el). */
 export function frenteA(frente: string) {
   return frente.startsWith('el ') ? `frente al ${frente.slice(3)}` : `frente a ${frente}`
