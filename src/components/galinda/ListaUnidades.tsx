@@ -145,8 +145,6 @@ export default function ListaUnidades() {
     <div className="mt-6">
       <div role="tablist" aria-label="Tipo de unidad" className="flex flex-wrap gap-2">
         {FILTROS.map((f) => {
-          const n =
-            f.id === 'locales' ? null : f.id === 'todas' ? UNIDADES.length : UNIDADES.filter((u) => u.tipo === f.id).length
           const activo = filtro === f.id
           return (
             <button
@@ -162,9 +160,6 @@ export default function ListaUnidades() {
               }`}
             >
               <span className="font-poppins font-medium">{f.label}</span>
-              {n !== null && (
-                <> <span className={`font-poppins font-medium ${activo ? 'text-white/75' : 'text-[var(--tinta-mute)]'}`}>{n}</span></>
-              )}
             </button>
           )
         })}

@@ -40,7 +40,6 @@ import {
   GAL_FECHA_FOTOS,
   GAL_FORMA_PAGO,
   GAL_URL,
-  UNIDADES,
 } from '@/lib/galinda'
 
 const TITLE = 'Galinda! en Funes · Departamentos, oficina y locales · Showroom terminado'
@@ -250,14 +249,14 @@ export default function GalindaPage() {
                 href="#unidades"
                 className="inline-flex items-center justify-center rounded-xl border border-[var(--line)] px-5 py-3.5 text-base font-bold transition-colors hover:border-[var(--brand)]"
               >
-                Ver las {UNIDADES.length} unidades
+                Ver unidades
               </a>
             </div>
           </div>
           <dl className="self-center">
             {[
               ['Avance de obra', `${GAL_AVANCE} %`],
-              ['Unidades disponibles', String(UNIDADES.length)],
+              ['Tipologías', '2 y 3 dorm. · Oficina'],
               ['Entrega oficina', 'Ene 2027'],
               ['Entrega departamentos', 'Mar–Abr 2027'],
             ].map(([k, v]) => (
@@ -377,7 +376,7 @@ export default function GalindaPage() {
         <Seccion
           id="unidades"
           titulo="Unidades disponibles"
-          bajada="Tocá el plano para verlo grande. El precio te lo pasamos por WhatsApp."
+          bajada="Una selección de las disponibles: hay más en cada tipología. Tocá el plano para verlo grande y pedinos el precio o la unidad que buscás por WhatsApp."
         >
           <ListaUnidades />
         </Seccion>
