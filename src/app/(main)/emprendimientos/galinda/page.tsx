@@ -80,7 +80,7 @@ const OBRA = [
 const PROYECTO = [
   { img: 'r-plazoleta', alt: 'Render de la plazoleta central con locales y oficinas', pie: 'La plazoleta' },
   { img: 'r-paseo', alt: 'Render del paseo comercial techado', pie: 'El paseo comercial' },
-  { img: 'r-aerea', alt: 'Render aéreo del parque interno sobre las cocheras', pie: 'El parque interno' },
+  { img: 'r-aerea', alt: 'Render del estacionamiento de cortesía residencial, con el parque arriba', pie: 'Estacionamiento de cortesía residencial' },
   { img: 'r-gimnasio', alt: 'Render del gimnasio con vista al parque', pie: 'Gimnasio al parque' },
   { img: 'r-balcon', alt: 'Render de un balcón con vista al parque y la pileta', pie: 'Balcón al parque' },
   { img: 'r-exterior', alt: 'Render del conjunto visto desde Av. Galindo', pie: 'Desde Av. Galindo' },
