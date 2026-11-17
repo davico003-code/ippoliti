@@ -65,6 +65,8 @@ function Tarjeta({ u }: { u: UnidadGalinda }) {
             <dd className="font-medium">{m2Comunes(u)} m²</dd>
             <dt className="text-[var(--tinta-mute)]">Entrega</dt>
             <dd className="font-medium">{entregaDe(u.tipo).replace(' de ', ' ')}</dd>
+            <dt className="text-[var(--tinta-mute)]">Cochera</dt>
+            <dd className="font-medium">Opcional</dd>
           </dl>
         </div>
       </div>

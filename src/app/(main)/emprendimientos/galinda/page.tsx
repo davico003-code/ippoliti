@@ -97,7 +97,7 @@ const AMENITIES: { icono: LucideIcon; label: string }[] = [
   { icono: WashingMachine, label: 'Laundry' },
   { icono: Baby, label: 'Juegos de exterior' },
   { icono: Bike, label: 'Bicicletero' },
-  { icono: Car, label: 'Cocheras cubiertas' },
+  { icono: Car, label: 'Cocheras opcionales' },
   { icono: Zap, label: 'Grupo electrógeno' },
   { icono: ShieldCheck, label: 'Seguridad' },
   { icono: Store, label: 'Paseo comercial' },
