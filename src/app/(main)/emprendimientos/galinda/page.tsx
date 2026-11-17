@@ -204,13 +204,26 @@ export default function GalindaPage() {
 
       {/* ── Portada: foto a todo el ancho, como Fundar ── */}
       <section className="relative isolate flex min-h-[620px] items-end overflow-hidden bg-neutral-900 pt-28 text-white md:min-h-[88vh]">
+        {/* Video de dron de la obra (DJI, 2-oct-2026), ida y vuelta para que el loop no salte.
+            El póster va como imagen con prioridad (LCP); con movimiento reducido queda solo la foto. */}
         <Image
-          src={`${GAL_BASE}/hero-obra.webp`}
-          alt="Edificio de Galinda! con el cartel del emprendimiento, ya construido"
+          src={`${GAL_BASE}/video-portada-poster.webp`}
+          alt="Vista aérea de Galinda! sobre Av. Galindo, con el cartel de Fundar"
           fill
           priority
           sizes="100vw"
           className="-z-10 object-cover"
+        />
+        <video
+          src={`${GAL_BASE}/video-portada.mp4`}
+          poster={`${GAL_BASE}/video-portada-poster.webp`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden
+          className="absolute inset-0 -z-10 h-full w-full object-cover motion-reduce:hidden"
         />
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/45 to-black/25" aria-hidden />
         <div className="mx-auto w-full max-w-6xl px-4 pb-10 md:pb-16">
