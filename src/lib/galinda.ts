@@ -41,7 +41,8 @@ export interface UnidadGalinda {
   m2Exclusivos: string
 }
 
-// Las 15 unidades del stock de Fundar al 31-oct-2026 (m² de sus fichas).
+// Stock de Fundar al 31-oct-2026 (m² de sus fichas). Oficinas: queda SOLO la
+// 03-02 (David, 17-nov-2026); las 02-01 y 03-09 ya no están disponibles.
 export const UNIDADES: UnidadGalinda[] = [
   { id: '02-04', tipo: '2d', piso: 2, frente: 'el parque', m2: 107, m2Exclusivos: '89,5' },
   { id: '02-11', tipo: '2d', piso: 2, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
@@ -56,8 +57,6 @@ export const UNIDADES: UnidadGalinda[] = [
   { id: '03-27', tipo: '3d', piso: 3, frente: 'calle Picton', m2: 130, m2Exclusivos: '109' },
   { id: '03-21', tipo: '3d', piso: 3, frente: 'Av. Galindo', m2: 140, m2Exclusivos: '117' },
   { id: '03-02', tipo: 'of', piso: 3, frente: 'la plazoleta', m2: 51, m2Exclusivos: '42' },
-  { id: '02-01', tipo: 'of', piso: 2, frente: 'la plazoleta', m2: 69, m2Exclusivos: '56,5' },
-  { id: '03-09', tipo: 'of', piso: 3, frente: 'la plazoleta', m2: 74, m2Exclusivos: '60,5' },
 ]
 
 export const TIPO_LABEL: Record<TipoUnidad, string> = {

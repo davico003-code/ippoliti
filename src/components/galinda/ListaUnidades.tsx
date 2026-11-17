@@ -22,13 +22,14 @@ import {
 // select + paginado), dos tarjetas por fila en la compu, el plano se agranda
 // ahí mismo, entrega y orientación de cada unidad y el precio por WhatsApp.
 
-type Filtro = 'todas' | TipoUnidad
+type Filtro = 'todas' | TipoUnidad | 'locales'
 
 const FILTROS: { id: Filtro; label: string }[] = [
   { id: 'todas', label: 'Todas' },
   { id: '2d', label: '2 dormitorios' },
   { id: '3d', label: '3 dormitorios' },
-  { id: 'of', label: 'Oficinas' },
+  { id: 'of', label: 'Oficina' },
+  { id: 'locales', label: 'Locales' },
 ]
 
 function Tarjeta({ u }: { u: UnidadGalinda }) {
@@ -105,15 +106,45 @@ function Tarjeta({ u }: { u: UnidadGalinda }) {
   )
 }
 
+// Locales del paseo comercial: no hay stock cargado, se consultan (David, 17-nov).
+function TarjetaLocales() {
+  return (
+    <li className="rounded-2xl bg-[var(--card-surface)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:p-5">
+      <div className="grid grid-cols-[112px_1fr] gap-4 sm:grid-cols-[150px_1fr] sm:gap-5">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--cream)]">
+          <Image src={`${GAL_BASE}/r-paseo.webp`} alt="Render del paseo comercial de Galinda!" fill sizes="150px" className="object-cover" />
+        </div>
+        <div className="min-w-0">
+          <p className="font-poppins text-xs font-semibold uppercase tracking-[0.12em] text-[var(--tinta-mute)]">Galinda! · Paseo comercial</p>
+          <p className="font-poppins mt-1 text-[34px] font-medium leading-none tracking-tight text-[var(--brand)] sm:text-[40px]">Locales</p>
+          <p className="font-poppins mt-2 font-medium">Locales comerciales en planta baja</p>
+          <p className="mt-1 text-sm text-[var(--tinta-mute)]">
+            Sobre el paseo comercial y la plazoleta, con el movimiento de los departamentos y las oficinas. Consultanos
+            medidas y disponibilidad.
+          </p>
+        </div>
+      </div>
+      <WaGalinda
+        origen="locales"
+        label="Consultar por locales"
+        className="mt-4 w-full"
+        text="Hola! Quiero consultar por los locales comerciales de Galinda!: medidas, disponibilidad y precio."
+      />
+    </li>
+  )
+}
+
 export default function ListaUnidades() {
   const [filtro, setFiltro] = useState<Filtro>('todas')
   const lista = filtro === 'todas' ? UNIDADES : UNIDADES.filter((u) => u.tipo === filtro)
+  const conLocales = filtro === 'todas' || filtro === 'locales'
 
   return (
     <div className="mt-6">
       <div role="tablist" aria-label="Tipo de unidad" className="flex flex-wrap gap-2">
         {FILTROS.map((f) => {
-          const n = f.id === 'todas' ? UNIDADES.length : UNIDADES.filter((u) => u.tipo === f.id).length
+          const n =
+            f.id === 'locales' ? null : f.id === 'todas' ? UNIDADES.length : UNIDADES.filter((u) => u.tipo === f.id).length
           const activo = filtro === f.id
           return (
             <button
@@ -128,7 +159,10 @@ export default function ListaUnidades() {
                   : 'border border-[var(--line)] bg-[var(--card-surface)] text-[var(--foreground)] hover:border-[var(--brand)]'
               }`}
             >
-              <span className="font-poppins font-medium">{f.label}</span> <span className={`font-poppins font-medium ${activo ? 'text-white/75' : 'text-[var(--tinta-mute)]'}`}>{n}</span>
+              <span className="font-poppins font-medium">{f.label}</span>
+              {n !== null && (
+                <> <span className={`font-poppins font-medium ${activo ? 'text-white/75' : 'text-[var(--tinta-mute)]'}`}>{n}</span></>
+              )}
             </button>
           )
         })}
@@ -137,6 +171,7 @@ export default function ListaUnidades() {
         {lista.map((u) => (
           <Tarjeta key={u.id} u={u} />
         ))}
+        {conLocales && <TarjetaLocales />}
       </ul>
     </div>
   )

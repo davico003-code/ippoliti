@@ -43,9 +43,9 @@ import {
   UNIDADES,
 } from '@/lib/galinda'
 
-const TITLE = 'Galinda! en Funes · Departamentos y oficinas · Showroom terminado'
+const TITLE = 'Galinda! en Funes · Departamentos, oficina y locales · Showroom terminado'
 const DESCRIPTION =
-  'Departamentos de 2 y 3 dormitorios y oficinas en Galinda! (Fundar), Galindo y Picton, Funes. Obra al 91 %: oficinas en enero de 2027 y departamentos en marzo-abril de 2027. Mirá el showroom terminado y el plano de cada unidad.'
+  'Departamentos de 2 y 3 dormitorios, una oficina y locales comerciales en Galinda! (Fundar), Galindo y Picton, Funes. Obra al 91 %: oficina en enero de 2027 y departamentos en marzo-abril de 2027. Mirá el showroom terminado y el plano de cada unidad.'
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   alternates: { canonical: GAL_URL },
   openGraph: {
     title: 'Galinda! · Funes · El showroom ya está terminado',
-    description: 'Departamentos de 2 y 3 dormitorios y oficinas. Obra al 91 %. Oficinas en enero y departamentos en marzo-abril de 2027.',
+    description: 'Departamentos de 2 y 3 dormitorios, oficina y locales comerciales. Obra al 91 %. Oficina en enero y departamentos en marzo-abril de 2027.',
     url: GAL_URL,
     siteName: 'SI INMOBILIARIA',
     images: [{ url: 'https://siinmobiliaria.com/og-galinda.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Galinda! — Funes' }],
@@ -217,7 +217,7 @@ export default function GalindaPage() {
           <p className="font-poppins text-sm font-semibold uppercase tracking-[0.14em] text-white/80">Galindo y Picton · Funes</p>
           <h1 className="font-poppins mt-2 text-[64px] font-semibold leading-none tracking-tight md:text-[112px]">Galinda!</h1>
           <p className="mt-4 max-w-xl text-lg text-white/90 md:text-xl">
-            Departamentos de <span className="font-poppins">2</span> y <span className="font-poppins">3</span> dormitorios y oficinas sobre un parque con pileta, con paseo comercial abajo. El showroom ya
+            Departamentos de <span className="font-poppins">2</span> y <span className="font-poppins">3</span> dormitorios sobre un parque con pileta, una oficina y locales en el paseo comercial. El showroom ya
             está terminado: vení a verlo.
           </p>
 
@@ -230,7 +230,7 @@ export default function GalindaPage() {
               </div>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Oficinas</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Oficina</p>
               <p className="mt-1 whitespace-nowrap text-2xl font-medium md:text-3xl">Ene 2027</p>
             </div>
             <div>
