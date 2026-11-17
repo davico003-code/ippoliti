@@ -9,26 +9,23 @@
 
 import type { Metadata } from 'next'
 import Image from '@/components/Imagen'
-import PlanoBoton from '@/components/galinda/PlanoBoton'
+import ListaUnidades from '@/components/galinda/ListaUnidades'
 import PropertyMapLazy from '@/components/PropertyMapLazy'
 import WaGalinda from '@/components/galinda/WaGalinda'
 import {
   GAL_AVANCE,
   GAL_BASE,
-  GAL_ENTREGA,
+  GAL_ENTREGA_OFICINAS,
+  GAL_ENTREGA_VIVIENDAS,
   GAL_FECHA_FOTOS,
+  GAL_FORMA_PAGO,
   GAL_URL,
-  TIPO_LABEL,
   UNIDADES,
-  frenteA,
-  nombreUnidad,
-  rangoM2,
-  type TipoUnidad,
 } from '@/lib/galinda'
 
 const TITLE = 'Galinda! en Funes · Departamentos y oficinas · Showroom terminado'
 const DESCRIPTION =
-  'Departamentos de 2 y 3 dormitorios y oficinas en Galinda! (Fundar), Galindo y Picton, Funes. Obra al 91 % y entrega en marzo de 2027. Mirá el showroom terminado, la vista y el plano de cada unidad.'
+  'Departamentos de 2 y 3 dormitorios y oficinas en Galinda! (Fundar), Galindo y Picton, Funes. Obra al 91 %: oficinas en enero de 2027 y departamentos en marzo-abril de 2027. Mirá el showroom terminado y el plano de cada unidad.'
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -36,7 +33,7 @@ export const metadata: Metadata = {
   alternates: { canonical: GAL_URL },
   openGraph: {
     title: 'Galinda! · Funes · El showroom ya está terminado',
-    description: 'Departamentos de 2 y 3 dormitorios y oficinas. Obra al 91 %, entrega en marzo de 2027.',
+    description: 'Departamentos de 2 y 3 dormitorios y oficinas. Obra al 91 %. Oficinas en enero y departamentos en marzo-abril de 2027.',
     url: GAL_URL,
     siteName: 'SI INMOBILIARIA',
     images: [{ url: 'https://siinmobiliaria.com/og-galinda.jpg', width: 1200, height: 630, type: 'image/jpeg', alt: 'Galinda! — Funes' }],
@@ -44,8 +41,6 @@ export const metadata: Metadata = {
     type: 'website',
   },
 }
-
-const TIPOS: TipoUnidad[] = ['2d', '3d', 'of']
 
 const SHOWROOM = [
   { img: 'sr-living', alt: 'Living comedor del showroom de Galinda! con salida al balcón', grande: true },
@@ -190,7 +185,8 @@ export default function GalindaPage() {
           </div>
           <div className="rounded-2xl bg-[var(--cream)] px-5 py-4">
             <p className="text-sm text-[var(--tinta-mute)]">Entrega</p>
-            <p className="text-2xl font-extrabold tracking-tight">Marzo 2027</p>
+            <p className="text-lg font-extrabold leading-snug tracking-tight">Oficinas: enero 2027</p>
+            <p className="text-lg font-extrabold leading-snug tracking-tight">Deptos: marzo-abril 2027</p>
           </div>
           <div className="rounded-2xl bg-[var(--cream)] px-5 py-4">
             <p className="text-sm text-[var(--tinta-mute)]">Unidades</p>
@@ -245,72 +241,34 @@ export default function GalindaPage() {
         </div>
       </Seccion>
 
-      {/* ── Unidades ── */}
+      {/* ── Unidades: lista compacta (David 17-nov: las tarjetas con foto no son prácticas) ── */}
       <Seccion
         id="unidades"
         titulo="Las unidades disponibles"
-        bajada="Cada foto es la vista real desde esa unidad. Tocá «Ver plano» para ver cómo es por dentro."
+        bajada={`${UNIDADES.length} unidades. Tocá «Ver plano» para ver cómo es cada una por dentro.`}
       >
-        <nav aria-label="Tipos de unidad" className="mt-5 flex flex-wrap gap-2">
-          {TIPOS.map((t) => (
-            <a
-              key={t}
-              href={`#tipo-${t}`}
-              className="rounded-full border border-[var(--line)] px-4 py-2 text-sm font-bold transition-colors hover:border-[var(--brand)] hover:text-[var(--brand)]"
-            >
-              {TIPO_LABEL[t]} <span className="font-medium text-[var(--tinta-mute)]">· {rangoM2(t)}</span>
-            </a>
-          ))}
-        </nav>
+        <ListaUnidades />
+      </Seccion>
 
-        {TIPOS.map((t) => (
-          <div key={t} id={`tipo-${t}`} className="scroll-mt-24 pt-9">
-            <h3 className="mb-4 text-xl font-extrabold">{TIPO_LABEL[t]}</h3>
-            <div className="grid gap-5 md:grid-cols-3">
-              {UNIDADES.filter((u) => u.tipo === t).map((u) => {
-                const nombre = nombreUnidad(u)
-                return (
-                  <article key={u.id} className="flex flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--card-surface)]">
-                    <div className="relative aspect-[4/3] bg-[var(--cream)]">
-                      <Image
-                        src={`${GAL_BASE}/vista-${u.id}.webp`}
-                        alt={`Vista desde la ${nombre.toLowerCase()} hacia ${u.frente}`}
-                        fill
-                        sizes="(min-width: 768px) 360px, 100vw"
-                        className="object-cover"
-                      />
-                      <span className="absolute bottom-2.5 left-3 rounded-md bg-black/55 px-2 py-0.5 text-xs font-semibold text-white">
-                        Vista desde esta unidad
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col gap-3 p-5">
-                      <div>
-                        <p className="text-lg font-extrabold">
-                          {nombre} · {u.m2} m²
-                        </p>
-                        <p className="text-sm text-[var(--tinta-mute)]">
-                          {u.tipo !== 'of' && `${TIPO_LABEL[u.tipo]} · 2 baños · `}Piso {u.piso} · {frenteA(u.frente)}
-                        </p>
-                        <p className="text-sm text-[var(--tinta-mute)]">{u.m2Exclusivos} m² propios + espacios comunes</p>
-                      </div>
-                      <div className="mt-auto grid grid-cols-[auto_1fr] gap-2">
-                        <PlanoBoton src={`${GAL_BASE}/plano-${u.id}.webp`} titulo={`Plano · ${nombre} · ${u.m2} m²`} />
-                        <WaGalinda
-                          origen={`unidad-${u.id}`}
-                          label="Consultar precio"
-                          text={`Hola! Quiero el precio de la ${nombre.toLowerCase()} de Galinda! (${u.m2} m², ${frenteA(u.frente)}).`}
-                        />
-                      </div>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
+      {/* ── Cómo se paga ── */}
+      <Seccion id="pago" titulo="Cómo se paga">
+        <div className="mt-6 grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl bg-[var(--cream)] p-6">
+            <p className="text-4xl font-extrabold tracking-tight text-[var(--brand)]">30 %</p>
+            <p className="mt-1 text-lg font-bold">de anticipo</p>
           </div>
-        ))}
-        <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border border-[var(--line)] p-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-semibold">¿Buscás otra orientación u otro piso? Hay más unidades disponibles.</p>
-          <WaGalinda origen="mas-unidades" label="Preguntar por otras" text="Hola! Quiero ver otras unidades disponibles en Galinda!." />
+          <div className="rounded-2xl bg-[var(--cream)] p-6">
+            <p className="text-4xl font-extrabold tracking-tight text-[var(--brand)]">12 o 24</p>
+            <p className="mt-1 text-lg font-bold">cuotas para el resto</p>
+          </div>
+          <div className="rounded-2xl bg-[var(--cream)] p-6">
+            <p className="text-4xl font-extrabold tracking-tight text-[var(--brand)]">$ + CAC</p>
+            <p className="mt-1 text-lg font-bold">cuotas en pesos, si preferís</p>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+          <p className="text-[var(--tinta-mute)]">{GAL_FORMA_PAGO.moneda} Te armamos la cuenta de la unidad que elijas.</p>
+          <WaGalinda origen="pago" label="Pedir el plan de pagos" text="Hola! Quiero el precio y el plan de pagos de Galinda!." />
         </div>
       </Seccion>
 
@@ -417,7 +375,7 @@ export default function GalindaPage() {
         <p className="mt-7 max-w-3xl text-xs leading-relaxed text-[var(--tinta-mute)]">
           Desarrolla y construye Fundar (fundar.com.ar). Las fotos y videos del showroom y de la obra son reales, del{' '}
           {GAL_FECHA_FOTOS}; las imágenes de «Cómo va a quedar» son renders ilustrativos del proyecto. Superficies
-          aproximadas, sujetas a ajustes del proyecto final. Entrega estimada: {GAL_ENTREGA}. Comercializa SI INMOBILIARIA.
+          aproximadas, sujetas a ajustes del proyecto final. Entrega estimada: oficinas, {GAL_ENTREGA_OFICINAS}; departamentos, {GAL_ENTREGA_VIVIENDAS}. Forma de pago sujeta a confirmación del desarrollador. Comercializa SI INMOBILIARIA.
         </p>
       </section>
 

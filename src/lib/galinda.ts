@@ -11,7 +11,15 @@ export const GAL_BASE = '/emprendimientos/galinda'
 export const GAL_URL = 'https://siinmobiliaria.com/emprendimientos/galinda'
 // Emprendimiento sin captador → línea de venta (regla contactoDelAviso de HILO).
 export const GAL_WA_PHONE = '5493413340916'
-export const GAL_ENTREGA = 'marzo de 2027'
+// Entregas que pasó Fundar (17-nov-2026): las oficinas antes que las viviendas.
+export const GAL_ENTREGA_OFICINAS = 'enero de 2027'
+export const GAL_ENTREGA_VIVIENDAS = 'marzo-abril de 2027'
+// Forma de pago que pasó Fundar (17-nov-2026). Sin montos: la web no muestra precio.
+export const GAL_FORMA_PAGO = {
+  anticipo: '30 % de anticipo',
+  cuotas: 'el resto en 12 o 24 cuotas',
+  moneda: 'Las cuotas pueden ser en pesos, ajustadas por CAC.',
+}
 /** Avance de obra que publica Fundar en su ficha (fundar.com.ar, 17-nov-2026). */
 export const GAL_AVANCE = 91
 /** Fecha de las fotos y videos propios del showroom y la obra. */
@@ -33,15 +41,22 @@ export interface UnidadGalinda {
   m2Exclusivos: string
 }
 
+// Las 15 unidades del stock de Fundar al 31-oct-2026 (m² de sus fichas).
 export const UNIDADES: UnidadGalinda[] = [
+  { id: '02-04', tipo: '2d', piso: 2, frente: 'el parque', m2: 107, m2Exclusivos: '89,5' },
   { id: '02-11', tipo: '2d', piso: 2, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
+  { id: '03-11', tipo: '2d', piso: 3, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
+  { id: '02-12', tipo: '2d', piso: 2, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
   { id: '03-12', tipo: '2d', piso: 3, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
+  { id: '02-14', tipo: '2d', piso: 2, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
   { id: '02-15', tipo: '2d', piso: 2, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
+  { id: '03-15', tipo: '2d', piso: 3, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
   { id: '02-07', tipo: '3d', piso: 2, frente: 'el parque', m2: 132, m2Exclusivos: '111' },
+  { id: '02-27', tipo: '3d', piso: 2, frente: 'calle Picton', m2: 130, m2Exclusivos: '109' },
   { id: '03-27', tipo: '3d', piso: 3, frente: 'calle Picton', m2: 130, m2Exclusivos: '109' },
   { id: '03-21', tipo: '3d', piso: 3, frente: 'Av. Galindo', m2: 140, m2Exclusivos: '117' },
-  { id: '02-01', tipo: 'of', piso: 2, frente: 'la plazoleta', m2: 69, m2Exclusivos: '56,5' },
   { id: '03-02', tipo: 'of', piso: 3, frente: 'la plazoleta', m2: 51, m2Exclusivos: '42' },
+  { id: '02-01', tipo: 'of', piso: 2, frente: 'la plazoleta', m2: 69, m2Exclusivos: '56,5' },
   { id: '03-09', tipo: 'of', piso: 3, frente: 'la plazoleta', m2: 74, m2Exclusivos: '60,5' },
 ]
 
@@ -53,6 +68,10 @@ export const TIPO_LABEL: Record<TipoUnidad, string> = {
 
 export function nombreUnidad(u: UnidadGalinda) {
   return u.tipo === 'of' ? `Oficina ${u.id}` : `Unidad ${u.id}`
+}
+
+export function entregaDe(tipo: TipoUnidad) {
+  return tipo === 'of' ? GAL_ENTREGA_OFICINAS : GAL_ENTREGA_VIVIENDAS
 }
 
 /** "frente al parque" / "frente a la plazoleta" (contrae a + el). */
