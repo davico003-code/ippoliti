@@ -3,7 +3,7 @@
 // (ProyectosCarousel) vía <ProyectosMosaico>. Imágenes y rutas REALES.
 //
 // El ORDEN refleja la jerarquía del mosaico bento:
-//   [0] big (protagonista) · [1] wide · [2] sm · [3] sm
+//   [0] big (protagonista) · [1] wide · [2] sm · [3] sm · [4] full (franja)
 
 export interface ProyectoDestacado {
   id: string
@@ -64,5 +64,17 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
     href: '/emprendimientos/67173-dockgarden-aldea-fisherton',
     image: '/images/dockgarden/render-frente.webp', // render propio: la de Tokko trae el logo estampado
     videoUrl: '/videos/proyectos/dockgarden',
+  },
+  {
+    // [4] franja a todo el ancho (David, 17-nov-2026). Sin precio: se publica así.
+    id: 'galinda',
+    badge: 'Usos mixtos',
+    title: 'Galinda!',
+    location: 'Funes',
+    pago: 'Showroom terminado · 30% de anticipo + 12 o 24 cuotas',
+    href: '/emprendimientos/galinda',
+    image: '/emprendimientos/galinda/video-portada-poster.webp',
+    // Dron de la obra (DJI, 2-oct-2026), loop ida y vuelta.
+    timelapse: '/videos/proyectos/galinda-dron',
   },
 ]

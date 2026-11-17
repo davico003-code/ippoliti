@@ -92,6 +92,20 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
     marcas: PROYECTTA,
   })
 
+  // Galinda! (Fundar): landing propia SIN precio (David, 17-nov-2026).
+  cards.push({
+    key: 'galinda',
+    href: '/emprendimientos/galinda',
+    image: '/emprendimientos/galinda/video-portada-poster.webp',
+    eyebrow: 'Usos mixtos · Funes',
+    title: 'Galinda!',
+    location: 'Galindo y Picton · Funes',
+    description:
+      'Departamentos de 2 y 3 dormitorios sobre un parque con pileta, una oficina y locales en el paseo comercial. Obra al 91 % y el showroom ya terminado. 30 % de anticipo y el resto en 12 o 24 cuotas.',
+    chips: ['Departamentos', 'En construcción'],
+    accent: GREEN,
+  })
+
   cards.push({
     key: 'fisherton-work',
     href: '/emprendimientos/fisherton-work',
@@ -164,8 +178,8 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
   }
 
   // Orden comercial: primero los que empujamos (Distrito Roldán, Tierra Nueva,
-  // Hausing, Dockgarden); Aurea al final. El resto conserva su orden.
-  const PRIMEROS = ['distrito-roldan', 'tierra-nueva', 'hausing', 'dockgarden']
+  // Galinda!, Hausing, Dockgarden); Aurea al final. El resto conserva su orden.
+  const PRIMEROS = ['distrito-roldan', 'tierra-nueva', 'galinda', 'hausing', 'dockgarden']
   const ULTIMOS = ['aurea']
   const rango = (c: Card) => {
     const id = c.href.split('/').pop() ?? ''

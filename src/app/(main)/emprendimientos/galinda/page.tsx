@@ -202,70 +202,71 @@ export default function GalindaPage() {
     <div className="bg-[var(--background)] pb-24 text-[var(--foreground)] [font-variant-numeric:lining-nums] md:pb-0">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* ── Portada: foto a todo el ancho, como Fundar ── */}
-      <section className="relative isolate flex min-h-[620px] items-end overflow-hidden bg-neutral-900 pt-28 text-white md:min-h-[88vh]">
-        {/* Video de dron de la obra (DJI, 2-oct-2026), ida y vuelta para que el loop no salte.
-            El póster va como imagen con prioridad (LCP); con movimiento reducido queda solo la foto. */}
-        <Image
-          src={`${GAL_BASE}/video-portada-poster.webp`}
-          alt="Vista aérea de Galinda! sobre Av. Galindo, con el cartel de Fundar"
-          fill
-          priority
-          sizes="100vw"
-          className="-z-10 object-cover"
-        />
-        <video
-          src={`${GAL_BASE}/video-portada.mp4`}
-          poster={`${GAL_BASE}/video-portada-poster.webp`}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden
-          className="absolute inset-0 -z-10 h-full w-full object-cover motion-reduce:hidden"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/45 to-black/25" aria-hidden />
-        <div className="mx-auto w-full max-w-6xl px-4 pb-10 md:pb-16">
-          <p className="font-poppins text-sm font-semibold uppercase tracking-[0.14em] text-white/80">Galindo y Picton · Funes</p>
-          <h1 className="font-poppins mt-2 text-[64px] font-semibold leading-none tracking-tight md:text-[112px]">Galinda!</h1>
-          <p className="mt-4 max-w-xl text-lg text-white/90 md:text-xl">
-            Departamentos de <span className="font-poppins">2</span> y <span className="font-poppins">3</span> dormitorios sobre un parque con pileta, una oficina y locales en el paseo comercial. El showroom ya
-            está terminado: vení a verlo.
-          </p>
-
-          <div className="font-poppins mt-7 grid max-w-3xl grid-cols-2 gap-x-6 gap-y-5 md:grid-cols-3">
-            <div className="col-span-2 md:col-span-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Estado</p>
-              <p className="mt-1 text-3xl font-medium tabular-nums">En obra {GAL_AVANCE} %</p>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/25" aria-hidden>
-                <div className="h-full rounded-full bg-[#4fbf85]" style={{ width: `${GAL_AVANCE}%` }} />
+      {/* ── Portada "revista" (David, 17-nov: la de foto oscura a todo el ancho quedaba
+          igual a la de Fundar; eligió la opción C): video de dron arriba sin nada encima
+          y un panel blanco montado sobre él con el nombre y los datos. ── */}
+      <section>
+        <div className="relative h-[46vh] min-h-[300px] overflow-hidden bg-[var(--cream)] md:h-[62vh] md:min-h-[420px]">
+          {/* Póster como imagen con prioridad (LCP); con movimiento reducido queda solo la foto. */}
+          <Image
+            src={`${GAL_BASE}/video-portada-poster.webp`}
+            alt="Vista aérea de Galinda! sobre Av. Galindo, con el cartel de Fundar"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+          <video
+            src={`${GAL_BASE}/video-portada.mp4`}
+            poster={`${GAL_BASE}/video-portada-poster.webp`}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+          />
+          <span className="absolute right-3 top-3 rounded-lg bg-black/55 px-2.5 py-1 text-xs font-semibold text-white">
+            Video real de la obra
+          </span>
+        </div>
+        <div className="relative mx-auto -mt-10 grid max-w-[1120px] gap-6 rounded-t-[22px] bg-[var(--background)] px-4 pb-4 pt-6 md:-mt-[120px] md:grid-cols-[1.2fr_1fr] md:gap-10 md:rounded-t-[28px] md:px-12 md:pt-10">
+          <div>
+            <p className="font-poppins text-xs font-semibold uppercase tracking-[0.14em] text-[var(--tinta-mute)]">Galindo y Picton · Funes</p>
+            <h1 className="font-poppins mt-2 text-[58px] font-semibold leading-none tracking-tight text-[var(--brand)] md:text-[84px]">Galinda!</h1>
+            <p className="mt-4 text-lg text-[var(--tinta-mute)] md:text-xl">
+              Departamentos de <span className="font-poppins">2</span> y <span className="font-poppins">3</span> dormitorios sobre un
+              parque con pileta, una oficina y locales. El showroom ya está terminado: vení a verlo.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <WaGalinda
+                origen="portada"
+                label="Coordinar visita al showroom"
+                text="Hola! Quiero coordinar una visita al showroom de Galinda!."
+                className="py-3.5 text-base"
+              />
+              <a
+                href="#unidades"
+                className="inline-flex items-center justify-center rounded-xl border border-[var(--line)] px-5 py-3.5 text-base font-bold transition-colors hover:border-[var(--brand)]"
+              >
+                Ver las {UNIDADES.length} unidades
+              </a>
+            </div>
+          </div>
+          <dl className="self-center">
+            {[
+              ['Avance de obra', `${GAL_AVANCE} %`],
+              ['Unidades disponibles', String(UNIDADES.length)],
+              ['Entrega oficina', 'Ene 2027'],
+              ['Entrega departamentos', 'Mar–Abr 2027'],
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-baseline justify-between gap-4 border-b border-[var(--line)] py-3.5">
+                <dt className="text-[var(--tinta-mute)]">{k}</dt>
+                <dd className="font-poppins whitespace-nowrap text-[22px] font-medium md:text-[26px]">{v}</dd>
               </div>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Oficina</p>
-              <p className="mt-1 whitespace-nowrap text-2xl font-medium md:text-3xl">Ene 2027</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">Departamentos</p>
-              <p className="mt-1 whitespace-nowrap text-2xl font-medium md:text-3xl">Mar–Abr 2027</p>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <WaGalinda
-              origen="portada"
-              label="Coordinar visita al showroom"
-              text="Hola! Quiero coordinar una visita al showroom de Galinda!."
-              className="py-3.5 text-base"
-            />
-            <a
-              href="#unidades"
-              className="inline-flex items-center justify-center rounded-xl border border-white/60 px-5 py-3.5 text-base font-bold text-white transition-colors hover:bg-white/10"
-            >
-              Ver las {UNIDADES.length} unidades
-            </a>
-          </div>
+            ))}
+          </dl>
         </div>
       </section>
 

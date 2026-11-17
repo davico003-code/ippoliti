@@ -4,7 +4,8 @@
 // al hover. Compartido por el árbol desktop (EmprendimientosHome) y mobile
 // (ProyectosCarousel); el layout es responsive (≤767px apila sin solaparse).
 //
-// Tamaño por posición:  [0] big (2×2) · [1] wide (2×1) · [2] y [3] sm (1×1).
+// Tamaño por posición:  [0] big (2×2) · [1] wide (2×1) · [2] y [3] sm (1×1) ·
+// [4] full (franja de 4×1).
 
 import Link from 'next/link'
 import Image from '@/components/Imagen'
@@ -17,7 +18,7 @@ import TextoConNumeros from './TextoConNumeros'
 // ubicación, pago, "Ver proyecto" y el link final iban enteros en Poppins.
 const R = "var(--font-raleway), 'Raleway', system-ui, sans-serif"
 
-const SIZES = ['big', 'wide', 'sm', 'sm'] as const
+const SIZES = ['big', 'wide', 'sm', 'sm', 'full'] as const
 
 export default function ProyectosMosaico() {
   return (
@@ -83,6 +84,7 @@ export default function ProyectosMosaico() {
         .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:270px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
+        .proj-bento .full{ grid-column:1 / -1; }
 
         .proj-bento .tile{ position:relative; border-radius:20px; overflow:hidden; display:block; text-decoration:none; color:inherit; box-shadow:0 6px 20px rgba(0,0,0,.10); }
         .proj-bento .bg{ position:absolute; inset:0; overflow:hidden; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
@@ -95,6 +97,7 @@ export default function ProyectosMosaico() {
         .proj-bento .pc h3{ font:700 24px ${R}; letter-spacing:-.01em; line-height:1.1; margin:0; }
         .proj-bento .big h3{ font-size:30px; }
         .proj-bento .wide h3{ font-size:21px; }
+        .proj-bento .full h3{ font-size:28px; }
         .proj-bento .sm h3{ font-size:19px; }
         .proj-bento .pc .loc{ font:600 13px ${R}; color:rgba(255,255,255,.92); margin:5px 0 0; }
         .proj-bento .pc .loc-pin{ display:inline-block; vertical-align:-2px; margin-right:4px; }
@@ -108,6 +111,7 @@ export default function ProyectosMosaico() {
           .proj-bento .tile{ grid-column:auto; grid-row:auto; }
           .proj-bento .big{ grid-column:1 / -1; aspect-ratio:1/1; }
           .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:4/3; }
+          .proj-bento .full{ grid-column:1 / -1; aspect-ratio:4/3; }
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }
