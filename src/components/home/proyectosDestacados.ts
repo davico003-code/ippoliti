@@ -19,11 +19,14 @@ export interface ProyectoDestacado {
   /** Video que se reproduce en loop sobre la foto (que queda de póster/LCP).
    *  URL sin extensión: se arman `.webm` y `.mp4`. */
   timelapse?: string
+  /** Logo del desarrollador, en blanco, arriba a la derecha de la tarjeta. */
+  logo?: { src: string; alt: string; width: number; height: number }
 }
 
 export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
   {
     id: 'distrito-roldan',
+    logo: { src: '/images/distrito-roldan/brand/logo-transatlantica-blanco.webp', alt: 'Grupo Transatlántica', width: 640, height: 162 },
     badge: 'Barrio Abierto',
     title: 'Distrito Roldán',
     location: 'Roldán',
@@ -38,6 +41,7 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
   },
   {
     id: 'tierra-nueva',
+    logo: { src: '/emprendimientos/marcas/proyectta-blanco.svg', alt: 'Proyectta', width: 225, height: 64 },
     badge: 'Departamentos',
     title: 'Tierra Nueva',
     location: 'Fisherton',
@@ -47,6 +51,7 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
   },
   {
     id: 'hausing',
+    logo: { src: '/hausing-logo.svg', alt: 'Hausing', width: 468, height: 114 },
     badge: 'Casas Premium',
     title: 'Hausing',
     location: 'Funes',
@@ -57,6 +62,7 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
   },
   {
     id: 'dockgarden',
+    logo: { src: '/emprendimientos/marcas/vers-blanco.webp', alt: 'Estudio VERS', width: 640, height: 185 },
     badge: 'Condominio',
     title: 'Dockgarden',
     location: 'Aldea Fisherton',
@@ -68,6 +74,7 @@ export const PROYECTOS_DESTACADOS: ProyectoDestacado[] = [
   {
     // [4] franja a todo el ancho (David, 17-nov-2026). Sin precio: se publica así.
     id: 'galinda',
+    logo: { src: '/emprendimientos/marcas/fundar-blanco.svg', alt: 'Fundar', width: 129, height: 32 },
     badge: 'Usos mixtos',
     title: 'Galinda!',
     location: 'Funes',
