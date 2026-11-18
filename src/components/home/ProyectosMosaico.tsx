@@ -12,6 +12,7 @@ import Image from '@/components/Imagen'
 import { MapPin } from 'lucide-react'
 import { PROYECTOS_DESTACADOS } from './proyectosDestacados'
 import TextoConNumeros from './TextoConNumeros'
+import DesarrolladorasCinta from './DesarrolladorasCinta'
 
 // Todo el texto del mosaico va en Raleway; los números de las condiciones
 // ("30% + 24 cuotas", "USD 380K") en Poppins vía TextoConNumeros. Antes
@@ -53,6 +54,7 @@ export default function ProyectosMosaico() {
               <div className="ov" />
               <span className="pbadge">{item.badge}</span>
               {item.logo && (
+                <span className="plogo-wrap">
                 <Image
                   src={item.logo.src}
                   alt={item.logo.alt}
@@ -60,6 +62,7 @@ export default function ProyectosMosaico() {
                   height={item.logo.height}
                   className="plogo"
                 />
+                </span>
               )}
               <div className="pc">
                 <h3>{item.title}</h3>
@@ -88,14 +91,18 @@ export default function ProyectosMosaico() {
 
       <Link href="/emprendimientos" className="seehint">Ver todos los emprendimientos →</Link>
 
+      <DesarrolladorasCinta />
+
       <style dangerouslySetInnerHTML={{ __html: `
         .proj-bento{ --green:var(--brand); }
         .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:270px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
         .proj-bento .full{ grid-column:1 / -1; grid-row:span 2; }
-        .proj-bento .plogo{ position:absolute; top:16px; right:18px; z-index:2; height:26px; width:auto; max-width:40%; filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); pointer-events:none; }
-        .proj-bento .sm .plogo{ height:20px; }
+        .proj-bento .plogo-wrap{ position:absolute; top:16px; right:18px; z-index:2; display:flex; pointer-events:none; }
+        .proj-bento .plogo{ height:38px; width:auto; max-width:220px; filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); }
+        .proj-bento .wide .plogo{ height:32px; }
+        .proj-bento .sm .plogo{ height:28px; }
 
         .proj-bento .tile{ position:relative; border-radius:20px; overflow:hidden; display:block; text-decoration:none; color:inherit; box-shadow:0 6px 20px rgba(0,0,0,.10); }
         .proj-bento .bg{ position:absolute; inset:0; overflow:hidden; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
@@ -123,8 +130,9 @@ export default function ProyectosMosaico() {
           .proj-bento .big{ grid-column:1 / -1; aspect-ratio:1/1; }
           .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:4/3; }
           .proj-bento .full{ grid-column:1 / -1; aspect-ratio:1/1; }
-          .proj-bento .plogo{ height:20px; top:14px; right:14px; }
-          .proj-bento .sm .plogo{ height:15px; }
+          .proj-bento .plogo-wrap{ top:14px; right:14px; }
+          .proj-bento .plogo, .proj-bento .wide .plogo{ height:24px; max-width:150px; }
+          .proj-bento .sm .plogo{ height:18px; max-width:90px; }
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }
