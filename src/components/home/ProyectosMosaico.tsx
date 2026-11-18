@@ -12,6 +12,8 @@ import Image from '@/components/Imagen'
 import { MapPin } from 'lucide-react'
 import { PROYECTOS_DESTACADOS } from './proyectosDestacados'
 import TextoConNumeros from './TextoConNumeros'
+import DesarrolladorasCinta from './DesarrolladorasCinta'
+import VarianteLogoPreview from './VarianteLogoPreview'
 
 // Todo el texto del mosaico va en Raleway; los números de las condiciones
 // ("30% + 24 cuotas", "USD 380K") en Poppins vía TextoConNumeros. Antes
@@ -53,6 +55,7 @@ export default function ProyectosMosaico() {
               <div className="ov" />
               <span className="pbadge">{item.badge}</span>
               {item.logo && (
+                <span className="plogo-wrap">
                 <Image
                   src={item.logo.src}
                   alt={item.logo.alt}
@@ -60,8 +63,15 @@ export default function ProyectosMosaico() {
                   height={item.logo.height}
                   className="plogo"
                 />
+                </span>
               )}
               <div className="pc">
+                {item.logo && (
+                  <p className="pdev">
+                    <span>Un desarrollo de</span>
+                    <Image src={item.logo.src} alt="" width={item.logo.width} height={item.logo.height} className="pdev-logo" />
+                  </p>
+                )}
                 <h3>{item.title}</h3>
                 {/* MapPin de lucide en vez del emoji de alfiler: el emoji se dibuja
                     distinto en cada sistema y rompía la línea de íconos. */}
@@ -88,14 +98,34 @@ export default function ProyectosMosaico() {
 
       <Link href="/emprendimientos" className="seehint">Ver todos los emprendimientos →</Link>
 
+      <DesarrolladorasCinta />
+      <VarianteLogoPreview />
+
       <style dangerouslySetInnerHTML={{ __html: `
         .proj-bento{ --green:var(--brand); }
         .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:270px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
         .proj-bento .full{ grid-column:1 / -1; grid-row:span 2; }
-        .proj-bento .plogo{ position:absolute; top:16px; right:18px; z-index:2; height:26px; width:auto; max-width:40%; filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); pointer-events:none; }
+        .proj-bento .plogo-wrap{ position:absolute; top:16px; right:18px; z-index:2; display:flex; pointer-events:none; }
+        .proj-bento .plogo{ height:26px; width:auto; max-width:180px; filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); }
         .proj-bento .sm .plogo{ height:20px; }
+        .proj-bento .pdev{ display:none; }
+        /* A — logo arriba, más grande */
+        .proj-bento[data-logo=a] .plogo{ height:38px; max-width:220px; }
+        .proj-bento[data-logo=a] .sm .plogo{ height:28px; }
+        .proj-bento[data-logo=a] .wide .plogo{ height:32px; }
+        /* B — logo en cápsula de vidrio, como el badge */
+        .proj-bento[data-logo=b] .plogo-wrap{ top:14px; right:14px; padding:9px 14px; border-radius:9999px; background:rgba(255,255,255,.16); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.3); }
+        .proj-bento[data-logo=b] .plogo{ height:24px; filter:brightness(0) invert(1); }
+        .proj-bento[data-logo=b] .sm .plogo{ height:18px; }
+        /* C — "Un desarrollo de [logo]" como firma arriba del título */
+        .proj-bento[data-logo=c] .plogo-wrap{ display:none; }
+        .proj-bento[data-logo=c] .pdev{ display:flex; align-items:center; gap:10px; margin:0 0 10px; font:600 11px ${R}; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.8); }
+        .proj-bento[data-logo=c] .pdev-logo{ height:30px; width:auto; max-width:190px; filter:brightness(0) invert(1); }
+        .proj-bento[data-logo=c] .sm .pdev span{ display:none; }
+        .proj-bento[data-logo=c] .sm .pdev-logo{ height:22px; }
+        .proj-bento[data-logo=c] .big .pdev-logo, .proj-bento[data-logo=c] .full .pdev-logo{ height:38px; }
 
         .proj-bento .tile{ position:relative; border-radius:20px; overflow:hidden; display:block; text-decoration:none; color:inherit; box-shadow:0 6px 20px rgba(0,0,0,.10); }
         .proj-bento .bg{ position:absolute; inset:0; overflow:hidden; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
