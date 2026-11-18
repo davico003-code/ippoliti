@@ -5,7 +5,7 @@
 // (ProyectosCarousel); el layout es responsive (≤767px apila sin solaparse).
 //
 // Tamaño por posición:  [0] big (2×2) · [1] wide (2×1) · [2] y [3] sm (1×1) ·
-// [4] full (franja de 4×1).
+// [4] full (franja de 4×2, más alta: David 18-nov-2026).
 
 import Link from 'next/link'
 import Image from '@/components/Imagen'
@@ -52,6 +52,15 @@ export default function ProyectosMosaico() {
               </div>
               <div className="ov" />
               <span className="pbadge">{item.badge}</span>
+              {item.logo && (
+                <Image
+                  src={item.logo.src}
+                  alt={item.logo.alt}
+                  width={item.logo.width}
+                  height={item.logo.height}
+                  className="plogo"
+                />
+              )}
               <div className="pc">
                 <h3>{item.title}</h3>
                 {/* MapPin de lucide en vez del emoji de alfiler: el emoji se dibuja
@@ -84,7 +93,9 @@ export default function ProyectosMosaico() {
         .proj-bento .bento{ display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:270px; gap:14px; margin-top:20px; }
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
-        .proj-bento .full{ grid-column:1 / -1; }
+        .proj-bento .full{ grid-column:1 / -1; grid-row:span 2; }
+        .proj-bento .plogo{ position:absolute; top:16px; right:18px; z-index:2; height:26px; width:auto; max-width:40%; filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); pointer-events:none; }
+        .proj-bento .sm .plogo{ height:20px; }
 
         .proj-bento .tile{ position:relative; border-radius:20px; overflow:hidden; display:block; text-decoration:none; color:inherit; box-shadow:0 6px 20px rgba(0,0,0,.10); }
         .proj-bento .bg{ position:absolute; inset:0; overflow:hidden; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
@@ -111,7 +122,9 @@ export default function ProyectosMosaico() {
           .proj-bento .tile{ grid-column:auto; grid-row:auto; }
           .proj-bento .big{ grid-column:1 / -1; aspect-ratio:1/1; }
           .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:4/3; }
-          .proj-bento .full{ grid-column:1 / -1; aspect-ratio:4/3; }
+          .proj-bento .full{ grid-column:1 / -1; aspect-ratio:1/1; }
+          .proj-bento .plogo{ height:20px; top:14px; right:14px; }
+          .proj-bento .sm .plogo{ height:15px; }
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }
