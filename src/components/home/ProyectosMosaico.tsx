@@ -132,9 +132,10 @@ export default function ProyectosMosaico() {
           .proj-bento .big{ grid-column:1 / -1; aspect-ratio:1/1; }
           .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:4/3; }
           .proj-bento .full{ grid-column:1 / -1; aspect-ratio:1/1; }
+          /* En el celu las tarjetas son chicas: sin logo (David, 18-nov-2026).
+             Las marcas se ven en la cinta de desarrolladoras, justo abajo. */
           .proj-bento .ptop{ right:14px; }
-          .proj-bento .plogo, .proj-bento .wide .plogo{ height:24px; max-width:150px; }
-          .proj-bento .sm .plogo{ height:18px; max-width:90px; }
+          .proj-bento .plogo{ display:none; }
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
           .proj-bento .big h3{ font-size:26px; }
           .proj-bento .pc .go{ display:none; }
