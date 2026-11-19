@@ -54,7 +54,7 @@ export interface UnidadGalinda {
 // 03-02 (David, 17-nov-2026); las 02-01 y 03-09 ya no están disponibles.
 export const UNIDADES: UnidadGalinda[] = [
   { id: '02-04', tipo: '2d', piso: 2, frente: 'el parque', m2: 107, m2Exclusivos: '89,5' },
-  { id: '02-11', tipo: '2d', piso: 2, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
+  { id: '02-11', ficha: 900000707, tipo: '2d', piso: 2, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
   { id: '03-11', tipo: '2d', piso: 3, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
   { id: '02-12', tipo: '2d', piso: 2, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
   { id: '03-12', ficha: 900000708, tipo: '2d', piso: 3, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
