@@ -375,7 +375,7 @@ export default function GalindaPage() {
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">La oficina</h2>
           <p className="mt-3 max-w-2xl text-lg text-[var(--tinta-mute)]">
-            Queda una sola: la <span className="font-poppins">03-02</span>, de <span className="font-poppins">51</span> m², frente a la plazoleta. Se entrega en enero de{' '}
+            Queda una sola: la <span className="font-poppins">03-02</span>, de <span className="font-poppins">51</span> m², frente a la plazoleta y orientada al norte. Se entrega en enero de{' '}
             <span className="font-poppins">2027</span>.
           </p>
         </div>

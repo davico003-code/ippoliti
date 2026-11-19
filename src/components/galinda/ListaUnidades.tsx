@@ -1,13 +1,14 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { ArrowRight, X } from 'lucide-react'
 import Image from '@/components/Imagen'
 import WaGalinda from '@/components/galinda/WaGalinda'
 import {
   GAL_BASE,
   UNIDADES,
   entregaDe,
+  fichaUrl,
   frenteA,
   m2Comunes,
   nombreUnidad,
@@ -37,6 +38,7 @@ function Tarjeta({ u }: { u: UnidadGalinda }) {
   const nombre = nombreUnidad(u)
   const plano = `${GAL_BASE}/plano-${u.id}.webp`
   const abrir = () => ref.current?.showModal()
+  const ficha = fichaUrl(u)
 
   return (
     <li className="rounded-2xl bg-[var(--card-surface)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:p-5">
@@ -57,7 +59,10 @@ function Tarjeta({ u }: { u: UnidadGalinda }) {
             {u.m2} m²
           </p>
           <p className="font-poppins mt-2 font-medium">{tipoCorto(u.tipo)} · piso {u.piso}</p>
-          <p className="text-sm text-[var(--tinta-mute)]">{frenteA(u.frente).replace(/^f/, 'F')}</p>
+          <p className="text-sm text-[var(--tinta-mute)]">
+            {frenteA(u.frente).replace(/^f/, 'F')}
+            {u.orientacion ? ` · orientación ${u.orientacion}` : ''}
+          </p>
           <dl className="font-poppins mt-2 grid grid-cols-[auto_1fr] gap-x-2 text-sm">
             <dt className="text-[var(--tinta-mute)]">Propios</dt>
             <dd className="font-medium">{u.m2Exclusivos} m²</dd>
@@ -70,7 +75,15 @@ function Tarjeta({ u }: { u: UnidadGalinda }) {
           </dl>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      {ficha && (
+        <a
+          href={ficha}
+          className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-[var(--brand-light)] px-3 py-3 text-sm font-bold text-[var(--brand)] transition-colors hover:bg-[var(--brand)] hover:text-white"
+        >
+          Ver la publicación completa <ArrowRight className="h-4 w-4" aria-hidden />
+        </a>
+      )}
+      <div className={`${ficha ? 'mt-2' : 'mt-4'} grid grid-cols-2 gap-2`}>
         <button
           type="button"
           onClick={abrir}

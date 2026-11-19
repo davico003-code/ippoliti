@@ -25,6 +25,11 @@ export const GAL_AVANCE = 91
 /** Fecha de las fotos y videos propios del showroom y la obra. */
 export const GAL_FECHA_FOTOS = '17 de noviembre de 2026'
 
+/** Ficha completa de la unidad publicada (fotos, descripción, mapa). */
+export function fichaUrl(u: UnidadGalinda) {
+  return u.ficha ? `/propiedades/${u.ficha}` : null
+}
+
 export function galWhatsappUrl(text: string) {
   return `https://wa.me/${GAL_WA_PHONE}?text=${encodeURIComponent(text)}`
 }
@@ -39,6 +44,10 @@ export interface UnidadGalinda {
   /** m² totales (exclusivos + comunes), como los informa Fundar. */
   m2: number
   m2Exclusivos: string
+  /** Orientación, si Fundar la informa (David: la 03-02 da al norte). */
+  orientacion?: string
+  /** Código público de la ficha en siinmobiliaria.com si la unidad está publicada en HILO. */
+  ficha?: number
 }
 
 // Stock de Fundar al 31-oct-2026 (m² de sus fichas). Oficinas: queda SOLO la
@@ -48,15 +57,15 @@ export const UNIDADES: UnidadGalinda[] = [
   { id: '02-11', tipo: '2d', piso: 2, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
   { id: '03-11', tipo: '2d', piso: 3, frente: 'el parque', m2: 108, m2Exclusivos: '90,5' },
   { id: '02-12', tipo: '2d', piso: 2, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
-  { id: '03-12', tipo: '2d', piso: 3, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
+  { id: '03-12', ficha: 900000708, tipo: '2d', piso: 3, frente: 'la plazoleta', m2: 108, m2Exclusivos: '90,5' },
   { id: '02-14', tipo: '2d', piso: 2, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
-  { id: '02-15', tipo: '2d', piso: 2, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
+  { id: '02-15', ficha: 900000709, tipo: '2d', piso: 2, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
   { id: '03-15', tipo: '2d', piso: 3, frente: 'Av. Galindo', m2: 118, m2Exclusivos: '99' },
   { id: '02-07', tipo: '3d', piso: 2, frente: 'el parque', m2: 132, m2Exclusivos: '111' },
   { id: '02-27', tipo: '3d', piso: 2, frente: 'calle Picton', m2: 130, m2Exclusivos: '109' },
-  { id: '03-27', tipo: '3d', piso: 3, frente: 'calle Picton', m2: 130, m2Exclusivos: '109' },
-  { id: '03-21', tipo: '3d', piso: 3, frente: 'Av. Galindo', m2: 140, m2Exclusivos: '117' },
-  { id: '03-02', tipo: 'of', piso: 3, frente: 'la plazoleta', m2: 51, m2Exclusivos: '42' },
+  { id: '03-27', ficha: 900000711, tipo: '3d', piso: 3, frente: 'calle Picton', m2: 130, m2Exclusivos: '109' },
+  { id: '03-21', ficha: 900000712, tipo: '3d', piso: 3, frente: 'Av. Galindo', m2: 140, m2Exclusivos: '117' },
+  { id: '03-02', ficha: 900000714, tipo: 'of', piso: 3, frente: 'la plazoleta', m2: 51, m2Exclusivos: '42', orientacion: 'norte' },
 ]
 
 export const TIPO_LABEL: Record<TipoUnidad, string> = {
