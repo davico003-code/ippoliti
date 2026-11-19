@@ -114,7 +114,7 @@ function TarjetaLocales() {
     <li className="rounded-2xl bg-[var(--card-surface)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] md:p-5">
       <div className="grid grid-cols-[112px_1fr] gap-4 sm:grid-cols-[150px_1fr] sm:gap-5">
         <div className="relative aspect-square overflow-hidden rounded-xl bg-[var(--cream)]">
-          <Image src={`${GAL_BASE}/r-paseo.webp`} alt="Render del paseo comercial de Galinda!" fill sizes="150px" className="object-cover" />
+          <Image src={`${GAL_BASE}/loc-interior.webp`} alt="Interior de un local comercial de Galinda!, en obra" fill sizes="150px" className="object-cover" />
         </div>
         <div className="min-w-0">
           <p className="font-poppins text-xs font-semibold uppercase tracking-[0.12em] text-[var(--tinta-mute)]">Galinda! · Paseo comercial</p>

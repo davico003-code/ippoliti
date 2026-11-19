@@ -61,18 +61,41 @@ export const metadata: Metadata = {
   },
 }
 
+// Fotos reales de la carpeta GALINDA-2 (David, 18-nov-2026): showroom, oficina, cocheras y obra.
 const SHOWROOM = [
-  { img: 'sr-living', alt: 'Living comedor del showroom de Galinda! con salida al balcón', grande: true },
-  { img: 'sr-balcon', alt: 'Balcón del showroom con vista al campo' },
-  { img: 'sr-cocina', alt: 'Cocina integrada al living en el showroom' },
-  { img: 'sr-dormitorio', alt: 'Dormitorio principal del showroom' },
-  { img: 'sr-bano', alt: 'Baño del showroom con vanitory y bacha de apoyo' },
+  { img: 'sr2-living', alt: 'Living comedor del showroom de Galinda! con mesa y sillón', grande: true },
+  { img: 'sr2-living-balcon', alt: 'Living con salida al balcón y vista al campo' },
+  { img: 'sr2-cocina', alt: 'Cocina integrada con isla y anafe' },
+  { img: 'sr2-dormitorio', alt: 'Dormitorio principal del showroom' },
+  { img: 'sr2-dormitorio-2', alt: 'Segundo dormitorio con escritorio' },
+  { img: 'sr2-bano', alt: 'Baño con vanitory y bacha de apoyo' },
+  { img: 'sr2-balcon', alt: 'Balcón con sillones y vista al campo' },
+]
+
+const OFICINA = [
+  { img: 'of-oficina', alt: 'Oficina terminada, vacía y luminosa', pie: 'La oficina' },
+  { img: 'of-ventanales', alt: 'Oficina con ventanales de piso a techo', pie: 'Ventanales' },
+  { img: 'of-balcon', alt: 'Balcón de la oficina con vista al campo', pie: 'Balcón' },
+  { img: 'of-office', alt: 'Office con mesada y bajo mesada', pie: 'Office' },
+  { img: 'of-banos', alt: 'Baños del piso de oficinas', pie: 'Baños' },
+  { img: 'of-hall', alt: 'Hall de acceso a las oficinas', pie: 'Hall de oficinas' },
+  { img: 'of-edificio', alt: 'Edificio de oficinas sobre la plazoleta', pie: 'El edificio de oficinas' },
+]
+
+const COCHERAS = [
+  { img: 'co-cocheras', alt: 'Cocheras cubiertas de Galinda!', pie: 'Cocheras cubiertas' },
+  { img: 'co-cocheras-2', alt: 'Cocheras cubiertas con ventilación natural', pie: 'Cocheras cubiertas' },
+  { img: 'co-cocheras-3', alt: 'Sector de cocheras cubiertas', pie: 'Cocheras cubiertas' },
+  { img: 'co-cortesia', alt: 'Estacionamiento de cortesía frente al conjunto', pie: 'Estacionamiento de cortesía' },
 ]
 
 const OBRA = [
-  { img: 'obra-fachada', alt: 'Frente de Galinda! sobre la calle, con el cartel de Fundar', pie: 'El frente sobre Galindo' },
-  { img: 'obra-paseo', alt: 'Vereda del paseo comercial ya con adoquines', pie: 'El paseo comercial' },
-  { img: 'obra-vista', alt: 'Balcón de un departamento en obra con vista al parque', pie: 'Balcones al parque' },
+  { img: 'obra2-frente', alt: 'Frente de Galinda! sobre Av. Galindo, con el cartel de Fundar', pie: 'El frente sobre Galindo' },
+  { img: 'obra2-calle', alt: 'Calle interna adoquinada entre los edificios', pie: 'La calle interna' },
+  { img: 'obra2-paseo', alt: 'Acceso al paseo comercial y las oficinas', pie: 'El paseo comercial' },
+  { img: 'obra2-locales', alt: 'Interior de un local comercial en obra', pie: 'Los locales' },
+  { img: 'obra2-entre', alt: 'Pasaje entre los edificios de departamentos', pie: 'Entre los edificios' },
+  { img: 'obra2-escalera', alt: 'Escalera y ascensor de un edificio de departamentos', pie: 'Escaleras y ascensor' },
   { img: 'obra-dron', alt: 'Vista aérea de la obra de Galinda! sobre la bajada de la autopista', pie: 'Desde el dron (Fundar)' },
 ]
 
@@ -345,6 +368,40 @@ export default function GalindaPage() {
             </div>
           </div>
         </Seccion>
+      </div>
+
+      {/* ── La oficina disponible y las cocheras: fotos reales ── */}
+      <div className="pt-14 md:pt-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">La oficina</h2>
+          <p className="mt-3 max-w-2xl text-lg text-[var(--tinta-mute)]">
+            Queda una sola: la <span className="font-poppins">03-02</span>, de <span className="font-poppins">51</span> m², frente a la plazoleta. Se entrega en enero de{' '}
+            <span className="font-poppins">2027</span>.
+          </p>
+        </div>
+        <div className="mt-7">
+          <Carrusel label="Fotos de la oficina">
+            {OFICINA.map((f) => (
+              <Foto key={f.img} {...f} real />
+            ))}
+          </Carrusel>
+        </div>
+      </div>
+
+      <div className="pt-14 md:pt-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <h2 className="font-poppins text-[34px] font-medium leading-tight tracking-tight text-[var(--brand)] md:text-5xl">Cocheras</h2>
+          <p className="mt-3 max-w-2xl text-lg text-[var(--tinta-mute)]">
+            Cocheras cubiertas opcionales: se suman aparte a la unidad. Y estacionamiento de cortesía para las visitas.
+          </p>
+        </div>
+        <div className="mt-7">
+          <Carrusel label="Fotos de las cocheras">
+            {COCHERAS.map((f) => (
+              <Foto key={f.img} {...f} real />
+            ))}
+          </Carrusel>
+        </div>
       </div>
 
       {/* ── Avances de obra: carrusel, como Fundar (con nuestras fotos y video) ── */}
