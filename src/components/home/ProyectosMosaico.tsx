@@ -52,18 +52,20 @@ export default function ProyectosMosaico() {
                 )}
               </div>
               <div className="ov" />
-              <span className="pbadge">{item.badge}</span>
-              {item.logo && (
-                <span className="plogo-wrap">
-                <Image
-                  src={item.logo.src}
-                  alt={item.logo.alt}
-                  width={item.logo.width}
-                  height={item.logo.height}
-                  className="plogo"
-                />
-                </span>
-              )}
+              {/* Badge y logo en UNA fila flexible: si no entran juntos (tarjetas
+                  chicas, celu, tablet), el logo baja solo a la línea de abajo. */}
+              <div className="ptop">
+                <span className="pbadge">{item.badge}</span>
+                {item.logo && (
+                  <Image
+                    src={item.logo.src}
+                    alt={item.logo.alt}
+                    width={item.logo.width}
+                    height={item.logo.height}
+                    className="plogo"
+                  />
+                )}
+              </div>
               <div className="pc">
                 <h3>{item.title}</h3>
                 {/* MapPin de lucide en vez del emoji de alfiler: el emoji se dibuja
@@ -99,8 +101,7 @@ export default function ProyectosMosaico() {
         .proj-bento .big{ grid-column:span 2; grid-row:span 2; }
         .proj-bento .wide{ grid-column:span 2; }
         .proj-bento .full{ grid-column:1 / -1; grid-row:span 2; }
-        .proj-bento .plogo-wrap{ position:absolute; top:16px; right:18px; z-index:2; display:flex; pointer-events:none; }
-        .proj-bento .plogo{ height:38px; width:auto; max-width:220px; filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); }
+        .proj-bento .plogo{ flex:none; margin-top:2px; height:38px; width:auto; max-width:min(220px, 100%); filter:brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.45)); }
         .proj-bento .wide .plogo{ height:32px; }
         .proj-bento .sm .plogo{ height:28px; }
 
@@ -110,7 +111,8 @@ export default function ProyectosMosaico() {
         .proj-bento .tile-img{ object-fit:cover; }
         .proj-bento .tile-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
         .proj-bento .ov{ position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.16) 52%,rgba(0,0,0,.05) 100%); }
-        .proj-bento .pbadge{ position:absolute; top:14px; left:14px; z-index:2; background:rgba(255,255,255,.16); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font:700 12px ${R}; text-transform:uppercase; letter-spacing:.5px; padding:6px 12px; border-radius:9999px; }
+        .proj-bento .ptop{ position:absolute; top:14px; left:14px; right:16px; z-index:2; display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:10px 12px; pointer-events:none; }
+        .proj-bento .pbadge{ background:rgba(255,255,255,.16); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.3); color:#fff; font:700 12px ${R}; text-transform:uppercase; letter-spacing:.5px; padding:6px 12px; border-radius:9999px; }
         .proj-bento .pc{ position:absolute; left:0; right:0; bottom:0; z-index:2; padding:18px 20px; color:#fff; }
         .proj-bento .pc h3{ font:700 24px ${R}; letter-spacing:-.01em; line-height:1.1; margin:0; }
         .proj-bento .big h3{ font-size:30px; }
@@ -130,7 +132,7 @@ export default function ProyectosMosaico() {
           .proj-bento .big{ grid-column:1 / -1; aspect-ratio:1/1; }
           .proj-bento .wide{ grid-column:1 / -1; aspect-ratio:4/3; }
           .proj-bento .full{ grid-column:1 / -1; aspect-ratio:1/1; }
-          .proj-bento .plogo-wrap{ top:14px; right:14px; }
+          .proj-bento .ptop{ right:14px; }
           .proj-bento .plogo, .proj-bento .wide .plogo{ height:24px; max-width:150px; }
           .proj-bento .sm .plogo{ height:18px; max-width:90px; }
           .proj-bento .sm{ grid-column:span 1; aspect-ratio:3/4; }
