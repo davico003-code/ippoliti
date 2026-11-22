@@ -36,16 +36,16 @@ import '@/components/galinda/experiencia/extras.css'
 const X = `${GAL_BASE}/x`
 const SITIO = 'https://siinmobiliaria.com'
 
-const TITLE = 'Galinda! · Departamentos, oficinas y locales en Funes'
+const TITLE = 'Departamentos en venta en Funes · Condominio Galinda!'
 const DESCRIPTION =
-  'Departamentos de 2 y 3 dormitorios, oficinas y locales comerciales en Galinda! (Fundar), Galindo y Picton, Funes. Elegí el piso, mirá cada unidad en 3D con su plano y sus metros. Obra al 91 %: entrega estimada en 2027.'
+  'Departamentos de 2 y 3 dormitorios en venta en Galinda!, condominio en Funes con pileta, gimnasio y parque propio, más oficinas y locales comerciales. Elegí el piso y mirá cada depto en 3D con su plano y sus metros. Entrega estimada en 2027.'
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: GAL_URL },
   openGraph: {
-    title: 'Galinda! · Funes · Elegí tu unidad y mirala en 3D',
+    title: 'Condominio Galinda! · Departamentos en venta en Funes',
     description: DESCRIPTION,
     url: GAL_URL,
     type: 'website',
@@ -63,8 +63,26 @@ const waLocal = (l: (typeof LOC)[number]) =>
 
 const mayus = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 
+const dos = viviendas.filter((u) => u.tipo.startsWith('2'))
+const m2Dos = dos.map((u) => Number(u.m2))
+
 const m2Viv = viviendas.map((u) => Number(u.m2))
 const RANGO_VIV = `${Math.min(...m2Viv)} a ${Math.max(...m2Viv)} m²`
+
+// Las mismas que se ven en la sección "Vivir en Galinda" (proyecto de Fundar).
+const AMENIDADES = [
+  'Piscina',
+  'Solárium',
+  'Parque',
+  'Gimnasio',
+  'Salón de usos múltiples',
+  'Parrillero',
+  'Lavadero',
+  'Bicicletero',
+  'Cocheras cubiertas',
+  'Grupo electrógeno',
+  'Seguridad permanente',
+]
 
 const UBICACION = [
   'Sobre la bajada de la autopista Rosario–Córdoba, en el acceso a Funes por calle Galindo.',
@@ -79,8 +97,16 @@ const PREGUNTAS: { p: string; r: string }[] = [
     r: 'En Galindo y Picton, Funes, sobre la bajada de la autopista Rosario–Córdoba y frente a Lion Place, en la entrada de la ciudad.',
   },
   {
+    p: '¿Galinda! es un condominio?',
+    r: 'Sí. Es un condominio de usos mixtos en Funes: dos edificios de departamentos con parque propio, piscina, gimnasio y seguridad permanente, un edificio de oficinas y un paseo de locales comerciales en planta baja.',
+  },
+  {
     p: '¿Qué departamentos hay en venta?',
     r: `Hay ${viviendas.length} departamentos de 2 y 3 dormitorios en los pisos 2 y 3, de ${RANGO_VIV} totales, todos con balcón. En esta página podés elegir el piso, tocar cada unidad y verla en 3D con su plano.`,
+  },
+  {
+    p: '¿Hay deptos de 2 dormitorios con pileta en Funes?',
+    r: `Sí. En Galinda! hay ${dos.length} deptos de 2 dormitorios en venta, de ${Math.min(...m2Dos)} a ${Math.max(...m2Dos)} m² totales, y el condominio tiene piscina, solárium y parque propio.`,
   },
   {
     p: '¿Hay oficinas y locales comerciales?',
@@ -116,8 +142,13 @@ export default function GalindaPage() {
   const jsonLd = [
     {
       '@context': 'https://schema.org',
-      '@type': 'Place',
+      // Complejo de departamentos (no un "lugar" genérico). Sin precios: la web no los muestra.
+      '@type': 'ApartmentComplex',
       name: 'Galinda!',
+      alternateName: 'Condominio Galinda!',
+      numberOfAvailableAccommodationUnits: { '@type': 'QuantitativeValue', value: viviendas.length },
+      numberOfBedrooms: { '@type': 'QuantitativeValue', minValue: 2, maxValue: 3 },
+      amenityFeature: AMENIDADES.map((a) => ({ '@type': 'LocationFeatureSpecification', name: a, value: true })),
       description: DESCRIPTION,
       url: GAL_URL,
       image: `${SITIO}${X}/img/portada-fin.webp`,
@@ -185,7 +216,7 @@ export default function GalindaPage() {
           <p className="rotulo">Todas las unidades</p>
           <h2>Departamentos de 2 y 3 dormitorios y una oficina, en venta en Funes</h2>
           <p className="bajada">
-            Las <span className="num">{U.length}</span> unidades en venta en Galinda!, con sus metros. El precio se consulta por
+            Las <span className="num">{U.length}</span> unidades en venta en el condominio Galinda!, con sus metros. El precio se consulta por
             WhatsApp.
           </p>
           <div className="gx-tabla-caja">

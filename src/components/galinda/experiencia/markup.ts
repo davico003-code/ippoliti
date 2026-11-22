@@ -6,11 +6,11 @@
 import { GAL_AVANCE, GAL_FECHA_FOTOS, galWhatsappUrl } from '@/lib/galinda'
 
 export const GALX_ARRIBA = `<header class="portada">
-  <picture><source media="(max-width: 640px)" srcset="/emprendimientos/galinda/x/img/portada-m.webp"><img class="pposter" src="/emprendimientos/galinda/x/img/portada-fin.webp" alt="Galinda! vista desde el aire, sobre Av. Galindo, en Funes" fetchpriority="high" decoding="async"></picture>
+  <picture><source media="(max-width: 640px)" srcset="/emprendimientos/galinda/x/img/portada-m.webp"><img class="pposter" src="/emprendimientos/galinda/x/img/portada-fin.webp" alt="Condominio Galinda! en Funes visto desde el aire, sobre Av. Galindo" fetchpriority="high" decoding="async"></picture>
   <video id="vPort" muted playsinline loop preload="none" aria-hidden="true"></video>
   <div class="velo"></div>
   <div class="wrap pcont">
-    <h1 class="marca pm">Galinda!</h1>
+    <h1 class="marca pm">Galinda!<span class="sr-only"> · Condominio con departamentos en venta en Funes</span></h1>
     <div class="pabajo">
       <p class="lema">Vivir, trabajar y pasear<br>sin moverte de casa.</p>
       <p class="plugar">Departamentos, oficinas y locales en la entrada de Funes.</p>
@@ -136,16 +136,16 @@ export const GALX_ARRIBA = `<header class="portada">
     <h3 class="sub">Entrá a verlo</h3>
     <p class="bajada" id="adNota"></p>
     <div class="amb" id="amb" role="group" aria-label="Ambientes"></div>
-    <div class="foto" id="fotoCaja"><img id="imgAmb" loading="lazy" src="/emprendimientos/galinda/x/img/sr2-living.webp" alt="Living comedor del showroom"><video id="vidAmb" muted loop playsinline preload="none" hidden></video></div>
+    <div class="foto" id="fotoCaja"><img id="imgAmb" loading="lazy" src="/emprendimientos/galinda/x/img/sr2-living.webp" alt="Living comedor de un departamento de Galinda!, Funes"><video id="vidAmb" muted loop playsinline preload="none" hidden></video></div>
   </div>
 </div></section>
 
 <section id="vivir"><div class="wrap">
   <p class="rotulo">Vivir en Galinda</p>
   <h2>Parque propio, piscina, gimnasio y todo a mano</h2>
-  <p class="bajada">Viviendas, oficinas y un paseo de locales en un mismo lugar, en la entrada de Funes. Con seguridad permanente y cocheras cubiertas.</p>
+  <p class="bajada">Un condominio con viviendas, oficinas y un paseo de locales en un mismo lugar, en la entrada de Funes. Con seguridad permanente y cocheras cubiertas.</p>
   <div class="amb" id="amTabs" role="group" aria-label="Espacios comunes"></div>
-  <div class="foto ancha"><img loading="lazy" decoding="async" id="amImg" src="/emprendimientos/galinda/x/img/am-parque.webp" alt="Render del parque de las viviendas"><p class="pie-foto" id="amPie"></p></div>
+  <div class="foto ancha"><img loading="lazy" decoding="async" id="amImg" src="/emprendimientos/galinda/x/img/am-parque.webp" alt="Parque del condominio Galinda! en Funes, render de Fundar"><p class="pie-foto" id="amPie"></p></div>
   <ul class="amen" aria-label="Amenidades">
     <li>Piscina</li><li>Solárium</li><li>Parque</li><li>Gimnasio</li><li>Salón de usos múltiples</li><li>Parrillero</li><li>Lavadero</li><li>Bicicletero</li><li>Cocheras cubiertas</li><li>Grupo electrógeno</li><li>Seguridad permanente</li>
   </ul>
@@ -161,8 +161,8 @@ export const GALX_ARRIBA = `<header class="portada">
     <button type="button" id="mPro" aria-pressed="false">El proyecto</button>
   </div>
   <div class="mapa">
-    <img loading="lazy" decoding="async" id="imgPro" class="oculta" src="/emprendimientos/galinda/x/img/am-frente.webp" alt="Render de Fundar: Galinda terminado visto desde Av. Galindo">
-    <img loading="lazy" decoding="async" id="imgHoy" src="/emprendimientos/galinda/x/img/conjunto.webp" alt="Foto aérea real de Galinda sobre Av. Galindo">
+    <img loading="lazy" decoding="async" id="imgPro" class="oculta" src="/emprendimientos/galinda/x/img/am-frente.webp" alt="Render de Fundar: el condominio Galinda! terminado, visto desde Av. Galindo, Funes">
+    <img loading="lazy" decoding="async" id="imgHoy" src="/emprendimientos/galinda/x/img/conjunto.webp" alt="Foto aérea real del condominio Galinda! sobre Av. Galindo, Funes">
     <button class="pin" type="button" data-z="oficinas" style="left:29%;top:68%"><i>1</i><b>Oficinas</b></button>
     <button class="pin" type="button" data-z="viviendas" style="left:41%;top:59%"><i>2</i><b>Viviendas</b></button>
     <button class="pin" type="button" data-z="parque" style="left:47%;top:52%"><i>3</i><b>Parque</b></button>
@@ -200,7 +200,7 @@ export const GALX_ARRIBA = `<header class="portada">
 
 export const GALX_ABAJO = `<section class="cierre"><div class="wrap">
   <div class="caja">
-    <img loading="lazy" decoding="async" src="/emprendimientos/galinda/x/img/atardecer.webp" alt="Fachada de Galinda con las luces encendidas al atardecer">
+    <img loading="lazy" decoding="async" src="/emprendimientos/galinda/x/img/atardecer.webp" alt="Fachada del condominio Galinda! en Funes con las luces encendidas al atardecer">
     <div class="texto">
       <h2>Vení a verlo en persona</h2>
       <a class="btn linea" id="cWa" href="${galWhatsappUrl('Hola, quiero coordinar una visita a Galinda!')}" target="_blank" rel="noopener">Coordinar una visita</a>
