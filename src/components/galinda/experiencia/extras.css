@@ -37,3 +37,7 @@
 }
 /* El encabezado fijo de la web no tapa el destino de los saltos. */
 .galx section,.galx .pisos{scroll-margin-top:84px}
+/* Portada: primero la foto; el video aparece suave cuando ya está andando. */
+.galx .portada video{opacity:0;transition:opacity .7s ease}
+.galx .portada video.va{opacity:1}
+@media (prefers-reduced-motion:reduce){.galx .portada video{transition:none}}

@@ -9,6 +9,7 @@ import { U, LOC } from './datos'
 import { GAL_WA_PHONE } from '@/lib/galinda'
 
 var B='/emprendimientos/galinda/x/';
+var THREE_URL='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 
 /** Arranca la experiencia sobre el HTML ya dibujado. Devuelve la limpieza. */
 export function iniciar(){
@@ -25,6 +26,7 @@ export function iniciar(){
   // El video arranca despues de la foto: recien con la pagina cargada, y no se
   // baja si el celular pide ahorrar datos o la conexion es lenta.
   var red=navigator.connection||{},lenta=red.saveData||/(^|-)2g|3g/.test(red.effectiveType||'');
+  vp.addEventListener('playing',function(){vp.classList.add('va')},{signal:sg});
   function arrancaVideo(){if(muerto)return;vp.src=chico?B+'clip/portada-m.mp4':B+'clip/portada.mp4';var pp=vp.play();if(pp&&pp.catch)pp.catch(function(){otra.hidden=false;otra.textContent='Ver el video'})}
   if(!quieto){
     if(lenta){otra.hidden=false;otra.addEventListener('click',function(){if(!vp.getAttribute('src'))vp.src=chico?B+'clip/portada-m.mp4':B+'clip/portada.mp4'},{once:true,signal:sg})}
@@ -111,6 +113,7 @@ export function iniciar(){
       var b=document.createElement('button');b.type='button';b.dataset.id=u.id;b.innerHTML='<small>'+u.tipo+' · '+u.id+'</small><span>'+u.m2+' m²</span>';b.addEventListener('click',function(){verU(u)});sel.appendChild(b);
     });
     $('unidad').hidden=$('adentro').hidden=n<2;
+    if(n>1&&!window.THREE&&!document.getElementById('galxThree')){var lk=document.createElement('link');lk.id='galxThree';lk.rel='preload';lk.as='script';lk.href=THREE_URL;document.head.appendChild(lk)}
     if(n>1&&(elige||uSel.piso!==n))verU(lista[0]);
   }
   /* ---------- modelo 3D real (paredes del plano) ---------- */
@@ -121,7 +124,7 @@ export function iniciar(){
     function falla(){$('v360').hidden=true;giro=false;visto3d=false;MOD={};pintaU()}
     function prepara(ok){
       if(listo)return ok();if(cargando)return;cargando=true;
-      script('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',function(){
+      script(THREE_URL,function(){
         try{
           R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
           R.outputEncoding=THREE.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -209,12 +212,15 @@ export function iniciar(){
   var AO=[['Oficina','of-oficina','Interior de una oficina de Galinda',null]];
   var VID={living:1,cocina:1,dormitorio:1,bano:1,balcon:1};
   var amb=$('amb'),imgAmb=$('imgAmb'),vidAmb=$('vidAmb'),tipoAmb=null;
+  var ambPend=null,ambVisto=!('IntersectionObserver' in window);
+  function ambAnda(){if(!ambPend||vidAmb.getAttribute('src')===ambPend)return;vidAmb.src=ambPend;var p=vidAmb.play();if(p&&p.catch)p.catch(function(){vidAmb.hidden=true;imgAmb.hidden=false})}
+  if(!ambVisto){var oa=new IntersectionObserver(function(en){ambVisto=en[0].isIntersecting;if(ambVisto)ambAnda();else vidAmb.pause()},{rootMargin:'150px'});oa.observe($('fotoCaja'));obs.push(oa)}
   function muestra(a,b){
     [].forEach.call(amb.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
     imgAmb.src=B+'img/'+a[1]+'.webp';imgAmb.alt=a[2];
     var v=a[3]&&VID[a[3]]&&!quieto;
     vidAmb.hidden=!v;imgAmb.hidden=!!v;
-    if(v){vidAmb.poster=B+'img/'+a[1]+'.webp';vidAmb.src=B+'clip/in-'+a[3]+'.mp4';var p=vidAmb.play();if(p&&p.catch)p.catch(function(){vidAmb.hidden=true;imgAmb.hidden=false})}else{vidAmb.pause();vidAmb.removeAttribute('src')}
+    if(v){vidAmb.poster=B+'img/'+a[1]+'.webp';ambPend=B+'clip/in-'+a[3]+'.mp4';if(ambVisto)ambAnda();else{vidAmb.pause();vidAmb.removeAttribute('src')}}else{ambPend=null;vidAmb.pause();vidAmb.removeAttribute('src')}
   }
   function ambientes(u){
     var t=u.of?'of':'viv';if(t===tipoAmb)return;tipoAmb=t;
