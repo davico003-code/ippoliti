@@ -41,7 +41,8 @@
 .galx .portada video{opacity:0;transition:opacity .7s ease}
 .galx .portada video.va{opacity:1}
 @media (prefers-reduced-motion:reduce){.galx .portada video{transition:none}}
-/* Unidades agrupadas por tipo: accesos arriba y una tabla corta por grupo. */
+/* Unidades agrupadas por tipo (David, 22-nov-2026: "bien fácil de encontrar y entender"):
+   accesos arriba y una tabla corta por grupo. */
 .galx .gx-saltos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 8px}
 .galx .gx-saltos a{display:block;border:1px solid var(--linea);border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--tinta);background:#fff}
 .galx .gx-saltos a:hover{border-color:var(--galinda-osc);background:var(--suave)}
