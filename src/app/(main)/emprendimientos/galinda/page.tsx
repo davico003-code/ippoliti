@@ -53,6 +53,8 @@ export const metadata: Metadata = {
   },
 }
 
+const mayus = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
+
 const viviendas = U.filter((u) => !u.of)
 const oficinas = U.filter((u) => u.of)
 const nombre = (u: (typeof U)[number]) => `${u.of ? 'Oficina' : 'Unidad'} ${u.id}`
@@ -61,10 +63,29 @@ const waUnidad = (u: (typeof U)[number]) =>
 const waLocal = (l: (typeof LOC)[number]) =>
   galWhatsappUrl(`Hola, vi el local ${l.id} de Galinda! (${l.t} m²) y quiero consultar el valor.`)
 
-const mayus = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
-
 const dos = viviendas.filter((u) => u.tipo.startsWith('2'))
 const m2Dos = dos.map((u) => Number(u.m2))
+
+// "Frente a la plazoleta" → "La plazoleta" (la columna ya dice "Frente a").
+const frenteCorto = (f: string) => mayus(f.replace(/^Frente al /, 'el ').replace(/^Frente a /, ''))
+const rango = (l: { m2: string }[]) => {
+  const m = l.map((u) => Number(u.m2))
+  const [min, max] = [Math.min(...m), Math.max(...m)]
+  return min === max ? `${min} m²` : `${min} a ${max} m²`
+}
+// Por piso (de abajo hacia arriba) y, dentro del piso, de menor a mayor.
+const ordenar = (l: typeof U) => [...l].sort((a, b) => a.piso - b.piso || Number(a.m2) - Number(b.m2))
+const grupo = (id: string, titulo: string, corto: string, l: typeof U, entrega: string) => {
+  const lista = ordenar(l)
+  return { id, titulo, corto, lista, rango: rango(lista), entrega }
+}
+// Las unidades agrupadas por lo que la gente busca: cuántos dormitorios.
+const GRUPOS = [
+  grupo('deptos-2-dormitorios', 'Departamentos de 2 dormitorios', '2 dormitorios', viviendas.filter((u) => u.tipo.startsWith('2')), GAL_ENTREGA_VIVIENDAS),
+  grupo('deptos-3-dormitorios', 'Departamentos de 3 dormitorios', '3 dormitorios', viviendas.filter((u) => u.tipo.startsWith('3')), GAL_ENTREGA_VIVIENDAS),
+  grupo('oficina', 'Oficina', 'Oficina', oficinas, GAL_ENTREGA_OFICINAS),
+].filter((g) => g.lista.length > 0)
+const RANGO_LOC = rango(LOC.map((l) => ({ m2: l.t })))
 
 const m2Viv = viviendas.map((u) => Number(u.m2))
 const RANGO_VIV = `${Math.min(...m2Viv)} a ${Math.max(...m2Viv)} m²`
@@ -216,59 +237,73 @@ export default function GalindaPage() {
           <p className="rotulo">Todas las unidades</p>
           <h2>Departamentos de 2 y 3 dormitorios y una oficina, en venta en Funes</h2>
           <p className="bajada">
-            Las <span className="num">{U.length}</span> unidades en venta en el condominio Galinda!, con sus metros. El precio se consulta por
-            WhatsApp.
+            Las <span className="num">{U.length}</span> unidades en venta en el condominio Galinda!, agrupadas por tipo y con sus
+            metros. El precio se consulta por WhatsApp.
           </p>
-          <div className="gx-tabla-caja">
-            <table>
-              <caption>Departamentos y oficina en venta en Galinda!, Funes</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Unidad</th>
-                  <th scope="col">Tipo</th>
-                  <th scope="col" className="gx-col-x">Ubicación</th>
-                  <th scope="col">Total</th>
-                  <th scope="col" className="gx-col-x">Exclusiva</th>
-                  <th scope="col" className="gx-col-x">Entrega estimada</th>
-                  <th scope="col">
-                    <span className="sr-only">Ver o consultar</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...viviendas, ...oficinas].map((u) => (
-                  <tr key={u.id} id={`u-${u.id}`}>
-                    <th scope="row">{u.id}</th>
-                    <td>
-                      {u.of ? (
-                        'Oficina'
-                      ) : (
-                        <>
-                          <span className="gx-col-x">Departamento de </span>
-                          {u.tipo}
-                        </>
-                      )}
-                    </td>
-                    <td className="gx-col-x">
-                      Piso <span className="num">{u.piso}</span> · {u.frente.charAt(0).toLowerCase() + u.frente.slice(1)}
-                    </td>
-                    <td className="n">{u.m2} m²</td>
-                    <td className="n gx-col-x">{u.prop} m²</td>
-                    <td className="gx-col-x">{mayus(u.of ? GAL_ENTREGA_OFICINAS : GAL_ENTREGA_VIVIENDAS)}</td>
-                    <td>
-                      {u.ficha ? (
-                        <Link href={`/propiedades/${u.ficha}`}>Ver ficha</Link>
-                      ) : (
-                        <a href={waUnidad(u)} target="_blank" rel="noopener noreferrer">
-                          Consultar
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <nav className="gx-saltos" aria-label="Ir a cada tipo de unidad">
+            {GRUPOS.map((g) => (
+              <a key={g.id} href={`#${g.id}`}>
+                <b>{g.corto}</b>
+                <span>
+                  <span className="num">{g.lista.length}</span> {g.lista.length === 1 ? 'unidad' : 'unidades'} ·{' '}
+                  <span className="num">{g.rango}</span>
+                </span>
+              </a>
+            ))}
+            <a href="#locales-comerciales">
+              <b>Locales</b>
+              <span>
+                <span className="num">{LOC.length}</span> locales · <span className="num">{RANGO_LOC}</span>
+              </span>
+            </a>
+          </nav>
+
+          {GRUPOS.map((g) => (
+            <div key={g.id} id={g.id} className="gx-grupo">
+              <h3>{g.titulo}</h3>
+              <p className="gx-grupo-dato">
+                <span className="num">{g.lista.length}</span> en venta · <span className="num">{g.rango}</span> totales · Entrega
+                estimada: {g.entrega}
+              </p>
+              <div className="gx-tabla-caja">
+                <table>
+                  <caption>{g.titulo} en venta en Galinda!, Funes</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Unidad</th>
+                      <th scope="col">Piso</th>
+                      <th scope="col">Frente a</th>
+                      <th scope="col">Total</th>
+                      <th scope="col" className="gx-col-x">Exclusiva</th>
+                      <th scope="col">
+                        <span className="sr-only">Ver o consultar</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {g.lista.map((u) => (
+                      <tr key={u.id} id={`u-${u.id}`}>
+                        <th scope="row">{u.id}</th>
+                        <td className="n">{u.piso}</td>
+                        <td>{frenteCorto(u.frente)}</td>
+                        <td className="n">{u.m2} m²</td>
+                        <td className="n gx-col-x">{u.prop} m²</td>
+                        <td className="gx-acc">
+                          {u.ficha ? (
+                            <Link href={`/propiedades/${u.ficha}`}>Ver ficha</Link>
+                          ) : (
+                            <a href={waUnidad(u)} target="_blank" rel="noopener noreferrer">
+                              Consultar
+                            </a>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
 
           <h3 id="locales-comerciales">Locales comerciales en Funes: paseo de planta baja</h3>
           <p className="bajada">

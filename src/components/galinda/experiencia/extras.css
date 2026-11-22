@@ -41,3 +41,27 @@
 .galx .portada video{opacity:0;transition:opacity .7s ease}
 .galx .portada video.va{opacity:1}
 @media (prefers-reduced-motion:reduce){.galx .portada video{transition:none}}
+/* Unidades agrupadas por tipo: accesos arriba y una tabla corta por grupo. */
+.galx .gx-saltos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 8px}
+.galx .gx-saltos a{display:block;border:1px solid var(--linea);border-radius:12px;padding:12px 14px;text-decoration:none;color:var(--tinta);background:#fff}
+.galx .gx-saltos a:hover{border-color:var(--galinda-osc);background:var(--suave)}
+.galx .gx-saltos b{display:block;font-size:18px;line-height:1.2}
+.galx .gx-saltos a>span{display:block;font-size:14px;color:var(--tinta-2);margin-top:2px}
+.galx .gx-grupo,.galx #locales-comerciales{scroll-margin-top:92px}
+.galx .gx-grupo h3{margin:34px 0 2px;font-size:24px}
+.galx .gx-grupo-dato{margin:0 0 12px;color:var(--tinta-2);font-size:16px}
+.galx .gx-grupo table{table-layout:fixed}
+.galx .gx-grupo th:nth-child(1){width:15%}.galx .gx-grupo th:nth-child(2){width:10%}.galx .gx-grupo th:nth-child(3){width:29%}
+.galx .gx-grupo th:nth-child(4){width:14%}.galx .gx-grupo th:nth-child(5){width:14%}.galx .gx-grupo th:nth-child(6){width:18%}
+.galx td.gx-acc{text-align:right}
+.galx td.gx-acc a{display:inline-block;border:1px solid var(--galinda-osc);border-radius:999px;padding:6px 14px;text-decoration:none;font-size:15px;min-width:104px;text-align:center}
+.galx td.gx-acc a:hover{background:var(--galinda-osc);color:#fff}
+@media (max-width:760px){
+  .galx .gx-saltos{grid-template-columns:1fr 1fr;gap:8px}
+  .galx .gx-saltos b{font-size:16px}.galx .gx-saltos a>span{font-size:13px}
+  .galx .gx-grupo h3{font-size:21px}
+  .galx .gx-grupo th:nth-child(1){width:19%}.galx .gx-grupo th:nth-child(2){width:12%}.galx .gx-grupo th:nth-child(3){width:auto}
+  .galx .gx-grupo th:nth-child(4){width:21%}.galx .gx-grupo th:nth-child(6){width:27%}
+  .galx .gx-grupo td{white-space:normal}
+  .galx td.gx-acc a{min-width:0;padding:6px 9px;font-size:13px}
+}
