@@ -1,6 +1,8 @@
 // Datos de la experiencia de Galinda!: unidades en venta (fichas de Fundar,
 // stock al 31-oct-2026) y locales 31 a 39 (presentacion comercial de Fundar,
 // planilla del 20-abr-2026). SIN PRECIO (David, 17-nov-2026).
+// Oficinas: queda SOLO la 03-02 (David, 17-nov-2026); las 02-01 y 03-09 ya no
+// están disponibles. Es la ÚNICA lista: cuando Fundar venda una unidad, se saca de acá.
 // Los usa el motor (plano tocable, 3D) y la pagina (tablas escritas en el HTML).
 
 export interface UnidadX {

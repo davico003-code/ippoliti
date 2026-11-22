@@ -6,6 +6,7 @@
 // aprobo David (22-nov-2026), portado tal cual; solo cambian las rutas, la
 // limpieza al salir de la pagina y que los datos viven en ./datos.
 import { U, LOC } from './datos'
+import { GAL_WA_PHONE } from '@/lib/galinda'
 
 var B='/emprendimientos/galinda/x/';
 
@@ -13,7 +14,7 @@ var B='/emprendimientos/galinda/x/';
 export function iniciar(){
   var ac=new AbortController(),sg=ac.signal,muerto=false,obs=[];
   ['pisos','zonas','amTabs','locPol','axoB','amb','marcas','selector'].forEach(function(k){var e=document.getElementById(k);if(e)e.innerHTML=''});
-  var WA='5493413340916';
+  var WA=GAL_WA_PHONE;
   function wa(t){return 'https://wa.me/'+WA+'?text='+encodeURIComponent(t)}
   function $(id){return document.getElementById(id)}
   var quieto=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -21,9 +22,13 @@ export function iniciar(){
   /* ---------- portada ---------- */
   var vp=$('vPort'),otra=$('otraVez'),chico=window.matchMedia&&matchMedia('(max-width: 640px)').matches;
   
+  // El video arranca despues de la foto: recien con la pagina cargada, y no se
+  // baja si el celular pide ahorrar datos o la conexion es lenta.
+  var red=navigator.connection||{},lenta=red.saveData||/(^|-)2g|3g/.test(red.effectiveType||'');
+  function arrancaVideo(){if(muerto)return;vp.src=chico?B+'clip/portada-m.mp4':B+'clip/portada.mp4';var pp=vp.play();if(pp&&pp.catch)pp.catch(function(){otra.hidden=false;otra.textContent='Ver el video'})}
   if(!quieto){
-    vp.src=chico?B+'clip/portada-m.mp4':B+'clip/portada.mp4';
-    var pp=vp.play();if(pp&&pp.catch)pp.catch(function(){otra.hidden=false;otra.textContent='Ver el video'});
+    if(lenta){otra.hidden=false;otra.addEventListener('click',function(){if(!vp.getAttribute('src'))vp.src=chico?B+'clip/portada-m.mp4':B+'clip/portada.mp4'},{once:true,signal:sg})}
+    else if(document.readyState==='complete')setTimeout(arrancaVideo,300);else window.addEventListener('load',function(){setTimeout(arrancaVideo,300)},{once:true,signal:sg});
     
     otra.addEventListener('click',function(){otra.hidden=true;vp.currentTime=0;var q=vp.play();if(q&&q.catch)q.catch(function(){})});
   }
@@ -69,7 +74,7 @@ export function iniciar(){
     if(quieto)return;var sec=[0,1,2,3,-1,-1],i=0;
     (function paso(){if(muerto)return;if(tocoPiso){luzPiso(-1,'luz');return}luzPiso(sec[i%sec.length],'luz');i++;setTimeout(paso,800)})();
   }
-  if('IntersectionObserver' in window){var ob=new IntersectionObserver(function(en){if(en[0].isIntersecting){ob.disconnect();recorre()}},{threshold:0.5});ob.observe($('axo'))}
+  if('IntersectionObserver' in window){var ob=new IntersectionObserver(function(en){if(en[0].isIntersecting){ob.disconnect();recorre()}},{threshold:0.5});ob.observe($('axo'));obs.push(ob)}
   Object.keys(MOD).forEach(function(k){MOD[k].alt=1});
   var locSel=LOC[2],locPol=$('locPol');
   LOC.forEach(function(l){
@@ -152,7 +157,7 @@ export function iniciar(){
     }
     cv.addEventListener('pointerdown',function(e){x0=e.clientX;y0=e.clientY;a0=tAz;p0=tPol;auto=false;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
     cv.addEventListener('pointermove',function(e){if(x0===null)return;tAz=a0-(e.clientX-x0)*0.008;if(e.pointerType!=='touch')tPol=Math.max(0.05,Math.min(1.25,p0-(e.clientY-y0)*0.006))});
-    function suelta(){x0=null}cv.addEventListener('pointerup',suelta);cv.addEventListener('pointercancel',suelta);
+    function suelta(){x0=null}cv.addEventListener('pointerup',suelta,{signal:sg});cv.addEventListener('pointercancel',suelta,{signal:sg});
     $('zMas').addEventListener('click',function(){auto=false;tDist=Math.max(base0*0.4,tDist-base0*0.18)});
     $('zMen').addEventListener('click',function(){auto=false;tDist=Math.min(base0*1.5,tDist+base0*0.18)});
     $('zTop').addEventListener('click',function(){auto=false;var arriba=tPol>0.3;tPol=arriba?0.05:0.8;$('zTop').textContent=arriba?'En perspectiva':'Desde arriba'});
@@ -160,7 +165,8 @@ export function iniciar(){
     return {
       cargo:function(id){return cargado===id},
       abre:function(id){prepara(function(){if(!giro)return;if(idAct!==id)arma(id);mide();if(!vivo){vivo=true;raf=requestAnimationFrame(cuadro)}})},
-      cierra:function(){vivo=false;cancelAnimationFrame(raf)}
+      cierra:function(){vivo=false;cancelAnimationFrame(raf)},
+      suelta:function(){vivo=false;cancelAnimationFrame(raf);if(!R)return;try{if(esc)esc.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}});R.dispose()}catch(_){}}
     };
   })();
 
@@ -194,7 +200,7 @@ export function iniciar(){
     if(!en3d||giro||quieto)return;var r=escena.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
     escena.style.setProperty('--ry',(x*30).toFixed(1)+'deg');escena.style.setProperty('--rx',(-y*22).toFixed(1)+'deg');
   }
-  escena.addEventListener('pointermove',inclina);escena.addEventListener('pointerdown',inclina);
+  escena.addEventListener('pointermove',inclina,{signal:sg});escena.addEventListener('pointerdown',inclina,{signal:sg});
   escena.addEventListener('pointerleave',function(e){if(e.pointerType==='touch')return;escena.style.setProperty('--rx','0deg');escena.style.setProperty('--ry','0deg')});
   if(quieto)document.querySelector('.escena .ayuda').hidden=true;
 
@@ -221,7 +227,8 @@ export function iniciar(){
     document.querySelector('.planta-caja').hidden=true;
     $('axoEt').textContent='Tocá un piso para ver sus unidades';$('axoEt').classList.add('invita');
   })();
-  if('IntersectionObserver' in window&&!quieto){var o3=new IntersectionObserver(function(en){if(en[0].isIntersecting){o3.disconnect();visto3d=true;if(en3d&&MOD[uSel.id]){giro=true;pintaU()}}},{threshold:0.35});o3.observe(escena)}else{visto3d=!quieto}
+  if('IntersectionObserver' in window&&!quieto){var o3=new IntersectionObserver(function(en){if(en[0].isIntersecting){o3.disconnect();visto3d=true;if(en3d&&MOD[uSel.id]){giro=true;pintaU()}}},{threshold:0.35});o3.observe(escena);obs.push(o3)}else{visto3d=!quieto}
+  if('IntersectionObserver' in window){var oe=new IntersectionObserver(function(en){if(!giro)return;if(en[0].isIntersecting)giro3d.abre(uSel.id);else giro3d.cierra()},{threshold:0.01});oe.observe(escena);obs.push(oe)}
   $('pbWa').href=wa('Hola, quiero consultar por un local en Galinda!');
 
   /* ---------- plano en grande ---------- */
@@ -248,7 +255,7 @@ export function iniciar(){
     function cierra(){L.hidden=true;document.documentElement.style.overflow='';pts={};if(antes)antes.focus()}
     $('agrandar').addEventListener('click',function(){if(en3d){en3d=false;giro=false;pintaU()}abre()});
     imgU.addEventListener('click',function(){if(!en3d)abre()});
-    $('lupaX').addEventListener('click',cierra);
+    $('lupaX').addEventListener('click',cierra,{signal:sg});
     $('lupaMas').addEventListener('click',function(){zoom(1.6)});$('lupaMen').addEventListener('click',function(){zoom(1/1.6)});
     document.addEventListener('keydown',function(e){if(L.hidden)return;if(e.key==='Escape')cierra();else if(e.key==='+'||e.key==='=')zoom(1.4);else if(e.key==='-')zoom(1/1.4)},{signal:sg});
     L.addEventListener('wheel',function(e){e.preventDefault();zoom(Math.exp(-e.deltaY*0.0022),e.clientX,e.clientY)},{passive:false});
@@ -266,7 +273,7 @@ export function iniciar(){
       ini={d:d,cx:cx,cy:cy};
     });
     function suelta(e){delete pts[e.pointerId];ini=null;if(!Object.keys(pts).length)im.classList.remove('arrastra')}
-    im.addEventListener('pointerup',suelta);im.addEventListener('pointercancel',suelta);
+    im.addEventListener('pointerup',suelta,{signal:sg});im.addEventListener('pointercancel',suelta,{signal:sg});
     window.addEventListener('resize',function(){if(!L.hidden)encaja()},{signal:sg});
   })();
 
@@ -279,5 +286,5 @@ export function iniciar(){
   AM.forEach(function(a,i){var b=document.createElement('button');b.type='button';b.textContent=a[0];b.setAttribute('aria-pressed',i===0?'true':'false');b.addEventListener('click',function(){[].forEach.call(amT.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});$('amImg').src=B+'img/'+a[1]+'.webp';$('amImg').alt=a[2];$('amPie').textContent=a[3]});amT.appendChild(b)});
   $('amPie').textContent=AM[0][3];
   $('cWa').href=wa('Hola, quiero coordinar una visita a Galinda!');
-  return function(){muerto=true;ac.abort();obs.forEach(function(o){o.disconnect()});giro3d.cierra();document.documentElement.style.overflow=''};
+  return function(){muerto=true;ac.abort();obs.forEach(function(o){o.disconnect()});giro3d.suelta();document.documentElement.style.overflow=''};
 }

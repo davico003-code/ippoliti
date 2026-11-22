@@ -9,7 +9,8 @@ const cspReportOnly = [
   "frame-ancestors 'self'",
   // El Pixel de Meta manda eventos por <form> e <iframe> ocultos a facebook.com/tr.
   "form-action 'self' https://www.facebook.com",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.clarity.ms https://*.clarity.ms",
+  // cdnjs: three.js r128 del modelo 3D de /emprendimientos/galinda (se baja al abrir el 3D).
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.clarity.ms https://*.clarity.ms https://cdnjs.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

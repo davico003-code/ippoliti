@@ -17,7 +17,14 @@ const ORIGEN: Record<string, string> = {
 /** Le da vida al HTML de la experiencia (lo dibuja el servidor). No pinta nada. */
 export default function MotorGalinda() {
   useEffect(() => {
-    const fin: () => void = iniciar()
+    // Si el motor fallara, la página queda igual de legible (tablas, fotos y
+    // botones de consulta ya vienen escritos): no se cae entera.
+    let fin: () => void = () => {}
+    try {
+      fin = iniciar()
+    } catch (e) {
+      trackEvent('error_galinda', { motivo: e instanceof Error ? e.message.slice(0, 90) : 'motor' })
+    }
     const alClic = (e: MouseEvent) => {
       const a = (e.target as HTMLElement | null)?.closest?.('a[href^="https://wa.me/"]')
       if (a && a.closest('.galx')) trackEvent('click_whatsapp', { origen: `galinda-${ORIGEN[a.id] ?? 'pagina'}` })

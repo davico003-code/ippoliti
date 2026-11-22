@@ -61,6 +61,8 @@ const waUnidad = (u: (typeof U)[number]) =>
 const waLocal = (l: (typeof LOC)[number]) =>
   galWhatsappUrl(`Hola, vi el local ${l.id} de Galinda! (${l.t} m²) y quiero consultar el valor.`)
 
+const mayus = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
+
 const m2Viv = viviendas.map((u) => Number(u.m2))
 const RANGO_VIV = `${Math.min(...m2Viv)} a ${Math.max(...m2Viv)} m²`
 
@@ -98,7 +100,7 @@ const PREGUNTAS: { p: string; r: string }[] = [
   },
   {
     p: '¿Qué amenidades tiene?',
-    r: 'Parque propio de las viviendas, piscina, solárium, gimnasio, salón de usos múltiples, parrillero, laundry, bicicletero, cocheras cubiertas, grupo electrógeno y seguridad permanente, según el proyecto de Fundar.',
+    r: 'Parque propio de las viviendas, piscina, solárium, gimnasio, salón de usos múltiples, parrillero, lavadero, bicicletero, cocheras cubiertas, grupo electrógeno y seguridad permanente, según el proyecto de Fundar.',
   },
   {
     p: '¿Se puede visitar?',
@@ -146,7 +148,7 @@ export default function GalindaPage() {
         '@type': 'ListItem',
         position: i + 1,
         name: `${nombre(u)} · ${u.tipo} · ${u.m2} m²`,
-        url: u.ficha ? `${SITIO}/propiedades/${u.ficha}` : `${GAL_URL}#unidades`,
+        url: u.ficha ? `${SITIO}/propiedades/${u.ficha}` : `${GAL_URL}#u-${u.id}`,
       })),
     },
     {
@@ -204,7 +206,7 @@ export default function GalindaPage() {
               </thead>
               <tbody>
                 {[...viviendas, ...oficinas].map((u) => (
-                  <tr key={u.id}>
+                  <tr key={u.id} id={`u-${u.id}`}>
                     <th scope="row">{u.id}</th>
                     <td>
                       {u.of ? (
@@ -221,7 +223,7 @@ export default function GalindaPage() {
                     </td>
                     <td className="n">{u.m2} m²</td>
                     <td className="n gx-col-x">{u.prop} m²</td>
-                    <td className="gx-col-x">{u.of ? 'Enero de 2027' : 'Marzo-abril de 2027'}</td>
+                    <td className="gx-col-x">{mayus(u.of ? GAL_ENTREGA_OFICINAS : GAL_ENTREGA_VIVIENDAS)}</td>
                     <td>
                       {u.ficha ? (
                         <Link href={`/propiedades/${u.ficha}`}>Ver ficha</Link>

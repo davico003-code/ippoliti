@@ -1,15 +1,19 @@
 // HTML de la experiencia de Galinda! (lo dibuja el servidor; motor.js lo anima).
-// Generado desde la pagina de prueba aprobada por David (22-nov-2026).
+// Sale de la pagina de prueba aprobada por David (22-nov-2026). Fechas, avance
+// y telefono vienen de lib/galinda.ts; los enlaces de WhatsApp ya salen con su
+// destino (el motor despues les pone el mensaje de la unidad elegida).
+
+import { GAL_AVANCE, GAL_FECHA_FOTOS, galWhatsappUrl } from '@/lib/galinda'
 
 export const GALX_ARRIBA = `<header class="portada">
   <picture><source media="(max-width: 640px)" srcset="/emprendimientos/galinda/x/img/portada-m.webp"><img class="pposter" src="/emprendimientos/galinda/x/img/portada-fin.webp" alt="Galinda! vista desde el aire, sobre Av. Galindo, en Funes" fetchpriority="high" decoding="async"></picture>
   <video id="vPort" muted playsinline loop preload="none" aria-hidden="true"></video>
   <div class="velo"></div>
   <div class="wrap pcont">
-    <p class="marca pm">Galinda!</p>
+    <h1 class="marca pm">Galinda!</h1>
     <div class="pabajo">
-      <h1>Vivir, trabajar y pasear<br>sin moverte de casa.</h1>
-      <p class="plugar">Departamentos, oficinas y locales en el centro de Funes.</p>
+      <p class="lema">Vivir, trabajar y pasear<br>sin moverte de casa.</p>
+      <p class="plugar">Departamentos, oficinas y locales en la entrada de Funes.</p>
       <div class="pbot">
         <button type="button" class="btn pri" id="irUnidades">Elegir mi unidad</button>
       </div>
@@ -49,7 +53,7 @@ export const GALX_ARRIBA = `<header class="portada">
           <span class="pl-rot" style="left:44%;top:14%">Parque</span>
           <span class="pl-rot pl-calle" style="left:38%;bottom:-2%">Av. Galindo</span>
           <div id="marcas"></div>
-          <div class="pl-pb" id="plPb" hidden><strong id="pbTit">Planta baja: paseo de locales</strong><span id="pbTxt">La disponibilidad se consulta por WhatsApp.</span><a class="btn wa" id="pbWa" target="_blank" rel="noopener">Consultar por un local</a></div>
+          <div class="pl-pb" id="plPb" hidden><strong id="pbTit">Planta baja: paseo de locales</strong><span id="pbTxt">La disponibilidad se consulta por WhatsApp.</span><a class="btn wa" id="pbWa" href="${galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')}" target="_blank" rel="noopener">Consultar por un local</a></div>
         </div>
       </div>
       <p class="nota" id="notaPlanta"></p>
@@ -84,7 +88,7 @@ export const GALX_ARRIBA = `<header class="portada">
         <h3 id="locNombre"></h3>
         <p class="tipo" id="locTipo"></p>
         <dl class="datos" id="locDatos"></dl>
-        <a class="btn wa" id="locWa" target="_blank" rel="noopener">Consultar por este local</a>
+        <a class="btn wa" id="locWa" href="${galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')}" target="_blank" rel="noopener">Consultar por este local</a>
         <p class="nota">Tocá otro local en el plano para ver sus metros. Los valores se consultan.</p>
       </div>
     </div>
@@ -105,7 +109,7 @@ export const GALX_ARRIBA = `<header class="portada">
   <div class="unidad" id="unidad" hidden>
     <div>
       <div class="escena" id="escena">
-        <img id="imgU" loading="lazy" src="/emprendimientos/galinda/x/img/u-03-12.webp"alt="Planta en 3D de la unidad 03-12">
+        <img id="imgU" loading="lazy" src="/emprendimientos/galinda/x/img/u-03-12.webp" alt="Planta en 3D de la unidad 03-12">
         <canvas id="lienzo3d" hidden aria-label="Modelo 3D de la unidad. Deslizá hacia los costados para girarlo."></canvas>
         <div class="zoom" id="zoom3d" hidden><button type="button" id="zMas" aria-label="Acercar">+</button><button type="button" id="zMen" aria-label="Alejar">−</button><button type="button" id="zTop">Desde arriba</button></div>
         <div class="vista" role="group" aria-label="Tipo de vista">
@@ -123,7 +127,7 @@ export const GALX_ARRIBA = `<header class="portada">
       <h3 id="uNombre"></h3>
       <p class="tipo" id="uTipo"></p>
       <dl class="datos" id="uDatos"></dl>
-      <a class="btn wa" id="uWa" target="_blank" rel="noopener">Consultar</a>
+      <a class="btn wa" id="uWa" href="${galWhatsappUrl('Hola, estoy viendo Galinda! y quiero consultar.')}" target="_blank" rel="noopener">Consultar</a>
       <a class="btn sec" id="uFicha">Ver la ficha completa</a>
     </div>
   </div>
@@ -139,11 +143,11 @@ export const GALX_ARRIBA = `<header class="portada">
 <section id="vivir"><div class="wrap">
   <p class="rotulo">Vivir en Galinda</p>
   <h2>Parque propio, piscina, gimnasio y todo a mano</h2>
-  <p class="bajada">Viviendas, oficinas y un paseo de locales en un mismo lugar, en el centro de Funes. Con seguridad permanente y cocheras cubiertas.</p>
+  <p class="bajada">Viviendas, oficinas y un paseo de locales en un mismo lugar, en la entrada de Funes. Con seguridad permanente y cocheras cubiertas.</p>
   <div class="amb" id="amTabs" role="group" aria-label="Espacios comunes"></div>
   <div class="foto ancha"><img loading="lazy" decoding="async" id="amImg" src="/emprendimientos/galinda/x/img/am-parque.webp" alt="Render del parque de las viviendas"><p class="pie-foto" id="amPie"></p></div>
   <ul class="amen" aria-label="Amenidades">
-    <li>Piscina</li><li>Solárium</li><li>Parque</li><li>Gimnasio</li><li>Salón de usos múltiples</li><li>Parrillero</li><li>Laundry</li><li>Bicicletero</li><li>Cocheras cubiertas</li><li>Grupo electrógeno</li><li>Seguridad permanente</li>
+    <li>Piscina</li><li>Solárium</li><li>Parque</li><li>Gimnasio</li><li>Salón de usos múltiples</li><li>Parrillero</li><li>Lavadero</li><li>Bicicletero</li><li>Cocheras cubiertas</li><li>Grupo electrógeno</li><li>Seguridad permanente</li>
   </ul>
   <p class="nota">Renders y amenidades del proyecto de Fundar.</p>
 </div></section>
@@ -185,7 +189,7 @@ export const GALX_ARRIBA = `<header class="portada">
   <p class="rotulo">Fechas y forma de pago</p>
   <h2>Lo que hay que saber</h2>
   <div class="cifras" style="margin-top:20px">
-    <div><b>91 %</b><span>de avance de obra, según Fundar al 17 de noviembre de 2026</span></div>
+    <div><b>${GAL_AVANCE} %</b><span>de avance de obra, según Fundar al ${GAL_FECHA_FOTOS}</span></div>
     <div><b>Enero 2027</b><span>entrega estimada de las oficinas, según Fundar</span></div>
     <div><b>Marzo-abril 2027</b><span>entrega estimada de las viviendas, según Fundar</span></div>
     <div><b>30 % de anticipo</b><span>y el saldo en 12 o 24 cuotas; pueden ser en pesos, ajustadas por índice CAC</span></div>
@@ -199,7 +203,7 @@ export const GALX_ABAJO = `<section class="cierre"><div class="wrap">
     <img loading="lazy" decoding="async" src="/emprendimientos/galinda/x/img/atardecer.webp" alt="Fachada de Galinda con las luces encendidas al atardecer">
     <div class="texto">
       <h2>Vení a verlo en persona</h2>
-      <a class="btn linea" id="cWa" target="_blank" rel="noopener">Coordinar una visita</a>
+      <a class="btn linea" id="cWa" href="${galWhatsappUrl('Hola, quiero coordinar una visita a Galinda!')}" target="_blank" rel="noopener">Coordinar una visita</a>
       <span class="tel">341 334-0916</span>
     </div>
   </div>
@@ -211,5 +215,5 @@ export const GALX_ABAJO = `<section class="cierre"><div class="wrap">
   <div class="lupa-arriba"><strong id="lupaTit"></strong><button type="button" id="lupaX" aria-label="Cerrar">✕</button></div>
   <div class="lupa-abajo"><button type="button" id="lupaMen" aria-label="Alejar">−</button><button type="button" id="lupaMas" aria-label="Acercar">+</button><span id="lupaAyuda">Pellizcá o hacé doble toque para acercar</span></div>
 </div>
-<a class="fija" id="fijaWa" target="_blank" rel="noopener">Consultar</a>
+<a class="fija" id="fijaWa" href="${galWhatsappUrl('Hola, estoy viendo Galinda! y quiero consultar.')}" target="_blank" rel="noopener">Consultar</a>
 `

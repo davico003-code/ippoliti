@@ -30,7 +30,7 @@
 @media (max-width:760px){
   .galx .gx-donde{grid-template-columns:1fr}
   .galx th,.galx td{padding:11px 7px;font-size:14px}
-  .galx thead th{font-size:11px;letter-spacing:.06em}
+  .galx thead th{font-size:12px;letter-spacing:.04em}
   .galx tr>:first-child{padding-left:12px}
   .galx .gx-col-x{display:none}
   .galx .gx-pie-pagina{padding-bottom:84px}
