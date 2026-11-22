@@ -125,6 +125,7 @@ export function iniciar(){
     function prepara(ok){
       if(listo)return ok();if(cargando)return;cargando=true;
       script(THREE_URL,function(){
+        if(muerto)return;
         try{
           R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
           R.outputEncoding=THREE.sRGBEncoding;R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -213,7 +214,7 @@ export function iniciar(){
   var VID={living:1,cocina:1,dormitorio:1,bano:1,balcon:1};
   var amb=$('amb'),imgAmb=$('imgAmb'),vidAmb=$('vidAmb'),tipoAmb=null;
   var ambPend=null,ambVisto=!('IntersectionObserver' in window);
-  function ambAnda(){if(!ambPend||vidAmb.getAttribute('src')===ambPend)return;vidAmb.src=ambPend;var p=vidAmb.play();if(p&&p.catch)p.catch(function(){vidAmb.hidden=true;imgAmb.hidden=false})}
+  function ambAnda(){if(!ambPend)return;if(vidAmb.getAttribute('src')!==ambPend)vidAmb.src=ambPend;var p=vidAmb.play();if(p&&p.catch)p.catch(function(){vidAmb.hidden=true;imgAmb.hidden=false})}
   if(!ambVisto){var oa=new IntersectionObserver(function(en){ambVisto=en[0].isIntersecting;if(ambVisto)ambAnda();else vidAmb.pause()},{rootMargin:'150px'});oa.observe($('fotoCaja'));obs.push(oa)}
   function muestra(a,b){
     [].forEach.call(amb.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
