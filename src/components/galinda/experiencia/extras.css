@@ -1,0 +1,43 @@
+/* Secciones escritas en el HTML (tablas, ubicación, preguntas): mismo tablero
+   blanco que la experiencia. */
+.galx{background:var(--papel);color:var(--tinta);font-family:var(--f-txt);font-size:17px;line-height:1.5;font-variant-numeric:lining-nums;padding-bottom:1px}
+.galx .gx-tabla-caja{overflow-x:auto;border:1px solid var(--linea);border-radius:14px;background:#fff}
+.galx table{width:100%;border-collapse:collapse;font-size:16px}
+.galx caption{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.galx th,.galx td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--linea);white-space:nowrap}
+.galx thead th{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-2);font-weight:700;background:var(--suave)}
+.galx tbody tr:last-child th,.galx tbody tr:last-child td{border-bottom:0}
+.galx tbody th{font-family:var(--f-num);font-weight:600}
+.galx td.n{font-family:var(--f-num);font-variant-numeric:lining-nums tabular-nums}
+.galx td a{color:var(--galinda-osc);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.galx .gx-tablas h3{margin:34px 0 12px;font-size:21px}
+.galx .gx-donde{display:grid;grid-template-columns:1fr 1.3fr;gap:28px;align-items:start}
+.galx .gx-donde ul{list-style:none;padding:0;margin:14px 0 20px;display:grid;gap:10px}
+.galx .gx-donde li{padding-left:18px;position:relative;color:var(--tinta-2)}
+.galx .gx-donde li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:50%;background:var(--galinda)}
+.galx .gx-donde .gx-dir{font-weight:700;font-size:20px;margin:0}
+.galx .gx-donde .gx-mapa-caja{border-radius:14px;overflow:hidden;color:#16211f}
+.galx .btn.gx-sec2{display:inline-block;border:1px solid var(--linea);border-radius:12px;padding:12px 18px;font-weight:700;text-decoration:none;color:var(--tinta);font-size:16px}
+.galx .gx-faq{max-width:860px;border-top:1px solid var(--linea)}
+.galx .gx-faq details{border-bottom:1px solid var(--linea)}
+.galx .gx-faq summary{cursor:pointer;list-style:none;padding:18px 34px 18px 0;font-weight:700;font-size:18px;position:relative}
+.galx .gx-faq summary::-webkit-details-marker{display:none}
+.galx .gx-faq summary::after{content:"+";position:absolute;right:4px;top:14px;font-family:var(--f-num);font-size:24px;font-weight:400;color:var(--galinda-osc)}
+.galx .gx-faq details[open] summary::after{content:"−"}
+.galx .gx-faq details p{margin:0 0 18px;color:var(--tinta-2);max-width:68ch}
+.galx .gx-mas{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.galx .gx-legal{font-size:14px;color:var(--tinta-2);max-width:900px;margin:0 0 28px}
+@media (max-width:760px){
+  .galx .gx-donde{grid-template-columns:1fr}
+  .galx th,.galx td{padding:11px 7px;font-size:14px}
+  .galx thead th{font-size:12px;letter-spacing:.04em}
+  .galx tr>:first-child{padding-left:12px}
+  .galx .gx-col-x{display:none}
+  .galx .gx-pie-pagina{padding-bottom:84px}
+}
+/* El encabezado fijo de la web no tapa el destino de los saltos. */
+.galx section,.galx .pisos{scroll-margin-top:84px}
+/* Portada: primero la foto; el video aparece suave cuando ya está andando. */
+.galx .portada video{opacity:0;transition:opacity .7s ease}
+.galx .portada video.va{opacity:1}
+@media (prefers-reduced-motion:reduce){.galx .portada video{transition:none}}
