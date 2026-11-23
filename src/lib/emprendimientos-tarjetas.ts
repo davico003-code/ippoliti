@@ -104,7 +104,7 @@ export async function getTarjetasEmprendimientos(): Promise<Card[]> {
       'Departamentos de 2 y 3 dormitorios sobre un parque con pileta, una oficina y locales en el paseo comercial. Obra al 91 % y el showroom ya terminado. 30 % de anticipo y el resto en 12 o 24 cuotas.',
     chips: ['Departamentos', 'En construcción'],
     accent: GREEN,
-    marcas: [{ rol: 'Desarrolla y construye', nombre: 'Fundar', logo: LOGOS_CLARO.fundar }],
+    marcas: [{ rol: 'Construye', nombre: 'Fundar', logo: LOGOS_CLARO.fundar }],
   })
 
   cards.push({

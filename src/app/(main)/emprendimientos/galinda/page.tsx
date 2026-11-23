@@ -154,8 +154,8 @@ const PREGUNTAS: { p: string; r: string }[] = [
     r: 'Sí. El showroom, la unidad modelo, ya está terminado. Coordinamos la visita por WhatsApp al 341 334-0916.',
   },
   {
-    p: '¿Quién lo desarrolla y quién lo vende?',
-    r: 'Lo desarrolla y construye Fundar. Lo comercializa SI INMOBILIARIA, con oficina en Funes.',
+    p: '¿Quién lo construye y quién lo vende?',
+    r: 'Lo construye Fundar. Lo comercializa SI INMOBILIARIA, con oficina en Funes.',
   },
 ]
 
@@ -414,7 +414,7 @@ export default function GalindaPage() {
 
       <div className="wrap gx-pie-pagina">
         <p className="gx-legal">
-          Desarrolla y construye Fundar (fundar.com.ar). Comercializa SI INMOBILIARIA. Los videos de la portada y de la obra
+          Construye Fundar (fundar.com.ar). Comercializa SI INMOBILIARIA. Los videos de la portada y de la obra
           y las fotos del showroom son reales. El dibujo del conjunto, las plantas en 3D con muebles y la imagen del
           atardecer son ilustrativos: vale el plano de Fundar de cada unidad. Superficies aproximadas, sujetas a ajustes del
           proyecto final. Entrega estimada: oficinas, {GAL_ENTREGA_OFICINAS}; departamentos, {GAL_ENTREGA_VIVIENDAS}. Forma
