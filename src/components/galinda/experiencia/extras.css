@@ -90,3 +90,12 @@
 /* Locales: solo mención y consulta (sin plano ni metros). */
 .galx .loc-aviso{margin-bottom:18px}
 .galx .loc-aviso .btn{margin-top:6px}
+
+/* Plano ilustrativo del paseo: las siluetas se van encendiendo de a una. */
+.galx .gx-loc .loc{animation:gxLoc 9s linear infinite;animation-delay:calc(var(--i) * 1s)}
+.galx .gx-loc a:hover .loc,.galx .gx-loc a:focus-visible .loc{animation:none;fill:var(--galinda-osc)}
+.galx .gx-loc a{outline:none;text-decoration:none}
+.galx .gx-loc-t{text-decoration:none}
+@keyframes gxLoc{0%{fill:#fff}4%{fill:#8fcfc1}12%{fill:#fff}100%{fill:#fff}}
+@media (prefers-reduced-motion:reduce){.galx .gx-loc .loc{animation:none}}
+.galx .gx-loc-t{font-family:var(--f-num);font-weight:600;font-size:46px;fill:var(--tinta);pointer-events:none}

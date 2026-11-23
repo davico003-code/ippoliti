@@ -4,6 +4,17 @@
 // destino (el motor despues les pone el mensaje de la unidad elegida).
 
 import { GAL_AVANCE, GAL_FECHA_FOTOS, galWhatsappUrl } from '@/lib/galinda'
+import { LOC } from './datos'
+
+// Plano ilustrativo del paseo de locales: SOLO las siluetas (David, 23-nov-2026:
+// no hay autorización para publicar los locales en detalle). Solo el número de
+// local (en Poppins, pedido de David); sin metros y sin uso; cada silueta lleva a la consulta por WhatsApp.
+const WA_LOC = galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')
+const ORDEN_LOC = [33, 32, 31, 39, 38, 37, 36, 35, 34]
+const SILUETAS_LOC = ORDEN_LOC.map((id, i) => {
+  const l = LOC.find((x) => x.id === id)
+  return l ? `<a href="${WA_LOC}" target="_blank" rel="noopener" aria-label="Consultar por el local ${l.id}"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 16}" text-anchor="middle">${l.id}</text></a>` : ''
+}).join('')
 
 export const GALX_ARRIBA = `<header class="portada">
   <picture><source media="(max-width: 640px)" srcset="/emprendimientos/galinda/x/img/portada-m.webp"><img class="pposter" src="/emprendimientos/galinda/x/img/portada-fin.webp" alt="Condominio Galinda! en Funes visto desde el aire, sobre Av. Galindo" fetchpriority="high" decoding="async"></picture>
@@ -63,11 +74,33 @@ export const GALX_ARRIBA = `<header class="portada">
     </div>
   </div>
   <div class="locales" id="locales" hidden>
-    <div class="loc-aviso">
-      <p class="rotulo" style="margin-bottom:6px">Planta baja</p>
-      <h3>Paseo de locales</h3>
-      <p class="bajada">Un paseo de locales comerciales sobre Av. Galindo. La disponibilidad y las condiciones se consultan por WhatsApp.</p>
-      <a class="btn wa" id="locWa" href="${galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')}" target="_blank" rel="noopener">Consultar por locales</a>
+    <div class="loc-arriba">
+      <div class="loc-plano gx-loc">
+        <svg viewBox="20 92 800 1176" role="img" aria-label="Plano ilustrativo del paseo de locales de Galinda!, en planta baja sobre Av. Galindo">
+          <defs>
+            <pattern id="locRayas" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="#f1f4f3"/><line x1="0" y1="0" x2="0" y2="12" stroke="#dde3e1" stroke-width="5"/></pattern>
+            <filter id="locSombra" x="-10%" y="-5%" width="120%" height="115%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#16211f" flood-opacity=".16"/></filter>
+          </defs>
+          <polygon points="101,147 655,147 729,566 549,1191 101,1191" fill="#fff" filter="url(#locSombra)"/>
+          <polygon class="loc-comun" points="294,147 505,147 505,273 294,273"/>
+          <polygon class="loc-comun" points="303,566 729,566 670,770 303,770"/>
+          ${SILUETAS_LOC}
+          <polygon class="loc-frente" points="101,147 655,147 729,566 549,1191 101,1191"/>
+          <polygon class="loc-borde" points="101,147 655,147 729,566 549,1191 101,1191"/>
+          <text class="loc-lado" x="378" y="122" text-anchor="middle">ESTACIONAMIENTO</text>
+          <text class="loc-lado" x="62" y="670" text-anchor="middle" transform="rotate(-90 62 670)">ESTACIONAMIENTO</text>
+          <text class="loc-lado" x="700" y="905" text-anchor="middle" transform="rotate(-74 700 905)">PLAZOLETA</text>
+          <text class="loc-lado fuerte" x="330" y="1246" text-anchor="middle">AV. GALINDO</text>
+          <text class="loc-chico" x="500" y="674" text-anchor="middle">HALL</text>
+        </svg>
+        <p class="nota">Plano ilustrativo. En verde, el frente vidriado. Tocá un local para consultar.</p>
+      </div>
+      <div class="loc-aviso">
+        <p class="rotulo" style="margin-bottom:6px">Planta baja</p>
+        <h3>Paseo de locales</h3>
+        <p class="bajada">Un paseo de locales comerciales sobre Av. Galindo, con estacionamiento a dos lados y la plazoleta al otro. La disponibilidad y las condiciones se consultan por WhatsApp.</p>
+        <a class="btn wa" id="locWa" href="${WA_LOC}" target="_blank" rel="noopener">Consultar por locales</a>
+      </div>
     </div>
     <div class="loc-fotos">
       <figure><img src="/emprendimientos/galinda/x/img/am-local.webp" alt="Render de un local gastronómico en esquina" loading="lazy"><figcaption>Render de Fundar: local en esquina</figcaption></figure>
