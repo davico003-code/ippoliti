@@ -98,4 +98,4 @@
 .galx .gx-loc-t{text-decoration:none}
 @keyframes gxLoc{0%{fill:#fff}4%{fill:#8fcfc1}12%{fill:#fff}100%{fill:#fff}}
 @media (prefers-reduced-motion:reduce){.galx .gx-loc .loc{animation:none}}
-.galx .gx-loc-t{font-family:var(--f-txt);font-weight:700;font-size:19px;letter-spacing:.22em;fill:var(--tinta-2);pointer-events:none}
+.galx .gx-loc-t{font-family:var(--f-num);font-weight:600;font-size:46px;fill:var(--tinta);pointer-events:none}

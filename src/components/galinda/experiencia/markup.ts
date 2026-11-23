@@ -7,13 +7,13 @@ import { GAL_AVANCE, GAL_FECHA_FOTOS, galWhatsappUrl } from '@/lib/galinda'
 import { LOC } from './datos'
 
 // Plano ilustrativo del paseo de locales: SOLO las siluetas (David, 23-nov-2026:
-// no hay autorización para publicar los locales en detalle). Sin número de
-// local, sin metros y sin uso; cada silueta lleva a la consulta por WhatsApp.
+// no hay autorización para publicar los locales en detalle). Solo el número de
+// local (en Poppins, pedido de David); sin metros y sin uso; cada silueta lleva a la consulta por WhatsApp.
 const WA_LOC = galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')
 const ORDEN_LOC = [33, 32, 31, 39, 38, 37, 36, 35, 34]
 const SILUETAS_LOC = ORDEN_LOC.map((id, i) => {
   const l = LOC.find((x) => x.id === id)
-  return l ? `<a href="${WA_LOC}" target="_blank" rel="noopener" aria-label="Consultar por un local del paseo"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 6}" text-anchor="middle">LOCAL</text></a>` : ''
+  return l ? `<a href="${WA_LOC}" target="_blank" rel="noopener" aria-label="Consultar por el local ${l.id}"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 16}" text-anchor="middle">${l.id}</text></a>` : ''
 }).join('')
 
 export const GALX_ARRIBA = `<header class="portada">
