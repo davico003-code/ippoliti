@@ -66,3 +66,23 @@
   .galx .gx-grupo td{white-space:normal}
   .galx td.gx-acc a{min-width:0;padding:6px 9px;font-size:13px}
 }
+
+/* Celular: el dibujo del conjunto más grande (se recorre con el dedo) y los videos de obra de a uno. */
+.galx .axo-pista,.galx .clips-pts{display:none}
+@media (max-width:760px){
+  .galx .axo{margin-left:-16px;margin-right:-16px;border-radius:0;border-left:0;border-right:0}
+  .galx .axo-mov{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .galx .axo-mov::-webkit-scrollbar{display:none}
+  .galx .axo-mov svg{width:185%;max-width:none}
+  .galx .axo-rot text{font-size:54px}
+  .galx .axo-rot path{stroke-width:5}
+  .galx .axo-pista{display:block;position:absolute;left:10px;top:10px;font-size:13px;font-weight:600;color:var(--tinta-2);background:rgba(255,255,255,.92);padding:5px 10px;border-radius:999px;box-shadow:0 1px 6px rgba(0,0,0,.12);pointer-events:none;transition:opacity .3s}
+  .galx .axo-pista.fuera{opacity:0}
+  .galx .clips{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -16px;padding:0 16px;scroll-padding:0 16px}
+  .galx .clips::-webkit-scrollbar{display:none}
+  .galx .clips figure{flex:0 0 84%;scroll-snap-align:center}
+  .galx .clips video{max-height:68vh}
+  .galx .clips-pts{display:flex;justify-content:center;gap:8px;margin-top:14px}
+  .galx .clips-pts i{width:8px;height:8px;border-radius:50%;background:#cfd8d5;transition:background .2s}
+  .galx .clips-pts i.on{background:var(--tinta)}
+}

@@ -151,7 +151,7 @@ export function iniciar(){
       d.rects.forEach(function(q){var m=new THREE.Mesh(new THREE.BoxGeometry(q[2]*k,H,q[3]*k),mat);m.position.set((q[0]+q[2]/2-cx)*k,H/2,(q[1]+q[3]/2-cy)*k);m.castShadow=true;m.receiveShadow=true;grupo.add(m)});
       esc.add(grupo);idAct=id;
     }
-    function mide(){var r=cv.getBoundingClientRect();if(!r.width)return;R.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix();var f=Math.max(1,1.35/cam.aspect);if(f!==fAsp){tDist=tDist/fAsp*f;dist=dist/fAsp*f;base0=base*f;fAsp=f}}
+    function mide(){var r=cv.getBoundingClientRect();if(!r.width)return;R.setSize(r.width,r.height,false);cam.aspect=r.width/r.height;cam.updateProjectionMatrix();var f=Math.max(1,1.35/cam.aspect);if(cam.aspect<1)f*=0.76;if(f!==fAsp){tDist=tDist/fAsp*f;dist=dist/fAsp*f;base0=base*f;fAsp=f}}
     function cuadro(){
       if(!vivo)return;
       if(auto&&x0===null)tAz+=0.0035;
@@ -286,8 +286,14 @@ export function iniciar(){
 
   var clips=[].slice.call(document.querySelectorAll('.galx .clips video'));
   function cargaClip(v){if(v.dataset.src){v.src=v.dataset.src;v.removeAttribute('data-src')}}
-  if('IntersectionObserver' in window){var oc=new IntersectionObserver(function(en){en.forEach(function(x){if(!x.isIntersecting)return;oc.unobserve(x.target);cargaClip(x.target);if(!quieto){var p=x.target.play();if(p&&p.catch)p.catch(function(){})}})},{rootMargin:'200px'});clips.forEach(function(v){oc.observe(v)});obs.push(oc)}else clips.forEach(cargaClip);
-  clips.forEach(function(v){v.addEventListener('click',function(){cargaClip(v);if(v.paused){var p=v.play();if(p&&p.catch)p.catch(function(){})}else v.pause()})});
+  // De a uno: anda solo el video que se está viendo; el resto queda en pausa (en el celu van en fila, uno por pantalla).
+  var pts=$('clipsPts');if(pts){pts.textContent='';clips.forEach(function(){pts.appendChild(document.createElement('i'))})}
+  if('IntersectionObserver' in window){var oc=new IntersectionObserver(function(en){en.forEach(function(x){var v=x.target,n=clips.indexOf(v);if(pts&&pts.children[n])pts.children[n].classList.toggle('on',x.isIntersecting);if(!x.isIntersecting){v.pause();return}cargaClip(v);if(!quieto&&!v.dataset.pausado){var p=v.play();if(p&&p.catch)p.catch(function(){})}})},{threshold:0.6});clips.forEach(function(v){oc.observe(v)});obs.push(oc)}else clips.forEach(cargaClip);
+  // El dibujo del conjunto, en el celu, va más grande que la pantalla: arranca centrado y se recorre con el dedo.
+  (function(){var mv=$('axoMov'),pi=$('axoPista');if(!mv)return;function centra(){if(mv.scrollWidth>mv.clientWidth+4)mv.scrollLeft=(mv.scrollWidth-mv.clientWidth)*0.42}
+    centra();window.addEventListener('load',centra,{signal:sg,once:true});
+    mv.addEventListener('scroll',function(){if(pi&&Math.abs(mv.scrollLeft-(mv.scrollWidth-mv.clientWidth)*0.42)>24)pi.classList.add('fuera')},{signal:sg,passive:true})})();
+  clips.forEach(function(v){v.addEventListener('click',function(){cargaClip(v);if(v.paused){delete v.dataset.pausado;var p=v.play();if(p&&p.catch)p.catch(function(){})}else{v.dataset.pausado='1';v.pause()}})});
   var AM=[['Parque','am-parque','Parque del condominio Galinda! en Funes, render de Fundar','El parque de las viviendas y las cocheras cubiertas'],['Gimnasio','am-gimnasio','Gimnasio del condominio Galinda! en Funes, render de Fundar','Gimnasio con vista al parque'],['Balcones','am-balcon','Render de un balcón con vista al parque','Balcones que miran al parque'],['Plazoleta','am-plazoleta','Render de la plazoleta de ingreso','La plazoleta, entre las oficinas y las viviendas'],['Paseo de locales','am-paseo','Render del paseo comercial','Paseo de locales en planta baja'],['Ingreso','am-ingreso','Render del ingreso a las viviendas','Ingreso a las viviendas'],['Oficinas','am-oficinas','Render de una sala de reuniones','Sala de reuniones del edificio de oficinas']];
   var amT=$('amTabs');
   AM.forEach(function(a,i){var b=document.createElement('button');b.type='button';b.textContent=a[0];b.setAttribute('aria-pressed',i===0?'true':'false');b.addEventListener('click',function(){[].forEach.call(amT.children,function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});$('amImg').src=B+'img/'+a[1]+'.webp';$('amImg').alt=a[2];$('amPie').textContent=a[3]});amT.appendChild(b)});
