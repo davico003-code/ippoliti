@@ -3,7 +3,7 @@
 //
 // "Experiencia" (David, 22-nov-2026, aprobada sobre una página de prueba):
 // portada con video real de dron, explorador piso por piso sobre el dibujo del
-// conjunto, cada unidad en 3D para girarla, plano tocable de los locales,
+// conjunto, cada unidad en 3D para girarla, mención de los locales,
 // amenidades, obra filmada y cierre. SIN PRECIO (David, 17-nov-2026).
 //
 // Cómo está armada:
@@ -20,7 +20,7 @@ import Link from 'next/link'
 import PropertyMapLazy from '@/components/PropertyMapLazy'
 import MotorGalinda from '@/components/galinda/experiencia/MotorGalinda'
 import { GALX_ABAJO, GALX_ARRIBA } from '@/components/galinda/experiencia/markup'
-import { LOC, U } from '@/components/galinda/experiencia/datos'
+import { U } from '@/components/galinda/experiencia/datos'
 import {
   GAL_AVANCE,
   GAL_BASE,
@@ -60,8 +60,7 @@ const oficinas = U.filter((u) => u.of)
 const nombre = (u: (typeof U)[number]) => `${u.of ? 'Oficina' : 'Unidad'} ${u.id}`
 const waUnidad = (u: (typeof U)[number]) =>
   galWhatsappUrl(`Hola, vi la ${nombre(u).toLowerCase()} de Galinda! (${u.m2} m²) y quiero saber el precio.`)
-const waLocal = (l: (typeof LOC)[number]) =>
-  galWhatsappUrl(`Hola, vi el local ${l.id} de Galinda! (${l.t} m²) y quiero consultar el valor.`)
+const WA_LOCALES = galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')
 
 const dos = viviendas.filter((u) => u.tipo.startsWith('2'))
 const m2Dos = dos.map((u) => Number(u.m2))
@@ -85,7 +84,6 @@ const GRUPOS = [
   grupo('deptos-3-dormitorios', 'Departamentos de 3 dormitorios', '3 dormitorios', viviendas.filter((u) => u.tipo.startsWith('3')), GAL_ENTREGA_VIVIENDAS),
   grupo('oficina', 'Oficina', 'Oficina', oficinas, GAL_ENTREGA_OFICINAS),
 ].filter((g) => g.lista.length > 0)
-const RANGO_LOC = rango(LOC.map((l) => ({ m2: l.t })))
 
 const m2Viv = viviendas.map((u) => Number(u.m2))
 const RANGO_VIV = `${Math.min(...m2Viv)} a ${Math.max(...m2Viv)} m²`
@@ -131,7 +129,7 @@ const PREGUNTAS: { p: string; r: string }[] = [
   },
   {
     p: '¿Hay oficinas y locales comerciales?',
-    r: `Sí. Queda una oficina, la 03-02, de 51 m², frente a la plazoleta y orientada al norte. En planta baja hay un paseo de locales comerciales, varios aptos para gastronomía: acá están los metros y el frente vidriado de los locales 31 a 39, y la disponibilidad se consulta por WhatsApp.`,
+    r: `Sí. Queda una oficina, la 03-02, de 51 m², frente a la plazoleta y orientada al norte. En planta baja hay un paseo de locales comerciales; la disponibilidad se consulta por WhatsApp.`,
   },
   {
     p: '¿Cuándo se entrega?',
@@ -252,9 +250,7 @@ export default function GalindaPage() {
             ))}
             <a href="#locales-comerciales">
               <b>Locales</b>
-              <span>
-                <span className="num">{LOC.length}</span> locales · <span className="num">{RANGO_LOC}</span>
-              </span>
+              <span>En planta baja · Consultar</span>
             </a>
           </nav>
 
@@ -305,47 +301,15 @@ export default function GalindaPage() {
             </div>
           ))}
 
-          <h3 id="locales-comerciales">Locales comerciales en Funes: paseo de planta baja</h3>
-          <p className="bajada">
-            Locales <span className="num">31</span> a <span className="num">39</span>, con entrepiso. Total = planta baja +
-            entrepiso + comunes. Los valores se consultan.
-          </p>
-          <div className="gx-tabla-caja">
-            <table>
-              <caption>Locales comerciales 31 a 39 de Galinda!, Funes</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Local</th>
-                  <th scope="col">Uso</th>
-                  <th scope="col" className="gx-col-x">Planta baja</th>
-                  <th scope="col" className="gx-col-x">Entrepiso</th>
-                  <th scope="col">Total</th>
-                  <th scope="col" className="gx-col-x">Frente vidriado</th>
-                  <th scope="col">
-                    <span className="sr-only">Consultar</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...LOC]
-                  .sort((a, b) => a.id - b.id)
-                  .map((l) => (
-                    <tr key={l.id}>
-                      <th scope="row">{l.id}</th>
-                      <td>{l.g ? 'Apto gastronómico' : 'Local comercial'}</td>
-                      <td className="n gx-col-x">{l.pb} m²</td>
-                      <td className="n gx-col-x">{l.ep} m²</td>
-                      <td className="n">{l.t} m²</td>
-                      <td className="n gx-col-x">{l.fr} m</td>
-                      <td>
-                        <a href={waLocal(l)} target="_blank" rel="noopener noreferrer">
-                          Consultar
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+          <div id="locales-comerciales" className="gx-grupo">
+            <h3>Locales comerciales en Funes</h3>
+            <p className="bajada">
+              En planta baja hay un paseo de locales comerciales sobre Av. Galindo. La disponibilidad y las condiciones se
+              consultan por WhatsApp.
+            </p>
+            <a className="btn wa" href={WA_LOCALES} target="_blank" rel="noopener noreferrer">
+              Consultar por locales
+            </a>
           </div>
         </div>
       </section>

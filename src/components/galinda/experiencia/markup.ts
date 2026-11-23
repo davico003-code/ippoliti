@@ -63,49 +63,17 @@ export const GALX_ARRIBA = `<header class="portada">
     </div>
   </div>
   <div class="locales" id="locales" hidden>
-    <div class="loc-arriba">
-      <div class="loc-plano">
-        <svg id="locSvg" viewBox="20 92 800 1176" role="group" aria-label="Planta de los locales 31 a 39. Tocá un local para ver sus metros.">
-          <defs>
-            <pattern id="locRayas" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="#f1f4f3"/><line x1="0" y1="0" x2="0" y2="12" stroke="#dde3e1" stroke-width="5"/></pattern>
-            <filter id="locSombra" x="-10%" y="-5%" width="120%" height="115%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#16211f" flood-opacity=".16"/></filter>
-          </defs>
-          <polygon points="101,147 655,147 729,566 549,1191 101,1191" fill="#fff" filter="url(#locSombra)"/>
-          <polygon class="loc-comun" points="294,147 505,147 505,273 294,273"/>
-          <polygon class="loc-comun" points="303,566 729,566 670,770 303,770"/>
-          <g id="locPol"></g>
-          
-          <polygon class="loc-frente" points="101,147 655,147 729,566 549,1191 101,1191"/>
-          <polygon class="loc-borde" points="101,147 655,147 729,566 549,1191 101,1191"/>
-          <text class="loc-lado" x="378" y="122" text-anchor="middle">ESTACIONAMIENTO</text>
-          <text class="loc-lado" x="62" y="670" text-anchor="middle" transform="rotate(-90 62 670)">ESTACIONAMIENTO</text>
-          <text class="loc-lado" x="700" y="905" text-anchor="middle" transform="rotate(-74 700 905)">PLAZOLETA</text>
-          <text class="loc-lado fuerte" x="330" y="1246" text-anchor="middle">AV. GALINDO</text>
-          <text class="loc-chico" x="400" y="216" text-anchor="middle">SANITARIOS</text>
-          <text class="loc-chico" x="500" y="674" text-anchor="middle">HALL</text>
-        </svg>
-        <p class="nota"><span class="loc-ref gastro"></span> Apto gastronómico &nbsp; <span class="loc-ref"></span> Local comercial &nbsp; <span class="loc-ref frente"></span> Frente vidriado<br>PB = planta baja · EP = entrepiso. PB + EP + comunes = total.</p>
-      </div>
-      <div class="ficha loc-ficha" aria-live="polite">
-        <p class="rotulo" style="margin-bottom:6px">Planta baja · Paseo de locales</p>
-        <h3 id="locNombre"></h3>
-        <p class="tipo" id="locTipo"></p>
-        <dl class="datos" id="locDatos"></dl>
-        <a class="btn wa" id="locWa" href="${galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')}" target="_blank" rel="noopener">Consultar por este local</a>
-        <p class="nota">Tocá otro local en el plano para ver sus metros. Los valores se consultan.</p>
-      </div>
-    </div>
-    <h3 class="sub" style="margin-top:8px">El plano de Fundar</h3>
-    <div class="loc-planos">
-      <figure><img src="/emprendimientos/galinda/x/img/loc-pb-lote2.webp" alt="Plano de Fundar de los locales 31 a 39 con su entorno" loading="lazy"><figcaption>Locales 31 a 39: estacionamiento a dos lados, plazoleta al otro y Av. Galindo al frente</figcaption></figure>
-      <figure><img src="/emprendimientos/galinda/x/img/loc-pb-completa.webp" alt="Planta baja completa de Galinda según Fundar, con todos los locales" loading="lazy"><figcaption>Planta baja completa del conjunto. La G verde marca los locales aptos gastronómicos</figcaption></figure>
+    <div class="loc-aviso">
+      <p class="rotulo" style="margin-bottom:6px">Planta baja</p>
+      <h3>Paseo de locales</h3>
+      <p class="bajada">Un paseo de locales comerciales sobre Av. Galindo. La disponibilidad y las condiciones se consultan por WhatsApp.</p>
+      <a class="btn wa" id="locWa" href="${galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')}" target="_blank" rel="noopener">Consultar por locales</a>
     </div>
     <div class="loc-fotos">
       <figure><img src="/emprendimientos/galinda/x/img/am-local.webp" alt="Render de un local gastronómico en esquina" loading="lazy"><figcaption>Render de Fundar: local en esquina</figcaption></figure>
       <figure><img src="/emprendimientos/galinda/x/img/am-paseo.webp" alt="Render del paseo de locales con pérgolas" loading="lazy"><figcaption>Render de Fundar: el paseo</figcaption></figure>
       <figure><img src="/emprendimientos/galinda/x/img/obra2-locales.webp" alt="Foto real del interior de un local en obra" loading="lazy"><figcaption>Foto real, 17 de noviembre de 2026</figcaption></figure>
     </div>
-    <p class="nota">Superficies y planos según la presentación comercial de Fundar (Obra 0810, planilla del 20/4/2026), sujetos a modificaciones. La planta baja y el entrepiso incluyen su parte de muros; el frente vidriado cuenta la puerta de ingreso.</p>
   </div>
   <div class="selector" id="selector" hidden role="group" aria-label="Unidades de este piso"></div>
 
