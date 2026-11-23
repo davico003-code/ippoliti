@@ -27,6 +27,7 @@ export const GALX_ARRIBA = `<header class="portada">
   <h2>Elegí el piso y tocá tu unidad</h2>
   <p class="bajada">Tocá un piso en el dibujo y después tu unidad. Cada una se abre en 3D para girarla.</p>
   <div class="axo">
+    <div class="axo-mov" id="axoMov">
     <svg id="axo" viewBox="120 280 3260 1700" role="group" aria-label="Dibujo del conjunto según el proyecto de Fundar. Tocá un piso para ver sus unidades.">
       <image href="/emprendimientos/galinda/x/img/axo-hd.webp" x="0" y="0" width="3504" height="2336"/>
       <g id="axoB"></g>
@@ -41,6 +42,8 @@ export const GALX_ARRIBA = `<header class="portada">
         <text class="calle" x="3120" y="1105" transform="rotate(-25 3120 1105)">FUNES ▶</text>
       </g>
     </svg>
+    </div>
+    <span class="axo-pista" id="axoPista" aria-hidden="true">Deslizá para recorrerlo</span>
     <p class="axo-et" id="axoEt" aria-live="polite"></p>
   </div>
   <div class="explora">
@@ -177,12 +180,13 @@ export const GALX_ARRIBA = `<header class="portada">
   <p class="rotulo">La obra hoy</p>
   <h2>La obra hoy, filmada el 17 de noviembre</h2>
   <p class="bajada">Recorrida por adentro y por el paseo. Tocá un video para pausarlo.</p>
-  <div class="clips">
+  <div class="clips" id="clips">
     <figure><video data-src="/emprendimientos/galinda/x/clip/balcon.mp4" poster="/emprendimientos/galinda/x/clip/balcon.webp" muted loop playsinline preload="none"></video><figcaption>El parque desde el balcón</figcaption></figure>
     <figure><video data-src="/emprendimientos/galinda/x/clip/cocina.mp4" poster="/emprendimientos/galinda/x/clip/cocina.webp" muted loop playsinline preload="none"></video><figcaption>Cocina y lavadero</figcaption></figure>
     <figure><video data-src="/emprendimientos/galinda/x/clip/dormitorio.mp4" poster="/emprendimientos/galinda/x/clip/dormitorio.webp" muted loop playsinline preload="none"></video><figcaption>Dormitorio con placard</figcaption></figure>
     <figure><video data-src="/emprendimientos/galinda/x/clip/paseo.mp4" poster="/emprendimientos/galinda/x/clip/paseo.webp" muted loop playsinline preload="none"></video><figcaption>El paseo de locales</figcaption></figure>
   </div>
+  <div class="clips-pts" id="clipsPts" aria-hidden="true"></div>
 </div></section>
 
 <section><div class="wrap">
