@@ -86,3 +86,7 @@
   .galx .clips-pts i{width:8px;height:8px;border-radius:50%;background:#cfd8d5;transition:background .2s}
   .galx .clips-pts i.on{background:var(--tinta)}
 }
+
+/* Locales: solo mención y consulta (sin plano ni metros). */
+.galx .loc-aviso{margin-bottom:18px}
+.galx .loc-aviso .btn{margin-top:6px}
