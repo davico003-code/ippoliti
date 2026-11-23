@@ -75,6 +75,9 @@ const nextConfig = {
       // Fincazul se dio de baja de todos lados (David, 7-nov-2026): la landing se
       // borró y la URL indexada cae en la sección, no en un 404.
       { source: '/emprendimientos/fincazul', destination: '/emprendimientos', permanent: true },
+      // Galinda! también llega en el feed de Hilo como emprendimiento (id 900810):
+      // su ficha genérica cae en la landing propia (23-nov-2026).
+      { source: '/emprendimientos/:slug(\\d+-galinda.*)', destination: '/emprendimientos/galinda', permanent: true },
       // Redirect vieja guía a la nueva
       {
         source: '/guia-comprador',

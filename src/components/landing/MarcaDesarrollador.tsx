@@ -105,6 +105,13 @@ export const LOGOS_CLARO = {
     height: 200,
     className: 'h-8 w-auto brightness-0',
   },
+  /** Logo de fundar.com.ar (solo en blanco: un solo color, se oscurece). */
+  fundar: {
+    src: '/emprendimientos/marcas/fundar-blanco.svg',
+    width: 129,
+    height: 32,
+    className: 'h-6 w-auto brightness-0',
+  },
   /** Logo de maseadesarrollos.com.ar. */
   masea: { src: '/emprendimientos/marcas/masea-blanco.webp', width: 640, height: 210, className: 'h-9 w-auto brightness-0' },
 }

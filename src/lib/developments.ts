@@ -296,7 +296,22 @@ async function devCompleto(objs: any[], devId: number) {
   return { rich: null, hit: hits[0] }
 }
 
+// Emprendimientos del feed que ya tienen landing propia en la web: no se listan
+// como emprendimiento genérico (salían dos veces en /emprendimientos, 23-nov-2026).
+// Se reconocen por el nombre (slug sin id) y su URL genérica redirige a la landing
+// (next.config.mjs).
+export const LANDINGS_PROPIAS = ['galinda']
+
+function tieneLandingPropia(dev: Development): boolean {
+  const slug = generateDevSlug(dev)
+  return LANDINGS_PROPIAS.some((k) => slug.includes(k))
+}
+
 export async function getDevelopments(): Promise<Development[]> {
+  return (await getDevelopmentsTodos()).filter((d) => !tieneLandingPropia(d))
+}
+
+async function getDevelopmentsTodos(): Promise<Development[]> {
   if (isHiloSource()) {
     const objs = await hiloFeed()
     // Una unidad representativa por dev (para traer el development completo).
