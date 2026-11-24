@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { leerCondicionesTemporario, formatearMonto, tieneCondiciones, leerAlquiladas, comodidadesTemporario } from './temporarios.ts'
+import { leerCondicionesTemporario, formatearMonto, tieneCondiciones, leerAlquiladas, comodidadesTemporario, periodoMesCompleto } from './temporarios.ts'
 
 const DESCRIPCION = `Hermosa casa con pileta en Funes, ideal para el verano.
 
@@ -111,4 +111,12 @@ test('los datos estructurados de Hilo mandan; la descripción es respaldo', asyn
   assert.doesNotMatch(c.descripcion, /Quincena:/)
   // Sin temporada en el feed: igual que antes.
   assert.deepEqual(condicionesTemporario(DESCRIPCION, null).precios[0], { periodo: 'quincena', texto: 'ARS 900.000' })
+})
+
+test('mes completo: dice el período en vez de las quincenas', () => {
+  const mes = [{ periodo: 'mes', texto: 'USD 5.000' }]
+  assert.equal(periodoMesCompleto({ precios: mes, entrada: '5 de enero', salida: '31 de enero' }), 'Del 5 al 31 de enero')
+  assert.equal(periodoMesCompleto({ precios: mes, entrada: '20 de diciembre', salida: '15 de enero' }), 'Del 20 de diciembre al 15 de enero')
+  assert.equal(periodoMesCompleto({ precios: [{ periodo: 'quincena', texto: 'x' }, ...mes], entrada: '5 de enero', salida: '31 de enero' }), null)
+  assert.equal(periodoMesCompleto({ precios: mes, entrada: '14 h', salida: null }), null)
 })

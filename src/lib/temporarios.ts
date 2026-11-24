@@ -315,3 +315,19 @@ export function condicionesTemporario(
     descripcion: texto.descripcion,
   }
 }
+
+/**
+ * Temporario de mes completo (HILO manda solo precio por mes, David 24-nov-2026:
+ * "no es quincena, es del 5 al 31"): en vez del cuadro de quincenas, la ficha
+ * dice el período. "5 de enero" + "31 de enero" → "Del 5 al 31 de enero".
+ * null = temporario por quincena (va el cuadro de siempre).
+ */
+export function periodoMesCompleto(c: Pick<CondicionesTemporario, 'precios' | 'entrada' | 'salida'>): string | null {
+  const porMes = c.precios.some((p) => p.periodo === 'mes') && !c.precios.some((p) => p.periodo === 'quincena')
+  if (!porMes || !c.entrada || !c.salida) return null
+  const [a, b] = [c.entrada.trim(), c.salida.trim()]
+  const mesA = a.match(/^(\d{1,2})\s+de\s+(.+)$/i)
+  const mesB = b.match(/^(\d{1,2})\s+de\s+(.+)$/i)
+  if (mesA && mesB && mesA[2].toLowerCase() === mesB[2].toLowerCase()) return `Del ${mesA[1]} al ${b}`
+  return `Del ${a} al ${b}`
+}
