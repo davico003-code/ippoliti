@@ -8,13 +8,13 @@ import { LOC } from './datos'
 
 // Plano del paseo de locales (David, 23 y 24-nov-2026): cada silueta lleva solo
 // el número, en Poppins. Al tocarla, el panel de al lado muestra planta baja,
-// entrepiso y total de ese local. No van: tabla, uso por local, comunes, frente
+// entrepiso y total de ese local, y si es apto gastronómico. No van: tabla, comunes, frente
 // ni los planos de Fundar (no hay autorización para publicarlos en detalle).
 const WA_LOC = galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')
 const ORDEN_LOC = [33, 32, 31, 39, 38, 37, 36, 35, 34]
 const SILUETAS_LOC = ORDEN_LOC.map((id, i) => {
   const l = LOC.find((x) => x.id === id)
-  return l ? `<g class="gx-loc-b" role="button" tabindex="0" data-id="${l.id}" data-pb="${l.pb}" data-ep="${l.ep}" data-t="${l.t}" aria-label="Local ${l.id}: ver sus metros"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 16}" text-anchor="middle">${l.id}</text></g>` : ''
+  return l ? `<g class="gx-loc-b" role="button" tabindex="0" data-id="${l.id}" data-pb="${l.pb}" data-ep="${l.ep}" data-t="${l.t}" data-g="${l.g}" aria-label="Local ${l.id}${l.g ? ', apto gastronómico' : ''}: ver sus metros"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 16}" text-anchor="middle">${l.id}</text></g>` : ''
 }).join('')
 
 export const GALX_ARRIBA = `<header class="portada">
@@ -99,6 +99,7 @@ export const GALX_ARRIBA = `<header class="portada">
       <div class="loc-aviso">
         <p class="rotulo" style="margin-bottom:6px">Planta baja</p>
         <h3 id="locNombre">Paseo de locales</h3>
+        <p class="tipo" id="locTipo" hidden></p>
         <p class="bajada" id="locTxt">Un paseo de locales comerciales sobre Av. Galindo, con estacionamiento a dos lados y la plazoleta al otro. Tocá un local en el plano para ver sus metros.</p>
         <dl class="datos" id="locDatos" aria-live="polite" hidden></dl>
         <a class="btn wa" id="locWa" href="${WA_LOC}" target="_blank" rel="noopener">Consultar por locales</a>

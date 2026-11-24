@@ -82,7 +82,7 @@ export function iniciar(){
   var locBs=[].slice.call(document.querySelectorAll('.galx .gx-loc-b')),locSel=null;
   function verLocal(b){
     locSel=b;var d=b.dataset;locBs.forEach(function(x){x.classList.toggle('on',x===b)});
-    $('locNombre').textContent='Local '+d.id;$('locTxt').hidden=true;
+    $('locNombre').textContent='Local '+d.id;$('locTipo').textContent=d.g==='1'?'Apto gastronómico':'Local comercial';$('locTipo').hidden=false;$('locTxt').hidden=true;
     $('locDatos').innerHTML=dato('Planta baja',d.pb+' m²')+dato('Entrepiso',d.ep+' m²')+dato('Superficie total',d.t+' m²')+dato('Valor','Consultar');$('locDatos').hidden=false;$('locNota').hidden=false;
     var m=wa('Hola, vi el local '+d.id+' de Galinda! y quiero consultar el valor.');
     $('locWa').href=m;$('locWa').textContent='Consultar por el local '+d.id;$('fijaWa').href=m;$('fijaWa').textContent='Consultar por el local '+d.id;
