@@ -119,4 +119,6 @@ test('mes completo: dice el período en vez de las quincenas', () => {
   assert.equal(periodoMesCompleto({ precios: mes, entrada: '20 de diciembre', salida: '15 de enero' }), 'Del 20 de diciembre al 15 de enero')
   assert.equal(periodoMesCompleto({ precios: [{ periodo: 'quincena', texto: 'x' }, ...mes], entrada: '5 de enero', salida: '31 de enero' }), null)
   assert.equal(periodoMesCompleto({ precios: mes, entrada: '14 h', salida: null }), null)
+  assert.equal(periodoMesCompleto({ precios: mes, entrada: '14:00', salida: '10:00' }), null)
+  assert.equal(periodoMesCompleto({ precios: mes, entrada: '14 h', salida: '10 h' }), null)
 })
