@@ -657,10 +657,13 @@ export function preciosPorOperacion(
     })
     .map((op) => {
       const p = op.prices[0];
-      // Temporario de HILO: el precio de la operación es por quincena.
+      // Temporario de HILO: el precio de la operación es por quincena, salvo
+      // estadía mínima de un mes (HILO manda entonces precio_quincena null).
       const suffix =
         op.operation_type === 'Temporary rent'
-          ? op.temporada ? ' / quincena' : ''
+          ? op.temporada
+            ? op.temporada.precio_quincena == null && op.temporada.precio_mes != null ? ' / mes' : ' / quincena'
+            : ''
           : op.operation_type === 'Rent' ? ' /mes' : '';
       return {
         operacion: operacionEnEspanol(op.operation_type),
