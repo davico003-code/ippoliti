@@ -6,14 +6,15 @@
 import { GAL_AVANCE, GAL_FECHA_FOTOS, galWhatsappUrl } from '@/lib/galinda'
 import { LOC } from './datos'
 
-// Plano ilustrativo del paseo de locales: SOLO las siluetas (David, 23-nov-2026:
-// no hay autorización para publicar los locales en detalle). Solo el número de
-// local (en Poppins, pedido de David); sin metros y sin uso; cada silueta lleva a la consulta por WhatsApp.
+// Plano del paseo de locales (David, 23 y 24-nov-2026): cada silueta lleva solo
+// el número, en Poppins. Al tocarla, el panel de al lado muestra planta baja,
+// entrepiso y total de ese local, y si es apto gastronómico. No van: tabla, comunes, frente
+// ni los planos de Fundar (no hay autorización para publicarlos en detalle).
 const WA_LOC = galWhatsappUrl('Hola, quiero consultar por un local en Galinda!')
 const ORDEN_LOC = [33, 32, 31, 39, 38, 37, 36, 35, 34]
 const SILUETAS_LOC = ORDEN_LOC.map((id, i) => {
   const l = LOC.find((x) => x.id === id)
-  return l ? `<a href="${WA_LOC}" target="_blank" rel="noopener" aria-label="Consultar por el local ${l.id}"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 16}" text-anchor="middle">${l.id}</text></a>` : ''
+  return l ? `<g class="gx-loc-b" role="button" tabindex="0" data-id="${l.id}" data-pb="${l.pb}" data-ep="${l.ep}" data-t="${l.t}" data-g="${l.g}" aria-label="Local ${l.id}${l.g ? ', apto gastronómico' : ''}: ver sus metros"><polygon class="loc" style="--i:${i}" points="${l.pg}"/><text class="gx-loc-t" x="${l.c[0]}" y="${l.c[1] + 16}" text-anchor="middle">${l.id}</text></g>` : ''
 }).join('')
 
 export const GALX_ARRIBA = `<header class="portada">
@@ -93,13 +94,16 @@ export const GALX_ARRIBA = `<header class="portada">
           <text class="loc-lado fuerte" x="330" y="1246" text-anchor="middle">AV. GALINDO</text>
           <text class="loc-chico" x="500" y="674" text-anchor="middle">HALL</text>
         </svg>
-        <p class="nota">Plano ilustrativo. En verde, el frente vidriado. Tocá un local para consultar.</p>
+        <p class="nota">Plano ilustrativo. En verde, el frente vidriado. Tocá un local para ver sus metros.</p>
       </div>
       <div class="loc-aviso">
         <p class="rotulo" style="margin-bottom:6px">Planta baja</p>
-        <h3>Paseo de locales</h3>
-        <p class="bajada">Un paseo de locales comerciales sobre Av. Galindo, con estacionamiento a dos lados y la plazoleta al otro. La disponibilidad y las condiciones se consultan por WhatsApp.</p>
+        <h3 id="locNombre">Paseo de locales</h3>
+        <p class="tipo" id="locTipo" hidden></p>
+        <p class="bajada" id="locTxt">Un paseo de locales comerciales sobre Av. Galindo, con estacionamiento a dos lados y la plazoleta al otro. Tocá un local en el plano para ver sus metros.</p>
+        <dl class="datos" id="locDatos" aria-live="polite" hidden></dl>
         <a class="btn wa" id="locWa" href="${WA_LOC}" target="_blank" rel="noopener">Consultar por locales</a>
+        <p class="nota" id="locNota" hidden>Superficies según la presentación comercial de Fundar, sujetas a modificaciones. El valor se consulta.</p>
       </div>
     </div>
     <div class="loc-fotos">
