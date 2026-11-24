@@ -31,7 +31,7 @@ import {
   getProducerName,
   propertyTypeLabelById,
 } from '@/lib/tokko'
-import { condicionesTemporario, tieneCondiciones, comodidadesTemporario } from '@/lib/temporarios'
+import { condicionesTemporario, tieneCondiciones, comodidadesTemporario, periodoMesCompleto } from '@/lib/temporarios'
 import ContactoSecundario from './ContactoSecundario'
 import WhatsappConDatos from './WhatsappConDatos'
 import TemporarioCondiciones, { TemporarioPrecios } from './TemporarioCondiciones'
@@ -176,6 +176,15 @@ export default function PropertyDetailBody({
     ? condicionesTemporario(descripcionCompleta, opTemporaria.temporada, tienePrecio ? montoOperacion(opTemporaria) : null)
     : null
   const description = condTemp ? condTemp.descripcion : descripcionCompleta
+  // Mes completo ("del 5 al 31 de enero"): el período reemplaza al cuadro de quincenas.
+  const periodoMes = condTemp ? periodoMesCompleto(condTemp) : null
+  const disponibilidad = condTemp ? (
+    periodoMes ? (
+      <p className="text-[15px] font-semibold" style={{ fontFamily: R, color: 'var(--foreground)' }}>{periodoMes}</p>
+    ) : (
+      <DisponibilidadTemporada alquiladas={condTemp.alquiladas} tamano="md" />
+    )
+  ) : null
   const blueprints = getBlueprintPhotos(property)
   const recorridos = videosPropios(property.videos)
   const videoOficina = videoOficinaSolo(property.videos)
@@ -278,7 +287,7 @@ export default function PropertyDetailBody({
                   <span className="text-[28px] lg:text-[32px]" style={{ fontFamily: P, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'var(--foreground)', lineHeight: 1 }}>
                     {precio}
                   </span>
-                  {mes && (
+                  {mes && !precio.endsWith('/ mes') && (
                     <span className="block mt-1 text-sm font-semibold text-gray-600 font-numeric">
                       {mes.texto} / mes
                     </span>
@@ -288,7 +297,7 @@ export default function PropertyDetailBody({
             })}
             {condTemp && (
               <div className="basis-full max-w-md">
-                <DisponibilidadTemporada alquiladas={condTemp.alquiladas} tamano="md" />
+                {disponibilidad}
               </div>
             )}
           </div>
@@ -298,7 +307,7 @@ export default function PropertyDetailBody({
             <div className="space-y-4">
               <TemporarioPrecios precios={condTemp.precios} />
               <div className="max-w-md">
-                <DisponibilidadTemporada alquiladas={condTemp.alquiladas} tamano="md" />
+                {disponibilidad}
               </div>
             </div>
           ) : tienePrecio ? (
