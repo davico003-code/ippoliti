@@ -207,7 +207,7 @@ export const GALX_ABAJO = `<section class="cierre"><div class="wrap">
   <div class="caja">
     <img loading="lazy" decoding="async" src="/emprendimientos/galinda/x/img/atardecer.webp" alt="Fachada del condominio Galinda! en Funes con las luces encendidas al atardecer">
     <div class="texto">
-      <h2>Vení a verlo en persona</h2>
+      <h2>Vení a conocerlo en persona</h2>
       <a class="btn linea" id="cWa" href="${galWhatsappUrl('Hola, quiero coordinar una visita a Galinda!')}" target="_blank" rel="noopener">Coordinar una visita</a>
       <span class="tel">341 334-0916</span>
     </div>
