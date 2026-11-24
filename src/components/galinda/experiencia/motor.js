@@ -78,6 +78,16 @@ export function iniciar(){
   }
   if('IntersectionObserver' in window){var ob=new IntersectionObserver(function(en){if(en[0].isIntersecting){ob.disconnect();recorre()}},{threshold:0.5});ob.observe($('axo'));obs.push(ob)}
   Object.keys(MOD).forEach(function(k){MOD[k].alt=1});
+  // Locales: al tocar una silueta, el panel muestra planta baja, entrepiso y total de ese local.
+  var locBs=[].slice.call(document.querySelectorAll('.galx .gx-loc-b')),locSel=null;
+  function verLocal(b){
+    locSel=b;var d=b.dataset;locBs.forEach(function(x){x.classList.toggle('on',x===b)});
+    $('locNombre').textContent='Local '+d.id;$('locTxt').hidden=true;
+    $('locDatos').innerHTML=dato('Planta baja',d.pb+' m²')+dato('Entrepiso',d.ep+' m²')+dato('Superficie total',d.t+' m²')+dato('Valor','Consultar');$('locDatos').hidden=false;$('locNota').hidden=false;
+    var m=wa('Hola, vi el local '+d.id+' de Galinda! y quiero consultar el valor.');
+    $('locWa').href=m;$('locWa').textContent='Consultar por el local '+d.id;$('fijaWa').href=m;$('fijaWa').textContent='Consultar por el local '+d.id;
+  }
+  locBs.forEach(function(b){b.addEventListener('click',function(){verLocal(b);var d=$('locDatos').getBoundingClientRect();if(d.bottom>innerHeight-90)$('locNombre').scrollIntoView({behavior:quieto?'auto':'smooth',block:'center'})},{signal:sg});b.addEventListener('keydown',function(ev){if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();verLocal(b)}},{signal:sg})});
   var pisoPrimera=true;
   function dato(k,v){return '<div><dt>'+k+'</dt><dd class="num">'+v+'</dd></div>'}
   function nombre(u){return (u.of?'Oficina ':'Unidad ')+u.id}
@@ -86,7 +96,7 @@ export function iniciar(){
     [].forEach.call(pisos.children,function(b){b.setAttribute('aria-pressed',+b.dataset.n===n?'true':'false')});
     var lista=U.filter(function(u){return u.piso===n});
     marcas.innerHTML='';sel.innerHTML='';
-    $('plPb').hidden=n!==1;$('locales').hidden=n!==0;document.querySelector('.planta-caja').hidden=n===0;if(pisoPrimera){pisoPrimera=false;setTimeout(function(){var d=$('pisos');if(d)d.scrollIntoView({behavior:quieto?'auto':'smooth',block:'start'})},60)}if(n===0){$('fijaWa').href=wa('Hola, quiero consultar por un local en Galinda!');$('fijaWa').textContent='Consultar por locales'}if(n===1){$('fijaWa').href=wa('Hola, estoy viendo Galinda! y quiero consultar.');$('fijaWa').textContent='Consultar'}$('planta').classList.toggle('pb',n<2);$('pbTit').textContent=n===1?'Piso 1: sin unidades disponibles':'Planta baja: paseo de locales';$('pbTxt').textContent=n===1?'Hoy las unidades en venta están en los pisos 2 y 3.':'La disponibilidad se consulta por WhatsApp.';$('pbWa').hidden=n===1;
+    $('plPb').hidden=n!==1;$('locales').hidden=n!==0;document.querySelector('.planta-caja').hidden=n===0;if(pisoPrimera){pisoPrimera=false;setTimeout(function(){var d=$('pisos');if(d)d.scrollIntoView({behavior:quieto?'auto':'smooth',block:'start'})},60)}if(n===0){if(locSel)verLocal(locSel);else{$('fijaWa').href=wa('Hola, quiero consultar por un local en Galinda!');$('fijaWa').textContent='Consultar por locales'}}if(n===1){$('fijaWa').href=wa('Hola, estoy viendo Galinda! y quiero consultar.');$('fijaWa').textContent='Consultar'}$('planta').classList.toggle('pb',n<2);$('pbTit').textContent=n===1?'Piso 1: sin unidades disponibles':'Planta baja: paseo de locales';$('pbTxt').textContent=n===1?'Hoy las unidades en venta están en los pisos 2 y 3.':'La disponibilidad se consulta por WhatsApp.';$('pbWa').hidden=n===1;
     $('notaPlanta').textContent=n<2?'':'En verde, las unidades en venta de este piso, con la silueta exacta de las fichas de Fundar. Tocá una acá o elegila en la lista.';
     lista.forEach(function(u){
       var m=document.createElement('button');m.type='button';m.className='marca-u'+(u.pos[0]>85?' der':'');m.dataset.id=u.id;m.style.cssText='left:'+u.pos[0]+'%;top:'+u.pos[1]+'%;width:'+u.pos[2]+'%;height:'+u.pos[3]+'%';

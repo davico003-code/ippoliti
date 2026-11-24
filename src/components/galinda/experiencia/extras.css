@@ -93,8 +93,10 @@
 
 /* Plano ilustrativo del paseo: las siluetas se van encendiendo de a una. */
 .galx .gx-loc .loc{animation:gxLoc 9s linear infinite;animation-delay:calc(var(--i) * 1s)}
-.galx .gx-loc a:hover .loc,.galx .gx-loc a:focus-visible .loc{animation:none;fill:var(--galinda-osc)}
-.galx .gx-loc a{outline:none;text-decoration:none}
+.galx .gx-loc-b{cursor:pointer;outline:none}
+.galx .gx-loc-b:hover .loc,.galx .gx-loc-b:focus-visible .loc{animation:none;fill:#d9efe9}
+.galx .gx-loc-b.on .loc{animation:none;fill:var(--galinda-osc)}
+.galx .gx-loc-b.on .gx-loc-t{fill:#fff}
 .galx .gx-loc-t{text-decoration:none}
 @keyframes gxLoc{0%{fill:#fff}4%{fill:#8fcfc1}12%{fill:#fff}100%{fill:#fff}}
 @media (prefers-reduced-motion:reduce){.galx .gx-loc .loc{animation:none}}
