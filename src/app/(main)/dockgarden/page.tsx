@@ -1,17 +1,21 @@
 import type { Metadata } from 'next'
-import Image from '@/components/Imagen'
 import Link from 'next/link'
-import { MapPin, MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
+import { MessageCircle, Phone, FileText, CheckCircle2 } from 'lucide-react'
 import { getDockGarden } from '@/lib/brickfy'
 import DockGardenUnits, { DockGardenMedia } from '@/components/dockgarden/DockGardenUnits'
-import { OficinaVentas, SeccionCercanias, SeccionTerminaciones, SeccionVers } from '@/components/dockgarden/Confianza'
-import Recorridos360 from '@/components/dockgarden/Recorridos360'
-import ElegiTuUnidad from '@/components/dockgarden/ElegiTuUnidad'
-import { unidadesExplorador } from '@/lib/dockgarden'
+import { OficinaVentas, SeccionCercanias } from '@/components/dockgarden/Confianza'
+import MotorDockGarden from '@/components/dockgarden/experiencia/MotorDockGarden'
+import { DGX_ABAJO, DGX_EXPLORAR, DGX_PORTADA } from '@/components/dockgarden/experiencia/markup'
+import '@/components/dockgarden/experiencia/experiencia.css'
 
 // Landing compartible de Dock Garden (Aldea Fisherton) — versión SI del link
 // de compartir de Brickfy del desarrollador, con todas las unidades, planos,
 // vistas 360 y videos. Se alimenta de la API pública de Brickfy vía ISR.
+// Desde el 25-nov-2026 arriba va la "experiencia" (igual que Galinda!): portada,
+// maqueta con las calles y los pisos de la torre en venta, plano real y ficha
+// por unidad. El HTML lo dibuja el servidor (experiencia/markup.ts) y lo anima
+// experiencia/motor.js; precio y estado de cada unidad le llegan en vivo por el
+// script #dgxVivo. Debajo sigue la lista oficial con todas las unidades.
 // noindex: es una herramienta de venta para enviar por WhatsApp; la página
 // SEO canónica del proyecto sigue siendo /emprendimientos/67173-....
 
@@ -80,6 +84,11 @@ export default async function DockGardenPage() {
     thumbnailUrl: v.thumbnailUrl,
   }))
 
+  // Precio y estado de hoy por unidad, para la maqueta (el id de Brickfy sin su prefijo: 2-1-1 = torre-piso-unidad).
+  const vivo = Object.fromEntries(
+    units.map(u => [u.id.replace(/^DOCK_GARDEN-/, ''), { p: u.price, pref: !!u.preferencial, e: u.status === 'available' ? 'd' : u.status === 'reserved' ? 'r' : 'v' }]),
+  )
+
   const stats = [
     { label: 'Unidades disponibles', value: String(available.length) },
     // "1, 2 y 3" (antes salía "1 y 2 y 3").
@@ -105,48 +114,8 @@ export default async function DockGardenPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      {/* Mobile: foto 16:9 limpia y el título debajo (encima tapaba los
-          edificios). Desde md: hero a pantalla con el texto sobre la foto. */}
-      <section className="relative w-full bg-white md:h-[56vh]">
-        <div className="relative aspect-[16/9] w-full md:absolute md:inset-0 md:aspect-auto">
-          {/* Render propio sin sello: todas las imágenes de Brickfy (portada y
-              galería) traen el logo del desarrollador estampado. */}
-          {/* next/image: el archivo pesa 456 KB y un <img> lo bajaba entero
-              también en el celular; así cada pantalla recibe su tamaño. */}
-          <Image
-            src="/images/dockgarden/render-frente.webp"
-            alt="Dock Garden — Aldea Fisherton"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 hidden bg-gradient-to-t from-black/80 via-black/30 to-black/10 md:block" />
-        </div>
-        <div className="relative px-4 pb-2 pt-5 sm:px-6 md:absolute md:inset-x-0 md:bottom-0 md:p-10">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-3 flex flex-wrap gap-2">
-              <span className="rounded-full bg-[#1A5C38] px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">Condominio + Paseo comercial</span>
-              <span className="rounded-full border border-[#1A5C38]/20 bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#1A5C38] md:border-transparent">{project.status}</span>
-            </div>
-            <h1 className="mb-2 text-4xl font-black text-gray-900 md:text-5xl md:text-white md:drop-shadow-md" style={{ fontFamily: 'Raleway, sans-serif' }}>
-              Dock Garden
-            </h1>
-            <div className="flex items-center gap-2 text-gray-500 md:text-white/80">
-              <MapPin className="h-4 w-4 shrink-0" />
-              <span className="text-sm font-medium">{project.location}</span>
-            </div>
-            {/* Quién lo hace: el estudio, como aval (azul en celular sobre blanco,
-                blanco desde md sobre la foto). */}
-            <div className="mt-4 flex items-center gap-3">
-              <span className="text-xs font-medium text-gray-500 md:text-white/75">Un proyecto de</span>
-              <Image src="/emprendimientos/marcas/vers-azul.webp" alt="Estudio VERS" width={640} height={185} className="h-8 w-auto md:hidden" />
-              <Image src="/emprendimientos/marcas/vers-blanco.webp" alt="Estudio VERS" width={640} height={185} className="hidden h-10 w-auto md:block" />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Portada de la experiencia (reemplaza al hero anterior) */}
+      <div className="dgx" dangerouslySetInnerHTML={{ __html: DGX_PORTADA }} />
 
       {/* Stats + financiación */}
       <section className="border-b border-gray-100 bg-white">
@@ -166,8 +135,10 @@ export default async function DockGardenPage() {
         </div>
       </section>
 
-      {/* Elegir la unidad en el edificio antes de la lista completa */}
-      <ElegiTuUnidad unidades={unidadesExplorador(units)} contenedor={CONTENEDOR} whatsapp={WA_PHONE} />
+      {/* Elegir la unidad en la maqueta antes de la lista completa. El motor lee
+          de acá el precio y el estado de hoy de cada unidad. */}
+      <script id="dgxVivo" type="application/json" dangerouslySetInnerHTML={{ __html: JSON.stringify(vivo).replace(/</g, '\\u003c') }} />
+      <div className="dgx" dangerouslySetInnerHTML={{ __html: DGX_EXPLORAR }} />
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         {/* Unidades */}
@@ -210,11 +181,9 @@ export default async function DockGardenPage() {
         )}
       </div>
 
-      {/* Confianza, después de la lista (la página sigue siendo la lista):
-          las vistas 360°, quién lo construye, con qué está hecho y qué hay cerca. */}
-      <Recorridos360 contenedor={CONTENEDOR} />
-      <SeccionVers contenedor={CONTENEDOR} />
-      <SeccionTerminaciones contenedor={CONTENEDOR} />
+      {/* Después de la lista: el resto de la experiencia (cómo se vive cada
+          tipología, terminaciones, la obra, quién lo hace) y qué hay cerca. */}
+      <div className="dgx" dangerouslySetInnerHTML={{ __html: DGX_ABAJO }} />
       <SeccionCercanias contenedor={CONTENEDOR} />
       <div className="bg-white pb-12">
         <div className={CONTENEDOR}>
@@ -233,19 +202,20 @@ export default async function DockGardenPage() {
         </p>
       </footer>
 
-      {/* FAB WhatsApp — ÚNICO botón de WhatsApp de la página, con mensaje
-          pre-cargado (mismo patrón que Distrito Roldán; el global se oculta acá). */}
+      {/* FAB WhatsApp con mensaje pre-cargado, solo en pantallas grandes: en el
+          celular la experiencia ya trae su barra fija "Consultar". */}
       <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Consultar por WhatsApp"
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_14px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 hover:bg-[#1ea952]"
+        className="fixed bottom-5 right-5 z-50 hidden h-14 w-14 min-[761px]:flex items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_4px_14px_rgba(37,211,102,0.45)] transition-transform hover:scale-105 hover:bg-[#1ea952]"
       >
         <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/>
         </svg>
       </a>
+      <MotorDockGarden />
     </div>
   )
 }
