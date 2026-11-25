@@ -21,6 +21,7 @@ import { getDockGarden } from '@/lib/brickfy'
 import { filasDesdeBrickfy, filasDesdeCrm, type UnidadFila } from '@/lib/unidadesFilas'
 import { VERS_LOGO, type Marca } from '@/components/landing/MarcaDesarrollador'
 import EmprendimientoFunnel from '@/components/emprendimiento/EmprendimientoFunnel'
+import PixelConsultas from '@/components/emprendimiento/PixelConsultas'
 import BotonVolver from '@/components/BotonVolver'
 import HeroAerea from '@/components/distrito-roldan/HeroAerea'
 import { seccionesDockGarden } from '@/components/dockgarden/Confianza'
@@ -305,6 +306,7 @@ export default async function DevelopmentPage({ params }: Props) {
       {/* Con el Navbar global oculto en Distrito, este acceso mantiene una salida
           clara hacia el listado de emprendimientos. */}
       {isDistrito && <BotonVolver />}
+      <PixelConsultas nombre={displayName} />
 
       <script
         type="application/ld+json"
