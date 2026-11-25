@@ -13,6 +13,14 @@ function wa(t){return 'https://wa.me/'+TEL+'?text='+encodeURIComponent(t)}
 function usd(n){return 'USD '+n.toLocaleString('es-AR')}
 var quieto=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* portada: primero la imagen; el video del dron entra con la pagina ya cargada
+   y no se baja si el celular pide ahorrar datos o la conexion es lenta */
+var vp=$('dgxVid'),muerto=false,red=navigator.connection||{},lenta=red.saveData||/(^|-)2g|3g/.test(red.effectiveType||'');
+function alVer(){vp.classList.add('va')}
+function arrancaVideo(){if(muerto||!vp)return;vp.src='/images/dockgarden/x/'+(vp.clientHeight>vp.clientWidth?'portada-m.mp4':'portada.mp4');var pp=vp.play();if(pp&&pp.catch)pp.catch(function(){})}
+function alCargar(){setTimeout(arrancaVideo,400)}
+if(vp&&!quieto&&!lenta){vp.addEventListener('playing',alVer);if(document.readyState==='complete')alCargar();else window.addEventListener('load',alCargar,{once:true})}
+
 var BANDAS={"t2":{"dx":[[1984,932],[2030,838],[2673,1096],[2810,1022],[2854,1110],[2673,1208]],"3":[[1984,932],[2673,1208],[2854,1110],[2854,1170],[2673,1268],[1984,992]],"2":[[1984,992],[2673,1268],[2854,1170],[2854,1228],[2673,1326],[1984,1050]],"1":[[1984,1050],[2673,1326],[2854,1228],[2854,1284],[2673,1382],[1984,1106]],"pb":[[1984,1106],[2673,1382],[2854,1284],[2854,1339],[2673,1437],[1984,1161]]}};
 var NIV=[{k:'pb',n:0,t:'Planta baja',s:'Paseo comercial'},{k:'1',n:1,t:'Piso 1'},{k:'2',n:2,t:'Piso 2'},{k:'3',n:3,t:'Piso 3'},{k:'dx',n:4,t:'Dúplex',s:'Pisos 4 y 5'}];
 var TIP={'1d':'1 dormitorio','2d':'2 dormitorios','3d':'3 dormitorios',duplex:'Dúplex de 3 dormitorios'};
@@ -128,5 +136,5 @@ function tipologia(t){
 }
 function foto(f){$('gImg').src='/images/dockgarden/x/'+f[0]+'-900.webp';$('gImg').alt=f[1]}
 tipologia('1d');
-return function(){tocado=true;if(ob)ob.disconnect();document.removeEventListener('keydown',alEsc);if(mq.removeEventListener)mq.removeEventListener('change',encuadre)};
+return function(){tocado=true;muerto=true;window.removeEventListener('load',alCargar);if(vp){vp.removeEventListener('playing',alVer);try{vp.pause()}catch(_){}}if(ob)ob.disconnect();document.removeEventListener('keydown',alEsc);if(mq.removeEventListener)mq.removeEventListener('change',encuadre)};
 }
