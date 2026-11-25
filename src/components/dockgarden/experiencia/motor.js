@@ -30,7 +30,7 @@ var U=[
  {id:'2-4-3',c:'04.03',p:4,t:'duplex',pol:[[1732,165],[1732,567],[1738,568],[1739,682],[2177,682],[2178,567],[2700,567],[2701,682],[3233,681],[3232,165]],et:[2480,400],s:[[DP,'127,20'],['Terrazas y balcón','92,60'],[CD,'26,10']],tot:'245,90',$:375000,pref:1,e:'d',f:7268078}
 ];
 var vivo=null;try{vivo=JSON.parse(($('dgxVivo')||{}).textContent||'null')}catch(_){}
-if(vivo){U.forEach(function(u){var v=vivo[u.id];if(!v){u.e='v';return}u.$=v.p;u.pref=v.pref?1:0;u.e=v.e})}
+if(vivo){U.forEach(function(u){var v=vivo[u.id];if(!v){u.e='v';return}u.$=Number(v.p)||0;u.pref=v.pref?1:0;u.e=v.e})}
 var TOURS={'1d':[['h83cT','Estar-comedor','1d-estar'],['h83cx','Dormitorio','1d-dormitorio']],'3d':[['h83XP','Estar-comedor','3d-estar'],['h83XG','Dormitorio','3d-dormitorio']],duplex:[['h83FW','Estar-comedor','duplex-estar'],['h83Fz','Dormitorio','duplex-dormitorio'],['h839P','Terraza con parrillero','duplex-terraza']]};
 function urlTour(id){return 'https://kuula.co/share/'+id+'?logo=1&info=1&fs=1&vr=0&thumbs=1'}
 var GAL={'1d':[['1d-living','Estar-comedor'],['1d-cocina','Cocina'],['1d-dormitorio','Dormitorio']],'3d':[['3d-punta-living','Estar'],['3d-punta-living-2','Estar al balcón'],['3d-punta-comedor','Comedor'],['3d-punta-cocina','Cocina'],['3d-punta-dormitorio','Dormitorio']],duplex:[['duplex-comedor','Estar-comedor'],['duplex-dormitorio','Dormitorio'],['duplex-terraza','Terraza con parrillero']],'2d':[['2-dormitorios','Plano de 2 dormitorios']]};
@@ -64,7 +64,7 @@ NIV.forEach(function(nv){var b=document.createElement('button');b.type='button';
 /* invitación: los pisos de la Torre 2 se iluminan solos hasta que tocan uno */
 var paso=0;
 function recorre(){if(tocado||quieto)return;luz(2,paso%5,'luz');paso++;setTimeout(function(){if(tocado)return;if(paso%5===0){luz(-1,-1,'luz');setTimeout(recorre,900)}else recorre()},650)}
-if('IntersectionObserver' in window){var ob=new IntersectionObserver(function(en){if(en[0].isIntersecting){ob.disconnect();recorre()}},{threshold:.4});ob.observe($('axo'))}else recorre();
+var ob=null;if('IntersectionObserver' in window){ob=new IntersectionObserver(function(en){if(en[0].isIntersecting){ob.disconnect();recorre()}},{threshold:.4});ob.observe($('axo'))}else recorre();
 
 function elegir(t,n,desdeMaqueta){
   torre=t;piso=n;luz(-1,-1,'luz');luz(t,n,'on');
@@ -99,7 +99,7 @@ function verUnidad(u,toque){
   [].forEach.call($('chips').children,function(b){b.setAttribute('aria-pressed',String(b.dataset.id===u.id))});
   $('uNom').innerHTML='Unidad <span class="num">'+u.c+'</span>';
   $('uTipo').textContent=TIP[u.t]+' · Torre 2 · '+(u.p===4?'pisos 4 y 5':'piso '+u.p);
-  $('uPrecio').innerHTML=u.e==='d'?'<b>'+usd(u.$)+'</b>'+(u.pref?'<span>Valor preferencial SI</span>':''):'<span class="gris">'+(u.e==='r'?'Reservada':'Vendida')+'</span>';
+  $('uPrecio').innerHTML=u.e==='d'?'<b>'+(u.$?usd(u.$):'Consultar')+'</b>'+(u.pref?'<span>Valor preferencial SI</span>':''):'<span class="gris">'+(u.e==='r'?'Reservada':'Vendida')+'</span>';
   $('uDatos').innerHTML=u.s.map(function(s){return '<div><dt>'+s[0]+'</dt><dd>'+s[1]+' m²</dd></div>'}).join('')+'<div class="total"><dt>Superficie total</dt><dd>'+u.tot+' m²</dd></div>';
   var tr=TOURS[u.t]||[];$('uTours').innerHTML=tr.map(function(r){return '<a href="'+urlTour(r[0])+'" target="_blank" rel="noopener"><img src="/images/dockgarden/x/360-'+r[2]+'.webp" alt="">360° '+r[1]+'</a>'}).join('');
   $('uLam').src='/images/dockgarden/x/lam-'+u.id+'.webp';$('uLam').alt='Lámina de VERS de la unidad '+u.c+' con su plano y ubicación';
@@ -128,5 +128,5 @@ function tipologia(t){
 }
 function foto(f){$('gImg').src='/images/dockgarden/x/'+f[0]+'-900.webp';$('gImg').alt=f[1]}
 tipologia('1d');
-return function(){tocado=true;document.removeEventListener('keydown',alEsc);if(mq.removeEventListener)mq.removeEventListener('change',encuadre)};
+return function(){tocado=true;if(ob)ob.disconnect();document.removeEventListener('keydown',alEsc);if(mq.removeEventListener)mq.removeEventListener('change',encuadre)};
 }
