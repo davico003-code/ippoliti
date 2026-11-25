@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { trackEvent } from '@/lib/analytics'
+import { trackEvent, trackFbEvent } from '@/lib/analytics'
 import { iniciar } from './motor'
 
 // De dónde salió cada consulta por WhatsApp, para GA4 (mismo evento que el
@@ -27,7 +27,11 @@ export default function MotorGalinda() {
     }
     const alClic = (e: MouseEvent) => {
       const a = (e.target as HTMLElement | null)?.closest?.('a[href^="https://wa.me/"]')
-      if (a && a.closest('.galx')) trackEvent('click_whatsapp', { origen: `galinda-${ORIGEN[a.id] ?? 'pagina'}` })
+      if (a && a.closest('.galx')) {
+        trackEvent('click_whatsapp', { origen: `galinda-${ORIGEN[a.id] ?? 'pagina'}` })
+        // Consulta real → Contact del píxel: la pauta de Galinda! optimiza a esto.
+        trackFbEvent('Contact', { content_name: 'Galinda!', content_category: 'whatsapp' })
+      }
     }
     document.addEventListener('click', alClic)
     return () => {

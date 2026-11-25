@@ -337,6 +337,7 @@ export default function VisitWidget({
         </div>
         <a
           href={waHref}
+              data-sin-pixel
           target="_blank"
           rel="noopener noreferrer"
           className="si-visita-cta w-full flex min-h-[48px] items-center justify-center gap-2 rounded-2xl font-bold text-sm text-white"
