@@ -13,7 +13,8 @@ export default function PixelConsultas({ nombre }: { nombre: string }) {
   useEffect(() => {
     const alClic = (e: MouseEvent) => {
       const a = (e.target as HTMLElement | null)?.closest?.('a[href^="https://wa.me/"], a[href^="tel:"]') as HTMLAnchorElement | null
-      if (!a) return
+      // El pedido de visita ya manda su Contact; su botón de WhatsApp no se cuenta dos veces.
+      if (!a || a.closest('[data-sin-pixel]')) return
       const canal = a.href.startsWith('tel:') ? 'llamada' : 'whatsapp'
       trackFbEvent('Contact', { content_name: nombre, content_category: canal })
     }
